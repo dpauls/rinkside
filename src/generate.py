@@ -1,0 +1,407 @@
+#!/usr/bin/env python3
+"""
+Site generator: loads tournament data, runs analysis, outputs docs/data/state.json.
+The static index.html fetches this JSON and renders everything client-side.
+"""
+import argparse
+import json
+import sys
+from datetime import datetime
+from pathlib import Path
+
+from analyze import (
+    load_tournament,
+    compute_standings,
+    compute_h2h,
+    enumerate_scenarios,
+    determine_pool_winner,
+    get_remaining_games,
+    compute_pool_clinches,
+)
+
+
+def get_team_status(team_id, analysis, total):
+    count = analysis['counts'].get(team_id, 0)
+    if total == 0:
+        return 'TBD'
+    if count == total:
+        return 'CLINCHED'
+    if count == 0:
+        return 'ELIMINATED'
+    return 'ALIVE'
+
+
+def build_standings(pool_id, data, analysis):
+    teams = data['teams']
+    games = data.get('pool_games', [])
+    st = compute_standings(pool_id, teams, games)
+    h2h = compute_h2h(pool_id, games)
+    total = analysis['total'] if analysis else 1
+    deterministic = total - analysis.get('unresolved_count', 0) if analysis else 1
+
+    sorted_teams = sorted(st, key=lambda t: (st[t]['PTS'], st[t]['W'], st[t]['GF'] - st[t]['GA']), reverse=True)
+
+    # Find groups of teams tied on points (>0) and resolve tiebreakers for display
+    from analyze import resolve_tie
+    tie_notes = {}  # tid -> note explaining why they're ranked here
+    i = 0
+    while i < len(sorted_teams):
+        pts = st[sorted_teams[i]]['PTS']
+        # Collect all teams at this point level
+        group = []
+        while i < len(sorted_teams) and st[sorted_teams[i]]['PTS'] == pts:
+            group.append(sorted_teams[i])
+            i += 1
+
+        if len(group) <= 1 or pts == 0:
+            continue  # No tie to explain, or all at 0 points
+
+        # Run tiebreaker with spots=1 to force resolution for ordering explanation
+        # (with spots=len(group), everyone "advances" and no explanation is generated)
+        adv, elim, lines, gd_dep = resolve_tie(group, st, h2h, 1, indent='')
+        if adv is None:
+            # Unresolved
+            for tid in group:
+                tie_notes[tid] = 'Tied — needs rules v+ to resolve'
+        elif lines:
+            # Extract a concise explanation from the resolution lines
+            for line in lines:
+                line = line.strip()
+                if not line:
+                    continue
+                # Lines like "Rule i (wins): KAN (2W) > WIN (1W)"
+                # or "Rule iii (GD): WIN (+7) > KAN,KIN (+1)"
+                if line.startswith('Rule '):
+                    for tid in group:
+                        tie_notes[tid] = line
+                    break
+
+    rows = []
+    for tid in sorted_teams:
+        s = st[tid]
+        gp = s['W'] + s['L'] + s['T']
+        gd = s['GF'] - s['GA']
+        count = analysis['counts'].get(tid, 0) if analysis else 0
+        rows.append({
+            'id': tid,
+            'name': teams[tid]['name'],
+            'ranking': teams[tid].get('ranking'),
+            'is_us': teams[tid].get('is_us', False),
+            'gp': gp, 'w': s['W'], 'l': s['L'], 't': s['T'],
+            'pts': s['PTS'], 'gf': s['GF'], 'ga': s['GA'], 'gd': gd,
+            'status': get_team_status(tid, analysis, total) if analysis else '',
+            'adv_count': count,
+            'adv_pct': round(count / deterministic * 100, 1) if deterministic > 0 else 0,
+            'tie_note': tie_notes.get(tid),
+        })
+    return rows
+
+
+def build_scenario_data(analysis, our_team):
+    if not analysis or analysis['total'] <= 1:
+        if analysis and analysis['total'] == 1:
+            sc = analysis['scenarios'][0]
+            winner = sc['result']['advancing'][0] if sc['result']['advancing'] else None
+            return {
+                'total': 1,
+                'our_count': analysis['counts'].get(our_team, 0),
+                'remaining_games': 0,
+                'gd_dependent': 0,
+                'unresolved': 0,
+                'winner': winner,
+                'scenarios': [],
+            }
+        return None
+
+    total = analysis['total']
+    our_count = analysis['counts'].get(our_team, 0)
+    unresolved_count = analysis.get('unresolved_count', 0)
+
+    # Build compact scenario list for JSON
+    scenarios = []
+    for sc in analysis['scenarios']:
+        res = sc['result']
+        is_unresolved = sc.get('unresolved', False)
+        tb_info = []
+        for tb in res['tb_details']:
+            tb_info.append({
+                'teams': tb['teams'],
+                'pts': tb['pts'],
+                'lines': tb['lines'],
+                'gd_dep': tb['gd_dep'],
+                'unresolved': tb.get('unresolved', False),
+            })
+
+        # Classify resolution type
+        if is_unresolved:
+            res_type = 'unresolved'
+        elif not tb_info:
+            res_type = 'clean'
+        elif sc['gd_dependent']:
+            res_type = 'score_dependent'
+        else:
+            res_type = 'tiebreaker'
+
+        advancing = res['advancing'] or []
+        eliminated = res['eliminated'] or []
+        unresolved_teams = res.get('unresolved_teams', [])
+
+        # For the winner's points, handle unresolved case
+        if advancing:
+            winner_pts = sc['standings'][advancing[0]]['PTS']
+        elif unresolved_teams:
+            winner_pts = sc['standings'][unresolved_teams[0]]['PTS']
+        else:
+            winner_pts = 0
+
+        scenarios.append({
+            'labels': sc['labels'],
+            'advancing': advancing,
+            'eliminated': eliminated,
+            'unresolved_teams': unresolved_teams,
+            'pts': winner_pts,
+            'gd_dep': sc['gd_dependent'],
+            'res_type': res_type,
+            'tiebreakers': tb_info,
+        })
+
+    remaining = analysis['remaining_games']
+    remaining_info = [{'home': g['home'], 'away': g['away'], 'game_id': g['game_id'], 'date': g['date']} for g in remaining]
+
+    # Three categories for the bar:
+    # GREEN = we win via rules i-ii only (deterministic, score-independent)
+    # YELLOW = score-dependent (rules iii+) or truly unresolved
+    # RED = another team wins via rules i-ii only
+    green = 0  # deterministic IN
+    yellow = 0  # unknown (score-dependent + unresolved)
+    red = 0    # deterministic OUT
+    for sc in scenarios:
+        if sc['res_type'] == 'unresolved' or sc['res_type'] == 'score_dependent':
+            yellow += 1
+        elif sc['advancing'] and our_team in sc['advancing']:
+            green += 1
+        else:
+            red += 1
+
+    return {
+        'total': total,
+        'green': green,
+        'yellow': yellow,
+        'red': red,
+        'our_count': our_count,  # all wins (incl score-dependent) for standings column
+        'our_pct': round(green / (green + red) * 100, 1) if (green + red) > 0 else 0,
+        'unresolved': unresolved_count,
+        'gd_dependent': analysis['gd_dependent_count'],
+        'remaining_games': len(remaining),
+        'remaining_info': remaining_info,
+        'counts': analysis['counts'],
+        'scenarios': scenarios,
+    }
+
+
+def load_streams(data):
+    """Load stream URLs from data dict and optional data/streams.json file."""
+    streams = dict(data.get('streams', {}))
+    streams_file = Path('data/streams.json')
+    if streams_file.exists():
+        try:
+            with open(streams_file) as f:
+                extra = json.load(f)
+                if isinstance(extra, dict):
+                    streams.update(extra)
+        except Exception:
+            pass
+    return streams
+
+
+def build_games_list(pool_id, data, status_filter=None):
+    streams = load_streams(data)
+    games = []
+    for g in data.get('pool_games', []):
+        if g.get('pool') != pool_id:
+            continue
+        if status_filter and g.get('status') != status_filter:
+            continue
+        teams = data['teams']
+        gid = g.get('game_id') or g.get('GID')
+        stream_url = g.get('stream_url') or g.get('broadcast_url') or streams.get(str(gid)) or streams.get(gid)
+        games.append({
+            'game_id': gid,
+            'date': g.get('date'),
+            'arena': g.get('arena'),
+            'home': g.get('home'),
+            'away': g.get('away'),
+            'home_name': teams.get(g.get('home'), {}).get('name', g.get('home')),
+            'away_name': teams.get(g.get('away'), {}).get('name', g.get('away')),
+            'home_score': g.get('home_score'),
+            'away_score': g.get('away_score'),
+            'status': g.get('status'),
+            'stream_url': stream_url,
+        })
+    games.sort(key=lambda g: g.get('date') or '', reverse=(status_filter == 'final'))
+    return games
+
+
+def build_bracket(data):
+    streams = load_streams(data)
+    bracket = []
+    for b in data.get('bracket', []):
+        entry = dict(b)
+        gid = entry.get('game_id') or entry.get('gid')
+        if not entry.get('stream_url') and gid:
+            entry['stream_url'] = streams.get(str(gid)) or streams.get(gid)
+        if entry.get('home') and entry['home'] in data.get('teams', {}):
+            entry['home_name'] = data['teams'][entry['home']]['name']
+        if entry.get('away') and entry['away'] in data.get('teams', {}):
+            entry['away_name'] = data['teams'][entry['away']]['name']
+        bracket.append(entry)
+    return bracket
+
+
+def build_tiebreaker_resolution(pool_id, data, analysis):
+    """Build human-readable tiebreaker resolution when all games are complete.
+
+    Returns a list of resolution descriptions, or None if games remain.
+    """
+    remaining = get_remaining_games(pool_id, data.get('pool_games', []))
+    if remaining:
+        return None  # Games still to play
+
+    # With 0 remaining games, there's exactly 1 scenario
+    if not analysis['scenarios']:
+        return None
+
+    sc = analysis['scenarios'][0]
+    res = sc['result']
+    if not res['tb_details']:
+        return None  # No tiebreaker needed
+
+    resolutions = []
+    for tb in res['tb_details']:
+        lines = [line.strip() for line in tb['lines'] if line.strip()]
+        resolutions.append({
+            'teams': tb['teams'],
+            'pts': tb['pts'],
+            'resolved': not tb.get('unresolved', False),
+            'lines': lines,
+            'summary': ' → '.join(lines[-2:]) if lines else '',
+        })
+    return resolutions
+
+
+def generate(data_path='data/tournaments/pink_the_rink_2026.json', skip_narrative=False):
+    # In daemon mode, read from tournament-specific shadow file if it exists
+    path_obj = Path(data_path)
+    shadow_data = path_obj.parent / f".{path_obj.stem}_live.json"
+    if shadow_data.exists():
+        data = json.loads(shadow_data.read_text())
+    else:
+        data = load_tournament(data_path)
+
+    if not data.get('pool_games'):
+        ramp_cfg = data.get('ramp', {})
+        if ramp_cfg:
+            try:
+                try:
+                    from scraper import fetch_games, games_to_tournament_format
+                except ImportError:
+                    from src.scraper import fetch_games, games_to_tournament_format
+                team_id_map = {str(data['teams'][tid].get('number')): tid for tid in data['teams']}
+                api_games = fetch_games(
+                    league_id=ramp_cfg.get('league_id'),
+                    season_id=ramp_cfg.get('season_id'),
+                    division_id=ramp_cfg.get('division_id'),
+                    base_url=ramp_cfg.get('base_url', 'https://www.owha.on.ca'),
+                    game_type=ramp_cfg.get('game_type', 0),
+                )
+                data['pool_games'] = games_to_tournament_format(api_games, team_id_map, data.get('teams'))
+            except Exception:
+                data['pool_games'] = []
+        else:
+            data['pool_games'] = []
+
+    try:
+        from structure import build_structure_from_config
+        from analyze import generate_rooting_guide, determine_pool_rankings
+        from bench import compute_bench_analysis
+    except ImportError:
+        from src.structure import build_structure_from_config
+        from src.analyze import generate_rooting_guide, determine_pool_rankings
+        from src.bench import compute_bench_analysis
+
+    struct = build_structure_from_config(data)
+    our_team = data['tournament']['our_team']
+    our_pool = data['teams'][our_team].get('pool', 'B')
+
+    # Determine other pool
+    pools = list(struct.get_pools().keys())
+    other_pool = [p for p in pools if p != our_pool][0] if len(pools) > 1 else our_pool
+
+    our_analysis = enumerate_scenarios(our_pool, data)
+    other_analysis = enumerate_scenarios(other_pool, data) if other_pool != our_pool else None
+
+    # Compute mathematical clinches for bracket resolution
+    clinch_data = {}
+    clinch_alerts = []
+    
+    our_clinches = compute_pool_clinches(our_pool, data)
+    clinch_data[our_pool] = our_clinches
+    clinch_alerts.extend(our_clinches.get('alerts', []))
+
+    if other_pool != our_pool:
+        other_clinches = compute_pool_clinches(other_pool, data)
+        clinch_data[other_pool] = other_clinches
+        clinch_alerts.extend(other_clinches.get('alerts', []))
+
+    playoff_bracket = struct.resolve_playoff_bracket(clinch_data, data['teams'])
+    rooting_guide = generate_rooting_guide(our_pool, data, our_team)
+    bench_data = compute_bench_analysis(data, our_team, our_pool)
+
+    state = {
+        'generated_at': datetime.now().astimezone().isoformat(),
+        'tournament': data['tournament'],
+        'our_team': our_team,
+        'our_team_name': data['teams'][our_team]['name'],
+        'our_pool': our_pool,
+        'other_pool': other_pool,
+        'teams': data['teams'],
+        'venues': data.get('venues', {}),
+
+        'standings': build_standings(our_pool, data, our_analysis),
+        'scenarios': build_scenario_data(our_analysis, our_team),
+        'rooting_guide': rooting_guide,
+        'upcoming': build_games_list(our_pool, data, 'scheduled'),
+        'completed': build_games_list(our_pool, data, 'final'),
+        'live_games': build_games_list(our_pool, data, 'in_progress'),
+
+        'other_pool_standings': build_standings(other_pool, data, other_analysis) if other_analysis else [],
+        'other_pool_upcoming': build_games_list(other_pool, data, 'scheduled'),
+
+        'bracket': build_bracket(data),
+        'playoffs': playoff_bracket,
+        'tiebreaker_resolution': build_tiebreaker_resolution(our_pool, data, our_analysis),
+        'tiebreaker_rules': data.get('tiebreakers'),
+        'clinch_watch': clinch_alerts,
+        'clinches': clinch_data,
+        'bench': bench_data,
+        'event_log': data.get('event_log', []),
+        'narrative': data.get('_narrative'),
+        'coaches_corner': data.get('_coaches_corner'),
+        'tiebreaker_health': data.get('_tb_health'),
+        'scouting': data.get('scouting'),
+    }
+
+    output_dir = Path(__file__).parent.parent / 'docs' / 'data'
+    output_dir.mkdir(parents=True, exist_ok=True)
+    (output_dir / 'state.json').write_text(json.dumps(state, indent=2))
+    (output_dir / '.state_live.json').write_text(json.dumps(state, indent=2))
+    print(f'Generated state.json ({(output_dir / "state.json").stat().st_size} bytes)')
+    return state
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--data', default='data/tournament.json')
+    parser.add_argument('--skip-narrative', action='store_true')
+    args = parser.parse_args()
+    generate(args.data, args.skip_narrative)

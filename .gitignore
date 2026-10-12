@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+.env
+venv/
+.venv/
+data/tournament_test.json
+data/.tournament_live.json
+.*_live.json
+docs/data/.state_live.json
+test/mock_responses/.mock_step
+logs/

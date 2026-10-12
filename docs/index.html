@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Kanata Rangers - U15B Provincials 2026</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+    <style>
+        :root {
+            --pico-font-size: 16px;
+            --rangers-blue: #0038A8;
+            --rangers-red: #CE1126;
+        }
+        body { padding-top: 0; }
+        .container { max-width: 900px; }
+
+        .site-header {
+            background: linear-gradient(135deg, var(--rangers-blue) 0%, #002878 100%);
+            color: white;
+            padding: 1rem 1.25rem;
+            margin: 0 -1.25rem 1rem;
+            border-bottom: 4px solid var(--rangers-red);
+        }
+        .site-header-inner {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .site-header img {
+            height: 60px;
+            width: auto;
+        }
+        .site-header h1 {
+            margin: 0;
+            font-size: 1.5rem;
+            color: white;
+        }
+        .site-header p {
+            margin: 0.15rem 0 0;
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.8);
+        }
+        #updated { font-size: 0.8rem; color: var(--pico-muted-color); margin-bottom: 0.5rem; }
+
+        .live-banner {
+            background: #d32f2f; color: white;
+            padding: 0.6rem 1rem; border-radius: 8px; margin-bottom: 1rem;
+        }
+        .live-dot {
+            display: inline-block; width: 10px; height: 10px;
+            background: white; border-radius: 50%; margin-right: 0.5rem;
+            animation: blink 1s infinite;
+        }
+        @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+        .narrative-card {
+            background: var(--pico-card-background-color);
+            border-left: 4px solid var(--rangers-blue);
+            padding: 1rem 1.25rem; border-radius: 4px; margin-bottom: 1.5rem;
+        }
+        .narrative-card h3 { margin-top: 0; margin-bottom: 0.5rem; font-size: 1.1rem; color: var(--rangers-blue); }
+        .narrative-card h4 { margin-top: 0.75rem; margin-bottom: 0.25rem; font-size: 0.95rem; color: var(--rangers-blue); }
+        .narrative-card p { margin-bottom: 0.5rem; font-size: 0.9rem; line-height: 1.5; }
+
+        table { font-size: 0.85rem; margin-bottom: 1rem; }
+        th, td { padding: 0.35rem 0.5rem; }
+        .team-us { font-weight: bold; color: var(--rangers-blue); }
+        .status-CLINCHED { color: #2e7d32; font-weight: bold; }
+        .status-ELIMINATED { color: #c62828; }
+        .status-ALIVE { color: #1565c0; }
+
+        .scenario-bar {
+            display: flex; height: 28px; border-radius: 4px;
+            overflow: hidden; margin-bottom: 0.75rem;
+        }
+        .bar-in { background: #2e7d32; color: white; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: bold; }
+        .bar-out { background: #c62828; color: white; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; }
+
+        .event-log { list-style: none; padding: 0; max-height: 20rem; overflow-y: auto; }
+        .event-log li { padding: 0.5rem 0; border-bottom: 1px solid var(--pico-muted-border-color); font-size: 0.9rem; }
+        .event-time { color: var(--pico-muted-color); font-size: 0.8rem; }
+        .evt-goal { border-left: 3px solid #2e7d32; padding-left: 0.75rem; }
+        .evt-final { border-left: 3px solid var(--pico-primary); padding-left: 0.75rem; }
+        .evt-info { border-left: 3px solid var(--pico-muted-color); padding-left: 0.75rem; }
+
+        .bracket-game {
+            background: var(--pico-card-background-color);
+            padding: 0.5rem 0.75rem; border-radius: 4px; margin-bottom: 0.5rem; font-size: 0.9rem;
+        }
+        .round-label { font-size: 0.75rem; color: var(--pico-muted-color); text-transform: uppercase; }
+
+        details summary { cursor: pointer; font-weight: 600; }
+        details[open] summary { margin-bottom: 0.5rem; }
+
+        .game-card {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0.4rem 0; border-bottom: 1px solid var(--pico-muted-border-color); font-size: 0.9rem;
+        }
+        .game-card:last-child { border-bottom: none; }
+        .score { font-weight: bold; font-size: 1rem; }
+
+        .loading { text-align: center; padding: 2rem; color: var(--pico-muted-color); }
+
+        .ranking { color: var(--pico-muted-color); font-size: 0.8em; }
+
+        .don-cherry {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #e0e0e0; padding: 1rem 1.25rem; border-radius: 8px;
+            margin-top: 0.75rem; font-style: italic; line-height: 1.6;
+            border-left: 4px solid #f9a825;
+            display: flex; gap: 1rem; align-items: flex-start;
+        }
+        .don-cherry img {
+            width: 60px; height: 60px; border-radius: 50%; object-fit: cover;
+            flex-shrink: 0; border: 2px solid #f9a825;
+        }
+        .don-cherry .cherry-label {
+            font-style: normal; font-weight: bold; color: #f9a825;
+            font-size: 0.85rem; margin-bottom: 0.25rem;
+        }
+
+        .talking-points { list-style: disc; padding-left: 1.5rem; margin: 0.5rem 0; }
+        .talking-points li { margin-bottom: 0.4rem; font-size: 0.9rem; }
+
+        .scouting-matchup {
+            padding: 0.4rem 0; border-bottom: 1px solid var(--pico-muted-border-color);
+            font-size: 0.9rem;
+        }
+        .scouting-matchup:last-child { border-bottom: none; }
+        .scouting-result-win { color: #2e7d32; font-weight: bold; }
+        .scouting-result-loss { color: #c62828; }
+
+        .stream-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            background: #dc2626;
+            color: #fff !important;
+            font-size: 0.72rem;
+            font-weight: 600;
+            padding: 0.12rem 0.45rem;
+            border-radius: 4px;
+            text-decoration: none;
+            margin-left: 0.4rem;
+            vertical-align: middle;
+        }
+        .stream-badge:hover {
+            background: #b91c1c;
+            color: #fff !important;
+            text-decoration: none;
+        }
+        .stream-badge-live {
+            animation: pulse-stream 1.8s infinite;
+        }
+        @keyframes pulse-stream {
+            0% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.7); }
+            70% { box-shadow: 0 0 0 5px rgba(220, 38, 38, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); }
+        }
+
+        @media (max-width: 600px) {
+            :root { --pico-font-size: 15px; }
+            th, td { padding: 0.25rem 0.35rem; }
+        }
+    </style>
+</head>
+<body>
+<main class="container">
+    <div class="site-header">
+        <div class="site-header-inner">
+            <img src="https://cloud.rampinteractive.com/kanatagirlshockeyassociation/css/img/assocLogo.svg" alt="KGHA">
+            <div>
+                <h1 id="team-name">Kanata Rangers</h1>
+                <p id="tournament-info">Tournament Tracker</p>
+            </div>
+        </div>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem;margin-bottom:0.75rem">
+        <p id="updated" style="margin:0">Loading...</p>
+        <div style="display:flex;gap:0.4rem">
+            <button id="wake-btn" onclick="toggleWakeLock()" style="background:#475569;border:none;padding:0.25rem 0.55rem;font-size:0.75rem;border-radius:4px;cursor:pointer;color:#fff;width:auto" title="Keeps your screen on at the rink so you receive continuous live smart watch alerts">⚡ Keep Awake (Rink Mode)</button>
+            <button id="alert-btn" onclick="toggleAlerts()" style="background:#0284c7;border:none;padding:0.25rem 0.55rem;font-size:0.75rem;border-radius:4px;cursor:pointer;color:#fff;width:auto">🔔 Watch Alerts</button>
+        </div>
+    </div>
+
+    <div id="live-banner-area"></div>
+    <div id="narrative-area"></div>
+    <div id="event-log-area"></div>
+
+    <h2 id="pool-header">Pool Standings</h2>
+    <div id="standings-area"><p class="loading">Loading standings...</p></div>
+
+    <div id="scenarios-area"></div>
+    <div id="upcoming-area"></div>
+    <div id="completed-area"></div>
+
+    <div id="venues-area"></div>
+
+    <div id="coaches-corner-area"></div>
+
+    <div id="clinch-watch-area"></div>
+
+    <h2>Playoff Bracket</h2>
+    <div id="bracket-area"></div>
+
+    <div id="beyond-pool-area"></div>
+
+    <footer style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--pico-muted-border-color); font-size: 0.8rem; color: var(--pico-muted-color);">
+        <p>Analysis powered by Python scenario engine + AI commentary. Data from OWHA RAMP API.<br>
+        <a href="https://github.com/dpauls/rangers-u15b-provincials-2026">Source on GitHub</a> \u00b7 <a href="bench.html">Bench Advisor (PIN)</a></p>
+    </footer>
+</main>
+
+<script>
+const DATA_URL = 'data/state.json';
+const REFRESH_MS = 15000; // 15 seconds (responsive live polling)
+let alertsEnabled = false;
+let lastEventCount = -1;
+let currentVenues = {};
+
+function esc(s) {
+    if (s == null) return '';
+    const d = document.createElement('div');
+    d.textContent = String(s);
+    return d.innerHTML;
+}
+
+function cls(teamId, ourTeam) {
+    return teamId === ourTeam ? ' class="team-us"' : '';
+}
+
+function fmtDate(iso) {
+    if (!iso) return '';
+    const d = new Date(iso);
+    const day = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()];
+    let h = d.getHours(), m = d.getMinutes();
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    h = h % 12 || 12;
+    return `${day} ${h}:${String(m).padStart(2,'0')} ${ampm}`;
+}
+
+function fmtGenerated(iso) {
+    const d = new Date(iso);
+    return d.toLocaleString('en-US', { month: 'long', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' });
+}
+
+function renderLiveBanner(liveGames, ourTeam, d) {
+    if (!liveGames || liveGames.length === 0) return '';
+    return liveGames.map(g => {
+        const hs = g.home_score || 0;
+        const as_ = g.away_score || 0;
+        const isOurGame = (g.home === ourTeam || g.away === ourTeam);
+
+        let commentary = '';
+        if (isOurGame) {
+            const weAreHome = g.home === ourTeam;
+            const ourScore = weAreHome ? hs : as_;
+            const theirScore = weAreHome ? as_ : hs;
+            if (ourScore > theirScore) commentary = 'We have the lead!';
+            else if (theirScore > ourScore) commentary = 'We need to fight back.';
+            else commentary = 'Game is tied.';
+        } else {
+            if (hs > as_) commentary = `${esc(g.home_name.split('#')[0].trim())} leading.`;
+            else if (as_ > hs) commentary = `${esc(g.away_name.split('#')[0].trim())} leading.`;
+            else commentary = 'Game is tied.';
+        }
+
+        // Add live commentary from event log if available
+        const liveEvent = (d.event_log || []).filter(e =>
+            e.headline && e.headline.includes(String(g.game_id)) && e.detail
+        ).pop();
+        const detailHtml = liveEvent ? `<div style="font-size:0.8rem;margin-top:0.3rem;font-style:italic">${esc(liveEvent.detail)}</div>` : '';
+
+        const streamBtn = g.stream_url
+            ? `<a href="${esc(g.stream_url)}" target="_blank" rel="noopener" class="stream-badge stream-badge-live">🔴 Watch Live on YouTube</a>`
+            : '';
+
+        return `<div class="live-banner">
+            <span class="live-dot"></span> <strong>LIVE</strong>:
+            <span${cls(g.home, ourTeam)}>${esc(g.home_name)}</span>
+            <strong>${hs}</strong> - <strong>${as_}</strong>
+            <span${cls(g.away, ourTeam)}>${esc(g.away_name)}</span>
+            <span style="font-size:0.85rem;margin-left:0.5rem">${commentary}</span>
+            ${streamBtn}
+            ${detailHtml}
+        </div>`;
+    }).join('');
+}
+
+function mdToHtml(text) {
+    // Convert simple markdown to HTML: **bold**, paragraphs on double-newline
+    if (!text) return '';
+    // Escape HTML first
+    let s = esc(text);
+    // Bold: **text**
+    s = s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    // Split into paragraphs on double-newline or **heading** patterns
+    // Add paragraph breaks before bold headings that start a new section
+    s = s.replace(/<strong>([^<]+)<\/strong>\s*/g, '</p><h4>$1</h4><p>');
+    // Clean up leading empty paragraph
+    s = s.replace(/^<\/p>/, '');
+    // Ensure trailing paragraph is closed
+    if (!s.endsWith('</p>')) s += '</p>';
+    // Remove empty paragraphs
+    s = s.replace(/<p>\s*<\/p>/g, '');
+    // Wrap if no paragraph tags at start
+    if (!s.startsWith('<h4>') && !s.startsWith('<p>')) s = '<p>' + s;
+    return s;
+}
+
+function renderNarrative(narrative) {
+    if (!narrative) return '';
+    return `<div class="narrative-card"><h3>The Latest</h3>${mdToHtml(narrative)}</div>`;
+}
+
+function renderEventLog(events) {
+    if (!events || events.length === 0) return '';
+    const items = [...events].reverse().map(e => {
+        const typeCls = e.type === 'goal' ? 'evt-goal' : e.type === 'final' ? 'evt-final' : 'evt-info';
+        return `<li class="${typeCls}">
+            <span class="event-time">${esc(e.time)}</span><br>
+            <strong>${esc(e.headline)}</strong>
+            ${e.detail ? '<br>' + mdToHtml(e.detail) : ''}
+        </li>`;
+    }).join('');
+    return `<details open><summary>Recent Updates (${events.length})</summary><ul class="event-log">${items}</ul></details>`;
+}
+
+function formatTiebreakerRules(tbConfig) {
+    if (!tbConfig) {
+        return '<strong>i.</strong> Number of wins &nbsp; <strong>ii.</strong> Head-to-head record &nbsp; <strong>iii.</strong> Goal differential &nbsp; <strong>iv.</strong> Fewest goals allowed &nbsp; <strong>v.</strong> Most periods won &nbsp; <strong>vi.</strong> Fewest PIMs &nbsp; <strong>vii.</strong> First goal scored &nbsp; <strong>viii.</strong> Coin flip';
+    }
+    const rules = Array.isArray(tbConfig) ? tbConfig : (tbConfig.rules || []);
+    const labels = {
+        'wins': 'Number of wins',
+        'head_to_head_two_way_only': 'Head-to-head (2-way ties only)',
+        'h2h': 'Head-to-head record',
+        'head_to_head': 'Head-to-head record',
+        'goal_diff': 'Goal differential',
+        'gd': 'Goal differential',
+        'fewest_goals_against': 'Fewest goals allowed',
+        'ga': 'Fewest goals allowed',
+        'periods_won': 'Most periods won',
+        'fewest_pim': 'Fewest penalty minutes (PIM)',
+        'pim': 'Fewest penalty minutes (PIM)',
+        'first_goal': 'First goal scored',
+        'coin_toss': 'Coin flip'
+    };
+    return rules.map((r, idx) => `<strong>${idx + 1}.</strong> ${labels[r] || r}`).join(' &nbsp; ');
+}
+
+function renderStandings(rows, showAdv, ourTeam, scenarioTotal, tbConfig) {
+    const advHeader = showAdv ? '<th title="Resolved scenarios where this team wins the pool (excludes score-dependent tiebreakers)">Resolved</th>' : '';
+    const colCount = 10 + (showAdv ? 1 : 0);
+    const thead = `<thead><tr><th>Team</th><th>GP</th><th>W</th><th>L</th><th>T</th><th>PTS</th><th>GF</th><th>GA</th><th>GD</th>${advHeader}<th>Status</th></tr></thead>`;
+    let tbody = '';
+    let lastTieNote = null;
+    rows.forEach((r, i) => {
+        const usCls = r.is_us ? ' class="team-us"' : '';
+        const gd = r.gd > 0 ? `+${r.gd}` : String(r.gd);
+        const advCell = showAdv ? `<td>${r.adv_count}/${scenarioTotal} (${r.adv_pct}%)</td>` : '';
+        const rankStr = r.ranking ? ` <span class="ranking">(#${r.ranking})</span>` : '';
+        tbody += `<tr${usCls}><td${usCls}>${esc(r.name)}${rankStr}</td><td>${r.gp}</td><td>${r.w}</td><td>${r.l}</td><td>${r.t}</td><td><strong>${r.pts}</strong></td><td>${r.gf}</td><td>${r.ga}</td><td>${gd}</td>${advCell}<td class="status-${r.status}">${r.status}</td></tr>`;
+
+        // Show tie note after the last team in a tied group
+        const nextPts = (i + 1 < rows.length) ? rows[i + 1].pts : -1;
+        if (r.tie_note && r.pts !== nextPts) {
+            tbody += `<tr><td colspan="${colCount}" style="font-size:0.78rem;color:var(--pico-muted-color);padding:0.2rem 0.5rem;border-bottom:2px solid var(--pico-muted-border-color)">Tiebreaker: ${esc(r.tie_note)}</td></tr>`;
+        }
+    });
+    let html = `<div style="overflow-x:auto"><table>${thead}<tbody>${tbody}</tbody></table></div>`;
+
+    // If any tiebreakers were shown, add a compact rules reference
+    const hasTieNotes = rows.some(r => r.tie_note);
+    if (hasTieNotes) {
+        html += `<details style="margin-top:0.5rem;font-size:0.78rem">
+            <summary style="color:var(--pico-muted-color)">Tiebreaker rules</summary>
+            <div style="margin-top:0.3rem;color:var(--pico-muted-color);line-height:1.6">
+                ${formatTiebreakerRules(tbConfig)}
+            </div>
+        </details>`;
+    }
+
+    return html;
+}
+
+function renderScenarios(sc, ourTeamName, ourPool, ourTeam) {
+    if (!sc) return '';
+    let html = '';
+
+    if (sc.remaining_games === 0) {
+        const winner = sc.winner || '?';
+        const isUs = sc.our_count > 0;
+        html += `<p><strong>All pool games are complete.</strong> Pool ${esc(ourPool)} winner: <strong>${esc(winner)}</strong>`;
+        if (isUs) html += ` -- That's us! On to the quarter-finals!`;
+        html += `</p>`;
+        return html;
+    }
+
+    const total = sc.total;
+    const green = sc.green || 0;   // we win, deterministic (rules i-ii)
+    const yellow = sc.yellow || 0; // score-dependent or unresolved
+    const red = sc.red || 0;       // we lose, deterministic (rules i-ii)
+
+    // Percentages for the bar (of total)
+    const greenPct = (green / total * 100);
+    const yellowPct = (yellow / total * 100);
+    const redPct = (red / total * 100);
+
+    html += `<h2>Scenario Analysis</h2>`;
+    html += `<p>With <strong>${sc.remaining_games}</strong> game${sc.remaining_games !== 1 ? 's' : ''} remaining, there are <strong>${total}</strong> possible scenarios (each remaining game can be a win, loss, or tie).</p>`;
+
+    // Three-color bar: Green (IN) / Yellow (Unknown) / Red (OUT)
+    html += `<div class="scenario-bar">`;
+    if (green > 0) html += `<div class="bar-in" style="width:${greenPct}%">${green}</div>`;
+    if (yellow > 0) html += `<div style="width:${Math.max(yellowPct, 6)}%;background:#f9a825;color:#333;display:flex;align-items:center;justify-content:center;font-size:0.8rem;min-width:2rem">${yellow}</div>`;
+    if (red > 0) html += `<div class="bar-out" style="width:${redPct}%">${red}</div>`;
+    html += `</div>`;
+
+    // Legend for the bar
+    html += `<p style="font-size:0.82rem;line-height:1.6">`;
+    html += `<span style="color:#2e7d32;font-weight:bold">\u25A0</span> <strong>${green}</strong> scenarios: we win the pool (based on W/L/T and head-to-head only)<br>`;
+    if (yellow > 0) {
+        html += `<span style="color:#f9a825;font-weight:bold">\u25A0</span> <strong>${yellow}</strong> scenarios: outcome depends on actual scores (goal differential, goals against, etc.)<br>`;
+    }
+    html += `<span style="color:#c62828;font-weight:bold">\u25A0</span> <strong>${red}</strong> scenarios: another team wins (based on W/L/T and head-to-head only)`;
+    html += `</p>`;
+    html += `<p style="font-size:0.8rem;color:var(--pico-muted-color);font-style:italic">These aren't predictions — they count possible outcomes without weighting for team strength.</p>`;
+
+    html += `<p><a href="scenarios.html"><strong>View all ${total} scenarios &rarr;</strong></a></p>`;
+
+    return html;
+}
+
+function renderTiebreakerHealth(d) {
+    const tbHealth = d.tiebreaker_health;
+    const yellow = d.scenarios ? (d.scenarios.yellow || 0) : 0;
+    if (!tbHealth || yellow === 0) return '';
+
+    // Strip LLM preamble like "**Tiebreaker Health Analysis:**" if present
+    let cleanTb = tbHealth.replace(/^\*\*[^*]+\*\*:?\s*/,'').trim();
+    return `<div style="background:#fff8e1;border-left:4px solid #f9a825;padding:0.75rem 1rem;border-radius:4px;margin-bottom:1rem">
+        <h3 style="margin-top:0;margin-bottom:0.4rem;font-size:0.95rem;color:#f57f17">Tiebreaker Health</h3>
+        <p style="font-size:0.85rem;line-height:1.5;margin:0">${esc(cleanTb)}</p>
+    </div>`;
+}
+
+function isGameSubscribed(gid) {
+    if (!gid) return false;
+    const subs = JSON.parse(localStorage.getItem('rangers_game_subs') || '[]');
+    return subs.includes(String(gid));
+}
+
+function toggleGameSub(gid, event) {
+    if (event) event.stopPropagation();
+    if (!('Notification' in window)) {
+        alert('This browser does not support web notifications.');
+        return;
+    }
+    if (Notification.permission !== 'granted') {
+        Notification.requestPermission().then(p => {
+            if (p === 'granted') {
+                toggleGameSubInternal(gid);
+            }
+        });
+        return;
+    }
+    toggleGameSubInternal(gid);
+}
+
+function toggleGameSubInternal(gid) {
+    let subs = JSON.parse(localStorage.getItem('rangers_game_subs') || '[]');
+    const sGid = String(gid);
+    if (subs.includes(sGid)) {
+        subs = subs.filter(x => x !== sGid);
+    } else {
+        subs.push(sGid);
+    }
+    localStorage.setItem('rangers_game_subs', JSON.stringify(subs));
+    loadAndRender();
+}
+
+function renderGames(games, label, ourTeam, isFinal) {
+    if (!games || games.length === 0) return '';
+    const items = games.map(g => {
+        const venueObj = currentVenues[g.arena];
+        const arenaBadge = g.arena ? (venueObj && venueObj.maps_url 
+            ? `<a href="${esc(venueObj.maps_url)}" target="_blank" rel="noopener" style="font-size:0.75rem;margin-left:0.3rem;color:#0284c7;text-decoration:none">📍 ${esc(g.arena)}</a>`
+            : `<span style="font-size:0.75rem;color:var(--pico-muted-color);margin-left:0.3rem">(${esc(g.arena)})</span>`) : '';
+        const gid = g.game_id || g.gid || '';
+        const isOur = (g.home === ourTeam || g.away === ourTeam);
+        const isSub = isGameSubscribed(gid) || isOur;
+        const subBadge = (isFinal || !gid) ? '' : ` <button onclick="toggleGameSub('${gid}', event)" style="background:${isSub ? '#0284c7' : '#475569'};border:none;padding:0.12rem 0.4rem;font-size:0.65rem;border-radius:4px;cursor:pointer;color:#fff;margin-left:0.3rem;display:inline-block;width:auto">${isSub ? '🔔 Subscribed' : '🔕 Alert me'}</button>`;
+        const streamBtn = g.stream_url
+            ? `<a href="${esc(g.stream_url)}" target="_blank" rel="noopener" class="stream-badge${g.status === 'in_progress' ? ' stream-badge-live' : ''}">▶ Stream</a>`
+            : '';
+
+        if (isFinal) {
+            return `<div class="game-card"><div>
+                <span${cls(g.home, ourTeam)}>${esc(g.home_name)}</span>
+                <span class="score">${g.home_score}</span> -
+                <span class="score">${g.away_score}</span>
+                <span${cls(g.away, ourTeam)}>${esc(g.away_name)}</span>
+                ${streamBtn}
+            </div><div style="font-size:0.8rem;color:var(--pico-muted-color)">Final ${arenaBadge}</div></div>`;
+        }
+        return `<div class="game-card"><div>
+            <span${cls(g.home, ourTeam)}>${esc(g.home_name)}</span> vs
+            <span${cls(g.away, ourTeam)}>${esc(g.away_name)}</span>
+            ${subBadge}
+            ${streamBtn}
+        </div><div style="text-align:right;font-size:0.8rem;color:var(--pico-muted-color)">#${gid}<br>${fmtDate(g.date)} ${arenaBadge}</div></div>`;
+    }).join('');
+
+    const open = !isFinal || games.length <= 4 ? ' open' : '';
+    return `<details${open}><summary>${esc(label)} (${games.length})</summary>${items}</details>`;
+}
+
+function renderBracket(bracket) {
+    if (!bracket || bracket.length === 0) return '';
+    return bracket.map(g => {
+        let content;
+        const streamBtn = g.stream_url
+            ? `<a href="${esc(g.stream_url)}" target="_blank" rel="noopener" class="stream-badge${g.status === 'in_progress' ? ' stream-badge-live' : ''}">▶ Stream</a>`
+            : '';
+        if (g.status === 'final') {
+            content = `<strong>${esc(g.home_name || g.home || 'TBD')}</strong> ${g.home_score} - ${g.away_score} <strong>${esc(g.away_name || g.away || 'TBD')}</strong> <span style="color:var(--pico-muted-color)">(Final)</span> ${streamBtn}`;
+        } else if (g.status === 'in_progress') {
+            content = `<strong>${esc(g.home_name || 'TBD')}</strong> ${g.home_score||0} - ${g.away_score||0} <strong>${esc(g.away_name || 'TBD')}</strong> <span style="color:#d32f2f">(Live)</span> ${streamBtn}`;
+        } else {
+            content = `${esc(g.label)} &middot; ${fmtDate(g.date)} ${streamBtn}`;
+        }
+        return `<div class="bracket-game"><div class="round-label">${esc(g.round)}</div>${content}</div>`;
+    }).join('');
+}
+
+function renderCoachesCorner(d) {
+    let html = '<h2>Coach\'s Corner</h2>';
+
+    // Pre-game talking points
+    if (d.coaches_corner && d.coaches_corner.talking_points) {
+        html += '<h3 style="font-size:1rem;margin-bottom:0.5rem">Pre-Game Talking Points</h3>';
+        html += mdToHtml(d.coaches_corner.talking_points);
+    }
+
+    // Don Cherry Says
+    if (d.coaches_corner && d.coaches_corner.don_cherry) {
+        html += `<div class="don-cherry">
+            <img src="https://m.media-amazon.com/images/S/pv-target-images/7ad2dcc3d97429ef7f5a2161868a1e85b24e5e55339b4394d31629d105af6be7.jpg" alt="Don Cherry">
+            <div>
+                <div class="cherry-label">Don Cherry Says</div>
+                ${esc(d.coaches_corner.don_cherry)}
+            </div>
+        </div>`;
+    }
+
+    if (!d.coaches_corner || (!d.coaches_corner.talking_points && !d.coaches_corner.don_cherry)) {
+        return '';  // Nothing to show yet
+    }
+    return html;
+}
+
+function renderBeyondPool(d) {
+    if (!d.scouting && !d.qf_standings) return '';
+
+    let html = '<h2>Beyond Pool Play</h2>';
+
+    // QF Opponent Pool
+    if (d.qf_standings) {
+        html += `<h3 style="font-size:1rem">Quarterfinal Opponent: Pool ${esc(d.qf_pool)} Winner</h3>`;
+        html += `<p style="font-size:0.9rem">The winner of Pool ${esc(d.qf_pool)} faces our pool winner in the Quarter-Final Saturday evening.</p>`;
+        html += renderStandings(d.qf_standings, false, null, 0);
+
+        if (d.qf_upcoming && d.qf_upcoming.length > 0) {
+            html += renderGames(d.qf_upcoming, `Pool ${d.qf_pool} Upcoming`, null, false);
+        }
+    }
+
+    // Scouting Report
+    if (d.scouting) {
+        html += '<h3 style="font-size:1rem;margin-top:1.5rem">Scouting Report</h3>';
+        // Split description at "Of note:" to insert matchups between
+        const desc = d.scouting.description || '';
+        const ofNoteIdx = desc.indexOf('Of note:');
+        if (ofNoteIdx > 0) {
+            html += `<p style="font-size:0.9rem">${esc(desc.substring(0, ofNoteIdx).trim())}</p>`;
+        } else {
+            html += `<p style="font-size:0.9rem">${esc(desc)}</p>`;
+        }
+
+        if (d.scouting.matchups && d.scouting.matchups.length > 0) {
+            html += '<details><summary style="font-size:0.9rem;cursor:pointer">How did those go, you ask? Well...</summary>';
+            d.scouting.matchups.forEach(m => {
+                const poolTag = m.pool ? ` (Pool ${esc(m.pool)})` : '';
+                const rankTag = m.ranking ? ` #${m.ranking}` : '';
+                html += `<div style="margin-top:0.5rem;font-weight:600;font-size:0.9rem">${esc(m.opponent)}${rankTag}${poolTag}</div>`;
+                m.games.forEach(g => {
+                    const cls = g.result === 'win' ? 'scouting-result-win' : 'scouting-result-loss';
+                    html += `<div class="scouting-matchup"><span class="${cls}">${esc(g.score)}</span> <span style="color:var(--pico-muted-color);font-size:0.8rem">${esc(g.date)} &middot; ${esc(g.tournament)}</span></div>`;
+                });
+            });
+            html += '</details>';
+        }
+
+        // "Of note:" on its own line after matchups
+        if (ofNoteIdx > 0) {
+            html += `<p style="font-size:0.9rem;margin-top:0.75rem">${esc(desc.substring(ofNoteIdx).trim())}</p>`;
+        }
+    }
+
+    return html;
+}
+
+function renderVenues(venues) {
+    if (!venues || Object.keys(venues).length === 0) return '';
+    let items = Object.entries(venues).map(([k, v]) => {
+        return `<div style="padding:0.4rem 0;border-bottom:1px solid var(--pico-muted-border-color);display:flex;justify-content:space-between;align-items:center">
+            <div><strong>${esc(v.name || k)}</strong><br><small style="color:var(--pico-muted-color)">${esc(v.address || '')}</small></div>
+            <div><a href="${esc(v.maps_url)}" target="_blank" rel="noopener" style="font-size:0.85rem;color:#0284c7;font-weight:600">📍 Directions</a></div>
+        </div>`;
+    }).join('');
+    return `<h2>Tournament Arenas</h2><details><summary>View Rink Addresses & Google Maps (${Object.keys(venues).length})</summary><div style="margin-top:0.5rem">${items}</div></details>`;
+}
+
+let wakeLock = null;
+async function toggleWakeLock() {
+    if (!('wakeLock' in navigator)) {
+        alert('Screen Wake Lock is not supported on this browser (supported on modern mobile browsers).');
+        return;
+    }
+    try {
+        if (!wakeLock) {
+            wakeLock = await navigator.wakeLock.request('screen');
+            const btn = document.getElementById('wake-btn');
+            if (btn) {
+                btn.textContent = '⚡ Keep Awake: ACTIVE';
+                btn.style.background = '#eab308';
+                btn.style.color = '#000';
+            }
+            wakeLock.addEventListener('release', () => {
+                wakeLock = null;
+                const b = document.getElementById('wake-btn');
+                if (b) {
+                    b.textContent = '⚡ Keep Awake (Rink Mode)';
+                    b.style.background = '#475569';
+                    b.style.color = '#fff';
+                }
+            });
+        } else {
+            await wakeLock.release();
+            wakeLock = null;
+        }
+    } catch(err) {
+        console.warn('WakeLock error:', err);
+    }
+}
+
+function toggleAlerts() {
+    if (!('Notification' in window)) {
+        alert('This browser does not support web notifications.');
+        return;
+    }
+    if (Notification.permission === 'granted') {
+        alertsEnabled = !alertsEnabled;
+        updateAlertBtn();
+    } else if (Notification.permission !== 'denied') {
+        Notification.requestPermission().then(permission => {
+            alertsEnabled = (permission === 'granted');
+            updateAlertBtn();
+        });
+    } else {
+        alert('Notifications are blocked in your browser settings. Please unblock them to receive live goal alerts.');
+    }
+}
+
+function updateAlertBtn() {
+    const btn = document.getElementById('alert-btn');
+    if (!btn) return;
+    if (alertsEnabled) {
+        btn.textContent = '🔔 Watch Alerts: ON';
+        btn.style.background = '#16a34a';
+    } else {
+        btn.textContent = '🔔 Watch Alerts';
+        btn.style.background = '#0284c7';
+    }
+}
+
+function handleEventAlerts(events, ourTeam) {
+    if (!events || events.length === 0) return;
+    if (lastEventCount === -1) {
+        lastEventCount = events.length;
+        return;
+    }
+    if (events.length > lastEventCount) {
+        const newEvents = events.slice(lastEventCount);
+        lastEventCount = events.length;
+        const subs = JSON.parse(localStorage.getItem('rangers_game_subs') || '[]');
+
+        newEvents.forEach(e => {
+            if (e.type === 'goal' || e.type === 'final') {
+                const isOurGame = ourTeam && e.headline && e.headline.includes(ourTeam);
+                const isSubbed = subs.some(gid => e.headline && e.headline.includes(String(gid)));
+
+                if (isOurGame || isSubbed || alertsEnabled) {
+                    if ('vibrate' in navigator) navigator.vibrate([200, 100, 200]);
+                    if ('Notification' in window && Notification.permission === 'granted') {
+                        new Notification(e.headline, {
+                            body: e.detail || 'Tournament tracker update',
+                            icon: 'https://cloud.rampinteractive.com/kanatagirlshockeyassociation/css/img/assocLogo.svg',
+                            silent: true
+                        });
+                    }
+                }
+            }
+        });
+    }
+}
+
+function renderClinchWatch(alerts) {
+    if (!alerts || alerts.length === 0) return '';
+    const items = alerts.map(a => `<li>${esc(a)}</li>`).join('');
+    return `<div style="background:#fef3c7;border:1px solid #fde68a;border-left:4px solid #f59e0b;padding:0.75rem 1rem;border-radius:6px;margin-bottom:1.5rem">
+        <strong style="color:#92400e;font-size:0.95rem">🔮 Clinch Watch</strong>
+        <ul style="margin:0.35rem 0 0 1.25rem;padding:0;font-size:0.85rem;color:#78350f;line-height:1.5">
+            ${items}
+        </ul>
+    </div>`;
+}
+
+function renderPlayoffMatchup(g) {
+    let badge = '';
+    if (g.is_official || g.status === 'official') {
+        badge = '<span style="background:#16a34a;color:#fff;font-size:0.7rem;font-weight:bold;padding:0.1rem 0.4rem;border-radius:4px;margin-left:0.5rem">Official</span>';
+    } else if (g.status === 'clinched' || g.status === 'final') {
+        badge = '<span style="background:#0284c7;color:#fff;font-size:0.7rem;font-weight:bold;padding:0.1rem 0.4rem;border-radius:4px;margin-left:0.5rem">Projected (Clinched)</span>';
+    } else if (g.status === 'partial') {
+        badge = '<span style="background:#f59e0b;color:#000;font-size:0.7rem;font-weight:bold;padding:0.1rem 0.4rem;border-radius:4px;margin-left:0.5rem">Partially Clinched</span>';
+    } else {
+        badge = '<span style="background:#64748b;color:#fff;font-size:0.7rem;font-weight:bold;padding:0.1rem 0.4rem;border-radius:4px;margin-left:0.5rem">TBD</span>';
+    }
+
+    const homeStr = g.home.resolved ? `<strong>${esc(g.home.name)}</strong>` : `<span style="color:var(--pico-muted-color);font-style:italic">${esc(g.home.name)}</span>`;
+    const awayStr = g.away.resolved ? `<strong>${esc(g.away.name)}</strong>` : `<span style="color:var(--pico-muted-color);font-style:italic">${esc(g.away.name)}</span>`;
+
+    let note = '';
+    if (g.status === 'clinched') {
+        note = '<div style="font-size:0.75rem;color:#0284c7;margin-top:0.25rem">Mathematically locked seeds &middot; Official schedule & arena pending from organizers</div>';
+    } else if (g.status === 'tbd') {
+        note = '<div style="font-size:0.75rem;color:var(--pico-muted-color);margin-top:0.25rem">Awaiting round-robin pool completion or mathematical clinch</div>';
+    }
+
+    return `<div class="bracket-game">
+        <div class="round-label">${esc(g.game)} ${badge}</div>
+        <div>${homeStr} vs ${awayStr}</div>
+        ${note}
+    </div>`;
+}
+
+function renderPlayoffs(playoffs) {
+    if (!playoffs || !playoffs.semis) return '';
+    const semisHtml = playoffs.semis.map(renderPlayoffMatchup).join('');
+    const consolHtml = (playoffs.consolations || []).map(renderPlayoffMatchup).join('');
+    const finalHtml = renderPlayoffMatchup(playoffs.final);
+    return `<h3>Semifinals</h3>${semisHtml}<h3>Consolation</h3>${consolHtml}<h3>Championship Final</h3>${finalHtml}`;
+}
+
+async function loadAndRender() {
+    try {
+        const resp = await fetch(DATA_URL + '?t=' + Date.now());
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+        const d = await resp.json();
+
+        currentVenues = d.venues || {};
+        handleEventAlerts(d.event_log, d.our_team);
+
+        document.title = `${d.our_team_name} - ${d.tournament.name}`;
+        document.getElementById('team-name').textContent = d.our_team_name;
+        document.getElementById('tournament-info').innerHTML =
+            `${esc(d.tournament.name)} \u00b7 ${esc(d.tournament.location)} \u00b7 ${esc(d.tournament.dates)}`;
+        document.getElementById('updated').textContent =
+            `Last updated: ${fmtGenerated(d.generated_at)} \u00b7 Auto-refreshes every 15s`;
+
+        document.getElementById('live-banner-area').innerHTML = renderLiveBanner(d.live_games, d.our_team, d);
+        document.getElementById('narrative-area').innerHTML = renderNarrative(d.narrative);
+        document.getElementById('event-log-area').innerHTML = renderEventLog(d.event_log);
+
+        document.getElementById('pool-header').textContent = `Pool ${d.our_pool} Standings`;
+        const showAdv = d.scenarios && d.scenarios.total > 1;
+        const resolvedTotal = d.scenarios ? ((d.scenarios.green || 0) + (d.scenarios.red || 0)) : 0;
+        let standingsHtml = renderStandings(d.standings, showAdv, d.our_team, resolvedTotal, d.tiebreaker_rules);
+        // Add tiebreaker resolution note if available
+        if (d.tiebreaker_resolution && d.tiebreaker_resolution.length > 0) {
+            standingsHtml += '<div style="font-size:0.82rem;margin-top:0.5rem;padding:0.5rem 0.75rem;background:var(--pico-card-background-color);border-radius:4px">';
+            standingsHtml += '<strong style="font-size:0.8rem">Tiebreaker resolution:</strong>';
+            d.tiebreaker_resolution.forEach(tb => {
+                const teamNames = tb.teams.join(', ');
+                tb.lines.forEach(line => {
+                    standingsHtml += `<div style="margin-top:0.25rem;font-size:0.8rem;color:var(--pico-muted-color)">${esc(line.trim())}</div>`;
+                });
+            });
+            standingsHtml += '</div>';
+        }
+        document.getElementById('standings-area').innerHTML = standingsHtml;
+
+        document.getElementById('scenarios-area').innerHTML = renderScenarios(d.scenarios, d.our_team_name, d.our_pool, d.our_team) + renderTiebreakerHealth(d);
+
+        document.getElementById('upcoming-area').innerHTML =
+            d.upcoming && d.upcoming.length > 0
+                ? '<h2>Coming Up</h2>' + renderGames(d.upcoming, 'Upcoming Games', d.our_team, false)
+                : '';
+
+        document.getElementById('completed-area').innerHTML =
+            d.completed && d.completed.length > 0
+                ? renderGames(d.completed, 'Completed Games', d.our_team, true)
+                : '';
+
+        document.getElementById('venues-area').innerHTML = renderVenues(d.venues);
+        document.getElementById('coaches-corner-area').innerHTML = renderCoachesCorner(d);
+
+        // Clinch Watch rendering
+        document.getElementById('clinch-watch-area').innerHTML = renderClinchWatch(d.clinch_watch);
+
+        // Playoff bracket rendering
+        if (d.playoffs && d.playoffs.semis) {
+            document.getElementById('bracket-area').innerHTML = renderPlayoffs(d.playoffs);
+        } else {
+            document.getElementById('bracket-area').innerHTML = renderBracket(d.bracket);
+        }
+
+        document.getElementById('beyond-pool-area').innerHTML = renderBeyondPool(d);
+
+    } catch (err) {
+        console.error('Failed to load state:', err);
+        document.getElementById('standings-area').innerHTML =
+            `<p class="loading">Could not load data. Will retry in 15 seconds.<br><small>${esc(err.message)}</small></p>`;
+    }
+}
+
+// Initial load + periodic refresh
+loadAndRender();
+setInterval(loadAndRender, REFRESH_MS);
+</script>
+</body>
+</html>

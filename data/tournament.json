@@ -1,0 +1,148 @@
+{
+  "tournament": {
+    "id": "ptr_2026_u18c",
+    "name": "Pink the Rink XV - U18C",
+    "location": "Etobicoke, ON",
+    "dates": "October 16-18, 2026",
+    "our_team": "KAN",
+    "header_image": ""
+  },
+  "ramp": {
+    "base_url": "https://www.owha.on.ca",
+    "league_id": 3065,
+    "season_id": 14974,
+    "division_id": 25410,
+    "game_type": 0
+  },
+  "teams": {
+    "KAN": {
+      "name": "Kanata Rangers",
+      "number": 1777,
+      "pool": "B",
+      "is_us": true
+    },
+    "BEL": {
+      "name": "Belmont Blazers",
+      "number": 5132,
+      "pool": "B"
+    },
+    "NEP": {
+      "name": "Nepean Wildcats",
+      "number": 2866,
+      "pool": "B"
+    },
+    "WIL": {
+      "name": "Wilmot Wolverine",
+      "number": 4617,
+      "pool": "B"
+    },
+    "EOS": {
+      "name": "East Ottawa Stars",
+      "number": 2488,
+      "pool": "A"
+    },
+    "WOO": {
+      "name": "Woodstock Wildcats",
+      "number": 6893,
+      "pool": "A"
+    },
+    "OTT": {
+      "name": "Ottawa Ice",
+      "number": 2043,
+      "pool": "A"
+    },
+    "MIT": {
+      "name": "Mitchell Meteors",
+      "number": 7205,
+      "pool": "A"
+    }
+  },
+  "venues": {
+    "Centennial Park Arena - West": {
+      "name": "Centennial Park Arena (West)",
+      "address": "156 Centennial Park Rd, Etobicoke ON M9C 5N3",
+      "maps_url": "https://www.google.com/maps/search/?api=1&query=156+Centennial+Park+Rd+Etobicoke+ON"
+    },
+    "Centennial Park Arena - East": {
+      "name": "Centennial Park Arena (East)",
+      "address": "156 Centennial Park Rd, Etobicoke ON M9C 5N3",
+      "maps_url": "https://www.google.com/maps/search/?api=1&query=156+Centennial+Park+Rd+Etobicoke+ON"
+    },
+    "Central Arena": {
+      "name": "Central Arena",
+      "address": "50 Montgomery Rd, Etobicoke ON M8X 1Z4",
+      "maps_url": "https://www.google.com/maps/search/?api=1&query=50+Montgomery+Rd+Etobicoke+ON"
+    },
+    "Cwench Centre by Canlan Sports 2": {
+      "name": "CWENCH Centre (Canlan Sports - Pad 2)",
+      "address": "1120 Martin Grove Rd, Etobicoke ON M9W 4W1",
+      "maps_url": "https://www.google.com/maps/search/?api=1&query=1120+Martin+Grove+Rd+Etobicoke+ON"
+    },
+    "Cwench Centre by Canlan Sports 3": {
+      "name": "CWENCH Centre (Canlan Sports - Pad 3)",
+      "address": "1120 Martin Grove Rd, Etobicoke ON M9W 4W1",
+      "maps_url": "https://www.google.com/maps/search/?api=1&query=1120+Martin+Grove+Rd+Etobicoke+ON"
+    },
+    "Cwench Centre by Canlan Sports 4": {
+      "name": "CWENCH Centre (Canlan Sports - Pad 4)",
+      "address": "1120 Martin Grove Rd, Etobicoke ON M9W 4W1",
+      "maps_url": "https://www.google.com/maps/search/?api=1&query=1120+Martin+Grove+Rd+Etobicoke+ON"
+    },
+    "Cwench Centre by Canlan Sports - 1": {
+      "name": "CWENCH Centre (Canlan Sports - Pad 1)",
+      "address": "1120 Martin Grove Rd, Etobicoke ON M9W 4W1",
+      "maps_url": "https://www.google.com/maps/search/?api=1&query=1120+Martin+Grove+Rd+Etobicoke+ON"
+    },
+    "Ford Performance Centre - Pad 2": {
+      "name": "Ford Performance Centre (Pad 2)",
+      "address": "400 Kipling Ave, Etobicoke ON M8V 3L1",
+      "maps_url": "https://www.google.com/maps/search/?api=1&query=400+Kipling+Ave+Etobicoke+ON"
+    },
+    "Ford Performance Centre - Pad 3": {
+      "name": "Ford Performance Centre (Pad 3)",
+      "address": "400 Kipling Ave, Etobicoke ON M8V 3L1",
+      "maps_url": "https://www.google.com/maps/search/?api=1&query=400+Kipling+Ave+Etobicoke+ON"
+    }
+  },
+  "structure": {
+    "type": "two_pool_top2_advance",
+    "pools": {
+      "A": {
+        "teams": ["EOS", "WOO", "OTT", "MIT"],
+        "advance_count": 2
+      },
+      "B": {
+        "teams": ["KAN", "BEL", "NEP", "WIL"],
+        "advance_count": 2
+      }
+    },
+    "playoffs": {
+      "semis": [
+        {"name": "Semi 1", "home": "1st in Pool A", "away": "2nd in Pool B"},
+        {"name": "Semi 2", "home": "1st in Pool B", "away": "2nd in Pool A"}
+      ],
+      "consolation": [
+        {"name": "Consolation 1", "home": "3rd in Pool A", "away": "3rd in Pool B"},
+        {"name": "Consolation 2", "home": "4th in Pool A", "away": "4th in Pool B"}
+      ],
+      "final": {
+        "name": "Championship Final",
+        "home": "Winner of Semi 1",
+        "away": "Winner of Semi 2"
+      }
+    }
+  },
+  "tiebreakers": {
+    "rules": [
+      "wins",
+      "head_to_head_two_way_only",
+      "goal_diff",
+      "fewest_goals_against",
+      "fewest_pim"
+    ],
+    "allow_reversion": false
+  },
+  "security": {
+    "bench_pin": "1777"
+  }
+}

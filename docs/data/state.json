@@ -1,0 +1,815 @@
+{
+  "generated_at": "2026-10-12T19:42:38.563044-04:00",
+  "tournament": {
+    "name": "OWHA U15B Provincials 2026",
+    "location": "Chesswood Arenas, Toronto",
+    "dates": "April 10-12, 2026",
+    "our_team": "KAN"
+  },
+  "our_team": "KAN",
+  "our_team_name": "Kanata Rangers",
+  "our_pool": "C",
+  "other_pool": "F",
+  "teams": {
+    "KAN": {
+      "name": "Kanata Rangers",
+      "number": 1755,
+      "pool": "C",
+      "is_us": true,
+      "ranking": 18
+    },
+    "ENS": {
+      "name": "Ennismore Eagles",
+      "number": 6463,
+      "pool": "C",
+      "ranking": 25
+    },
+    "KIN": {
+      "name": "Kincardine Kinucks",
+      "number": 8704,
+      "pool": "C",
+      "ranking": 3
+    },
+    "WIN": {
+      "name": "Windsor Wildcats",
+      "number": 4764,
+      "pool": "C",
+      "ranking": 41
+    },
+    "DUR": {
+      "name": "Durham West Lightning",
+      "number": 314,
+      "pool": "F",
+      "ranking": 29
+    },
+    "LON": {
+      "name": "London Devilettes",
+      "number": 646,
+      "pool": "F",
+      "ranking": 5
+    },
+    "NHT": {
+      "name": "North Halton Twisters",
+      "number": 2519,
+      "pool": "F",
+      "ranking": 37
+    },
+    "WAT": {
+      "name": "Waterloo Ravens",
+      "number": 1173,
+      "pool": "F",
+      "ranking": 13
+    }
+  },
+  "venues": {},
+  "standings": [
+    {
+      "id": "KIN",
+      "name": "Kincardine Kinucks",
+      "ranking": 3,
+      "is_us": false,
+      "gp": 3,
+      "w": 3,
+      "l": 0,
+      "t": 0,
+      "pts": 6,
+      "gf": 7,
+      "ga": 1,
+      "gd": 6,
+      "status": "CLINCHED",
+      "adv_count": 1,
+      "adv_pct": 100.0,
+      "tie_note": null
+    },
+    {
+      "id": "WIN",
+      "name": "Windsor Wildcats",
+      "ranking": 41,
+      "is_us": false,
+      "gp": 3,
+      "w": 2,
+      "l": 1,
+      "t": 0,
+      "pts": 4,
+      "gf": 6,
+      "ga": 5,
+      "gd": 1,
+      "status": "ELIMINATED",
+      "adv_count": 0,
+      "adv_pct": 0.0,
+      "tie_note": null
+    },
+    {
+      "id": "KAN",
+      "name": "Kanata Rangers",
+      "ranking": 18,
+      "is_us": true,
+      "gp": 3,
+      "w": 0,
+      "l": 2,
+      "t": 1,
+      "pts": 1,
+      "gf": 3,
+      "ga": 6,
+      "gd": -3,
+      "status": "ELIMINATED",
+      "adv_count": 0,
+      "adv_pct": 0.0,
+      "tie_note": "Rule (wins): all tied at 0W"
+    },
+    {
+      "id": "ENS",
+      "name": "Ennismore Eagles",
+      "ranking": 25,
+      "is_us": false,
+      "gp": 3,
+      "w": 0,
+      "l": 2,
+      "t": 1,
+      "pts": 1,
+      "gf": 3,
+      "ga": 7,
+      "gd": -4,
+      "status": "ELIMINATED",
+      "adv_count": 0,
+      "adv_pct": 0.0,
+      "tie_note": "Rule (wins): all tied at 0W"
+    }
+  ],
+  "scenarios": {
+    "total": 1,
+    "our_count": 0,
+    "remaining_games": 0,
+    "gd_dependent": 0,
+    "unresolved": 0,
+    "winner": "KIN",
+    "scenarios": []
+  },
+  "rooting_guide": [],
+  "upcoming": [],
+  "completed": [
+    {
+      "game_id": 700,
+      "date": "2026-04-11T10:30",
+      "arena": null,
+      "home": "KIN",
+      "away": "KAN",
+      "home_name": "Kincardine Kinucks",
+      "away_name": "Kanata Rangers",
+      "home_score": 3,
+      "away_score": 1,
+      "status": "final",
+      "stream_url": null
+    },
+    {
+      "game_id": 701,
+      "date": "2026-04-11T10:30",
+      "arena": null,
+      "home": "WIN",
+      "away": "ENS",
+      "home_name": "Windsor Wildcats",
+      "away_name": "Ennismore Eagles",
+      "home_score": 4,
+      "away_score": 2,
+      "status": "final",
+      "stream_url": null
+    },
+    {
+      "game_id": 162,
+      "date": "2026-04-10T15:45",
+      "arena": null,
+      "home": "WIN",
+      "away": "KAN",
+      "home_name": "Windsor Wildcats",
+      "away_name": "Kanata Rangers",
+      "home_score": 2,
+      "away_score": 1,
+      "status": "final",
+      "stream_url": null
+    },
+    {
+      "game_id": 163,
+      "date": "2026-04-10T15:45",
+      "arena": null,
+      "home": "ENS",
+      "away": "KIN",
+      "home_name": "Ennismore Eagles",
+      "away_name": "Kincardine Kinucks",
+      "home_score": 0,
+      "away_score": 2,
+      "status": "final",
+      "stream_url": null
+    },
+    {
+      "game_id": 142,
+      "date": "2026-04-10T09:15",
+      "arena": null,
+      "home": "KIN",
+      "away": "WIN",
+      "home_name": "Kincardine Kinucks",
+      "away_name": "Windsor Wildcats",
+      "home_score": 2,
+      "away_score": 0,
+      "status": "final",
+      "stream_url": null
+    },
+    {
+      "game_id": 143,
+      "date": "2026-04-10T09:15",
+      "arena": null,
+      "home": "KAN",
+      "away": "ENS",
+      "home_name": "Kanata Rangers",
+      "away_name": "Ennismore Eagles",
+      "home_score": 1,
+      "away_score": 1,
+      "status": "final",
+      "stream_url": null
+    }
+  ],
+  "live_games": [],
+  "other_pool_standings": [
+    {
+      "id": "LON",
+      "name": "London Devilettes",
+      "ranking": 5,
+      "is_us": false,
+      "gp": 3,
+      "w": 2,
+      "l": 0,
+      "t": 1,
+      "pts": 5,
+      "gf": 5,
+      "ga": 1,
+      "gd": 4,
+      "status": "CLINCHED",
+      "adv_count": 1,
+      "adv_pct": 100.0,
+      "tie_note": null
+    },
+    {
+      "id": "DUR",
+      "name": "Durham West Lightning",
+      "ranking": 29,
+      "is_us": false,
+      "gp": 3,
+      "w": 2,
+      "l": 1,
+      "t": 0,
+      "pts": 4,
+      "gf": 4,
+      "ga": 2,
+      "gd": 2,
+      "status": "ELIMINATED",
+      "adv_count": 0,
+      "adv_pct": 0.0,
+      "tie_note": null
+    },
+    {
+      "id": "WAT",
+      "name": "Waterloo Ravens",
+      "ranking": 13,
+      "is_us": false,
+      "gp": 3,
+      "w": 1,
+      "l": 1,
+      "t": 1,
+      "pts": 3,
+      "gf": 3,
+      "ga": 2,
+      "gd": 1,
+      "status": "ELIMINATED",
+      "adv_count": 0,
+      "adv_pct": 0.0,
+      "tie_note": null
+    },
+    {
+      "id": "NHT",
+      "name": "North Halton Twisters",
+      "ranking": 37,
+      "is_us": false,
+      "gp": 3,
+      "w": 0,
+      "l": 3,
+      "t": 0,
+      "pts": 0,
+      "gf": 1,
+      "ga": 8,
+      "gd": -7,
+      "status": "ELIMINATED",
+      "adv_count": 0,
+      "adv_pct": 0.0,
+      "tie_note": null
+    }
+  ],
+  "other_pool_upcoming": [],
+  "bracket": [
+    {
+      "game_id": 726,
+      "round": "QF",
+      "date": "2026-04-11T18:45",
+      "label": "C1 vs F1",
+      "home": null,
+      "away": null,
+      "home_score": null,
+      "away_score": null,
+      "status": "pending",
+      "stream_url": null
+    },
+    {
+      "game_id": 1121,
+      "round": "SF",
+      "date": "2026-04-12T09:30",
+      "label": "W725 vs W726",
+      "home": null,
+      "away": null,
+      "home_score": null,
+      "away_score": null,
+      "status": "pending",
+      "stream_url": null
+    },
+    {
+      "game_id": 1128,
+      "round": "Gold",
+      "date": "2026-04-12T14:00",
+      "label": "Gold Medal",
+      "home": null,
+      "away": null,
+      "home_score": null,
+      "away_score": null,
+      "status": "pending",
+      "stream_url": null
+    },
+    {
+      "game_id": 1129,
+      "round": "Bronze",
+      "date": "2026-04-12T14:00",
+      "label": "Bronze Medal",
+      "home": null,
+      "away": null,
+      "home_score": null,
+      "away_score": null,
+      "status": "pending",
+      "stream_url": null
+    }
+  ],
+  "playoffs": {
+    "type": "multi_pool_crossover",
+    "quarterfinals": []
+  },
+  "tiebreaker_resolution": null,
+  "tiebreaker_rules": [
+    "wins",
+    "h2h",
+    "goal_diff",
+    "goals_against",
+    "penalty_minutes"
+  ],
+  "clinch_watch": [
+    "Pool C round-robin complete. 1st: Kincardine Kinucks.",
+    "Pool F round-robin complete. 1st: London Devilettes."
+  ],
+  "clinches": {
+    "C": {
+      "is_final": true,
+      "clinched_positions": {
+        "0": "KIN",
+        "1": "WIN",
+        "2": "KAN",
+        "3": "ENS"
+      },
+      "team_status": {
+        "KIN": {
+          "clinched_first": true,
+          "clinched_playoff": true,
+          "eliminated": false,
+          "adv_pct": 100.0,
+          "first_pct": 100.0
+        },
+        "WIN": {
+          "clinched_first": false,
+          "clinched_playoff": false,
+          "eliminated": true,
+          "adv_pct": 0.0,
+          "first_pct": 0.0
+        },
+        "KAN": {
+          "clinched_first": false,
+          "clinched_playoff": false,
+          "eliminated": true,
+          "adv_pct": 0.0,
+          "first_pct": 0.0
+        },
+        "ENS": {
+          "clinched_first": false,
+          "clinched_playoff": false,
+          "eliminated": true,
+          "adv_pct": 0.0,
+          "first_pct": 0.0
+        }
+      },
+      "alerts": [
+        "Pool C round-robin complete. 1st: Kincardine Kinucks."
+      ]
+    },
+    "F": {
+      "is_final": true,
+      "clinched_positions": {
+        "0": "LON",
+        "1": "DUR",
+        "2": "WAT",
+        "3": "NHT"
+      },
+      "team_status": {
+        "LON": {
+          "clinched_first": true,
+          "clinched_playoff": true,
+          "eliminated": false,
+          "adv_pct": 100.0,
+          "first_pct": 100.0
+        },
+        "DUR": {
+          "clinched_first": false,
+          "clinched_playoff": false,
+          "eliminated": true,
+          "adv_pct": 0.0,
+          "first_pct": 0.0
+        },
+        "WAT": {
+          "clinched_first": false,
+          "clinched_playoff": false,
+          "eliminated": true,
+          "adv_pct": 0.0,
+          "first_pct": 0.0
+        },
+        "NHT": {
+          "clinched_first": false,
+          "clinched_playoff": false,
+          "eliminated": true,
+          "adv_pct": 0.0,
+          "first_pct": 0.0
+        }
+      },
+      "alerts": [
+        "Pool F round-robin complete. 1st: London Devilettes."
+      ]
+    }
+  },
+  "bench": null,
+  "event_log": [
+    {
+      "time": "Fri Apr 10, 09:03 AM",
+      "type": "info",
+      "headline": "GAME STARTED: Kanata Rangers vs Ennismore Eagles (Game #143)",
+      "detail": "We need a strong start against Ennismore Eagles as we begin our quest to win Pool C at the OWHA U15B Provincials."
+    },
+    {
+      "time": "Fri Apr 10, 09:25 AM",
+      "type": "info",
+      "headline": "GAME STARTED: Kincardine Kinucks vs Windsor Wildcats (Game #142)",
+      "detail": "We need to closely watch this matchup since both Kincardine and Windsor are direct competitors for first in Pool C, and the result will impact our path to winning the pool."
+    },
+    {
+      "time": "Fri Apr 10, 09:31 AM",
+      "type": "goal",
+      "headline": "Score update: Kanata Rangers 1 - 0 Ennismore Eagles (in progress)",
+      "detail": "If we hold this 1-0 lead against Ennismore Eagles, we'll be in a strong position to win Pool C, taking first place in 106 of 214 scenarios."
+    },
+    {
+      "time": "Fri Apr 10, 09:37 AM",
+      "type": "goal",
+      "headline": "Score update: Kanata Rangers 1 - 1 Ennismore Eagles (in progress)",
+      "detail": "A tie here would put us in a strong position to win Pool C, as we'd claim first place in 38 of 225 scenarios."
+    },
+    {
+      "time": "Fri Apr 10, 09:38 AM",
+      "type": "goal",
+      "headline": "Score update: Kincardine Kinucks 1 - 0 Windsor Wildcats (in progress)",
+      "detail": "This result puts us in a stronger position as we would win the pool in 48 of 214 scenarios if the score holds."
+    },
+    {
+      "time": "Fri Apr 10, 10:07 AM",
+      "type": "final",
+      "headline": "FINAL: Kanata Rangers 1 - 1 Ennismore Eagles",
+      "detail": "This was an upset - we tied against the higher-ranked #25 Ennismore Eagles despite being the stronger #18 team! The tie significantly hurt our pool chances, as we now win Pool C in only 38 out of 243 remaining outcome combinations, down from 156 out of 729 before the game."
+    },
+    {
+      "time": "Fri Apr 10, 10:10 AM",
+      "type": "goal",
+      "headline": "Score update: Kincardine Kinucks 2 - 0 Windsor Wildcats (in progress)",
+      "detail": "This result puts us in a stronger position to win Pool C, as we would win the pool in 12 of 77 scenarios if the score holds."
+    },
+    {
+      "time": "Fri Apr 10, 10:12 AM",
+      "type": "final",
+      "headline": "FINAL: Kincardine Kinucks 2 - 0 Windsor Wildcats",
+      "detail": "The #3 ranked Kincardine Kinucks defeated #41 Windsor as expected, putting them in first place with 2 points while we remain tied for second with Ennismore at 1 point each. This result hurt our pool chances significantly - we now win Pool C in only 12 out of the remaining 81 outcome combinations, down from 38 out of 243 before this game."
+    },
+    {
+      "time": "Fri Apr 10, 03:30 PM",
+      "type": "info",
+      "headline": "GAME STARTED: Ennismore Eagles vs Kincardine Kinucks (Game #163)",
+      "detail": "We need Ennismore Eagles to win because it would prevent Kincardine Kinucks from extending their lead at the top of Pool C."
+    },
+    {
+      "time": "Fri Apr 10, 03:34 PM",
+      "type": "info",
+      "headline": "GAME STARTED: Windsor Wildcats vs Kanata Rangers (Game #162)",
+      "detail": "We need to secure points in this matchup to stay in contention for first in Pool C with the Kincardine Kinucks currently leading at 2 points."
+    },
+    {
+      "time": "Fri Apr 10, 03:48 PM",
+      "type": "goal",
+      "headline": "Score update: Windsor Wildcats 1 - 0 Kanata Rangers (in progress)",
+      "detail": "If this score holds, we would be eliminated from contention to win Pool C, as we'd win the pool in 0 of the 27 scenarios."
+    },
+    {
+      "time": "Fri Apr 10, 03:51 PM",
+      "type": "goal",
+      "headline": "Score update: Windsor Wildcats 2 - 0 Kanata Rangers (in progress)",
+      "detail": "If this score holds, we would be eliminated from contention to win Pool C, as we win the pool in 0 of 27 scenarios."
+    },
+    {
+      "time": "Fri Apr 10, 04:04 PM",
+      "type": "goal",
+      "headline": "Score update: Ennismore Eagles 0 - 1 Kincardine Kinucks (in progress)",
+      "detail": "This result puts us in a very challenging position, as we would win the pool in only 3 of 27 scenarios."
+    },
+    {
+      "time": "Fri Apr 10, 04:10 PM",
+      "type": "goal",
+      "headline": "Score update: Windsor Wildcats 2 - 1 Kanata Rangers (in progress)",
+      "detail": "If this score holds, we would be eliminated from contention to win Pool C, as we win the pool in 0 of the 27 possible scenarios."
+    },
+    {
+      "time": "Fri Apr 10, 04:27 PM",
+      "type": "goal",
+      "headline": "Score update: Ennismore Eagles 0 - 2 Kincardine Kinucks (in progress)",
+      "detail": "With Ennismore losing, we would need to beat Kincardine in our final game to have a realistic chance at first in Pool C."
+    },
+    {
+      "time": "Fri Apr 10, 04:30 PM",
+      "type": "final",
+      "headline": "FINAL: Windsor Wildcats 2 - 1 Kanata Rangers",
+      "detail": "What a heartbreaking result for us - we've been completely eliminated from Pool C after falling 2-1 to the much lower-ranked Windsor Wildcats in a major upset. Our elimination means we can no longer win the pool in any of the 27 remaining outcome combinations, ending our championship hopes despite being the #18 ranked team facing #41 Windsor."
+    },
+    {
+      "time": "Fri Apr 10, 04:35 PM",
+      "type": "final",
+      "headline": "FINAL: Ennismore Eagles 0 - 2 Kincardine Kinucks",
+      "detail": "This wasn't an upset - higher-ranked Kincardine (#3) defeated lower-ranked Ennismore (#25) as expected. Unfortunately, this result has officially eliminated us from Pool C contention, as we can no longer win the pool in any of the 9 remaining outcome combinations."
+    },
+    {
+      "time": "Fri Apr 10, 05:55 PM",
+      "type": "info",
+      "headline": "Pool F: Durham West Lightning 0 - 1 London Devilettes (Final)",
+      "detail": "QF opponent pool update."
+    },
+    {
+      "time": "Fri Apr 10, 05:57 PM",
+      "type": "info",
+      "headline": "Pool F: North Halton Twisters 0 - 2 Waterloo Ravens (Final)",
+      "detail": "QF opponent pool update."
+    },
+    {
+      "time": "Sat Apr 11, 10:10 AM",
+      "type": "info",
+      "headline": "GAME STARTED: Windsor Wildcats vs Ennismore Eagles (Game #701)",
+      "detail": "We need Windsor to win this game to give us the best chance of winning Pool C, as it would prevent Ennismore from gaining points that could complicate our path to first place."
+    },
+    {
+      "time": "Sat Apr 11, 10:26 AM",
+      "type": "goal",
+      "headline": "Score update: Windsor Wildcats 1 - 0 Ennismore Eagles (in progress)",
+      "detail": "This result would eliminate our chances to win Pool C, as we would need other results to go our way that are no longer possible."
+    },
+    {
+      "time": "Sat Apr 11, 10:28 AM",
+      "type": "goal",
+      "headline": "Score update: Windsor Wildcats 1 - 1 Ennismore Eagles (in progress)",
+      "detail": "This tie would eliminate us from contention to win Pool C, as we would be unable to catch the leaders regardless of our final game result."
+    },
+    {
+      "time": "Sat Apr 11, 10:34 AM",
+      "type": "info",
+      "headline": "GAME STARTED: Kincardine Kinucks vs Kanata Rangers (Game #700)",
+      "detail": "With us leading 1-0 against the undefeated Kincardine Kinucks, we're in position to potentially shake up the pool standings in this final round of games."
+    },
+    {
+      "time": "Sat Apr 11, 10:35 AM",
+      "type": "goal",
+      "headline": "Score update: Kincardine Kinucks 1 - 1 Kanata Rangers (in progress)",
+      "detail": "A tie here would put us in a strong position, as we'd win the pool in 0 of 3 scenarios if this score holds."
+    },
+    {
+      "time": "Sat Apr 11, 10:39 AM",
+      "type": "goal",
+      "headline": "Score update: Windsor Wildcats 2 - 1 Ennismore Eagles (in progress)",
+      "detail": "If this score holds, we would be eliminated from contention to win the pool."
+    },
+    {
+      "time": "Sat Apr 11, 10:44 AM",
+      "type": "goal",
+      "headline": "Score update: Windsor Wildcats 3 - 1 Ennismore Eagles (in progress)",
+      "detail": "If this score holds, we would be eliminated from contention to win the pool."
+    },
+    {
+      "time": "Sat Apr 11, 10:46 AM",
+      "type": "goal",
+      "headline": "Score update: Kincardine Kinucks 2 - 1 Kanata Rangers (in progress)",
+      "detail": "If this score holds, we would be eliminated from contention to win Pool C, as we'd finish with just 1 point from our two games."
+    },
+    {
+      "time": "Sat Apr 11, 10:49 AM",
+      "type": "goal",
+      "headline": "Score update: Windsor Wildcats 4 - 1 Ennismore Eagles (in progress)",
+      "detail": "If this score holds, we would be eliminated from contention to win Pool C."
+    },
+    {
+      "time": "Sat Apr 11, 10:54 AM",
+      "type": "goal",
+      "headline": "Score update: Windsor Wildcats 4 - 2 Ennismore Eagles (in progress)",
+      "detail": "This result would eliminate us from contention for first in Pool C."
+    },
+    {
+      "time": "Sat Apr 11, 11:01 AM",
+      "type": "goal",
+      "headline": "Score update: Kincardine Kinucks 3 - 1 Kanata Rangers (in progress)",
+      "detail": "If this score holds, we would be eliminated from contention to win Pool C, as we would finish with just 1 point total."
+    },
+    {
+      "time": "Sat Apr 11, 11:11 AM",
+      "type": "final",
+      "headline": "FINAL: Kincardine Kinucks 3 - 1 Kanata Rangers",
+      "detail": "Our Kanata Rangers (#18) fell 3-1 to the higher-ranked Kincardine Kinucks (#3) in our final pool game. With this loss, we have been eliminated from Pool C and will not advance to the next round of the OWHA U15B Provincial Championships."
+    },
+    {
+      "time": "Sat Apr 11, 11:14 AM",
+      "type": "final",
+      "headline": "FINAL: Windsor Wildcats 4 - 2 Ennismore Eagles",
+      "detail": "This was definitely an upset - the #41 Windsor Wildcats knocked off the much higher-ranked #25 Ennismore Eagles! Unfortunately, this result has officially eliminated us from Pool C contention, as we can no longer win the pool in any of the remaining outcome combinations."
+    },
+    {
+      "time": "Sat Apr 11, 12:47 PM",
+      "type": "info",
+      "headline": "Pool F: London Devilettes 1 - 1 Waterloo Ravens (Final)",
+      "detail": "QF opponent pool update."
+    },
+    {
+      "time": "Sat Apr 11, 01:00 PM",
+      "type": "info",
+      "headline": "Pool F: North Halton Twisters 1 - 3 Durham West Lightning (Final)",
+      "detail": "QF opponent pool update."
+    }
+  ],
+  "narrative": "**Where We Stand**\nAs we predicted, Windsor has claimed the 4-2 victory over Ennismore, finalizing the Pool C standings with us tied for third place at 1 point. Our tournament run ends here, as Kincardine advances as pool winners with their perfect 6-point record.\n\n**Our Next Game**\nWith no upcoming games scheduled, our pool play is complete and our Provincial Championships journey has concluded. While we fell short of our quarterfinal aspirations, we competed with heart against some strong competition.\n\n**Around the Pool**\nThe Windsor-Ennismore result we were watching played out exactly as the score suggested when it was in progress, giving Windsor sole possession of second place at 4 points. Pool C concludes with a clear hierarchy: Kincardine's dominant 6 points, Windsor's solid 4 points, and both us and Ennismore finishing with 1 point each after battling hard throughout the weekend.",
+  "coaches_corner": {
+    "don_cherry": "I'll tell ya, those Kanata Rangers girls gave it everything they had out there, and THAT'S what hockey's all about! You dust yourselves off, keep your heads high, because you're the future of this beautiful game and you played with heart!",
+    "talking_points": "**Focus on Our Growth** Our tournament may be over, but that tie against Ennismore shows exactly what we're capable of when we play our system and support each other. We've competed hard against every team here and shown real character.\n\n**What This Tournament Taught Us** We went toe-to-toe with some strong teams and proved we belong at this level. The gap between us and the top teams is smaller than the rankings suggest - we just need to keep building on what we've learned.\n\n**Finish Strong Mentality** Even though we're not advancing, how we handle this moment matters for next season. Let's use this experience to fuel our training and come back even stronger next year.\n\n**Team Pride** Every shift you've played here has been about representing Kanata Rangers hockey. Hold your heads high - you've competed with heart and shown what our program is all about.",
+    "for_game": "ELIMINATED"
+  },
+  "tiebreaker_health": "**Tiebreaker Health Analysis:**\n\nWe're currently tied with Windsor on both goal differential (-1) and goals against (3), meaning any tie with them goes to the next tiebreaker rule. We're behind Ennismore on both metrics (they have 0 GD vs our -1, and 1 GA vs our 3), so we'd lose head-to-head tiebreakers against them.\n\nOur position is extremely fragile - even one additional goal allowed puts us further behind on GA, and we have no cushion on goal differential. Since we're already at the bottom of the tiebreaker hierarchy among tied teams, every goal against us matters significantly.\n\nWe need to focus on defensive play and goal differential management, as we cannot afford to fall further behind on either metric in our remaining games.",
+  "scouting": {
+    "description": "This season we've faced several teams heading to Provincials across 5 tournaments. We swept St. Catharines Brock Jr. Badgers in two meetings (6-0, 2-0). Against the rest... let's just say we're looking for redemption. Of note: Durham West Lightning (#29) is in our quarterfinal opponent's pool (Pool F) -- they beat us 2-0 in November, but they're not the favourite to win their pool. In tournament play, anything can happen!",
+    "matchups": [
+      {
+        "opponent": "Durham West Lightning",
+        "pool": "F",
+        "ranking": 29,
+        "games": [
+          {
+            "date": "Nov 15, 2025",
+            "tournament": "November Tournament",
+            "score": "DUR 2 - KAN 0",
+            "result": "loss"
+          }
+        ]
+      },
+      {
+        "opponent": "Georgina Golden Hawks",
+        "pool": "A",
+        "ranking": 1,
+        "games": [
+          {
+            "date": "Sep 19, 2025",
+            "tournament": "September Tournament",
+            "score": "GEO 2 - KAN 0",
+            "result": "loss"
+          },
+          {
+            "date": "Sep 21, 2025",
+            "tournament": "September Tournament",
+            "score": "GEO 4 - KAN 2",
+            "result": "loss"
+          },
+          {
+            "date": "Feb 7, 2026",
+            "tournament": "February Tournament",
+            "score": "KAN 1 - GEO 3",
+            "result": "loss"
+          }
+        ]
+      },
+      {
+        "opponent": "Toronto Leaside Wildcats",
+        "pool": "G/H",
+        "ranking": null,
+        "games": [
+          {
+            "date": "Sep 19, 2025",
+            "tournament": "September Tournament",
+            "score": "KAN 2 - TLW 3",
+            "result": "loss"
+          }
+        ]
+      },
+      {
+        "opponent": "North Bay Junior Lakers",
+        "pool": "H",
+        "ranking": null,
+        "games": [
+          {
+            "date": "Oct 17, 2025",
+            "tournament": "October Tournament",
+            "score": "KAN 0 - NBL 1",
+            "result": "loss"
+          }
+        ]
+      },
+      {
+        "opponent": "St. Catharines Brock Jr. Badgers",
+        "pool": "other",
+        "ranking": null,
+        "games": [
+          {
+            "date": "Oct 17, 2025",
+            "tournament": "October Tournament",
+            "score": "KAN 6 - STK 0",
+            "result": "win"
+          },
+          {
+            "date": "Feb 8, 2026",
+            "tournament": "February Tournament",
+            "score": "KAN 2 - STK 0",
+            "result": "win"
+          }
+        ]
+      },
+      {
+        "opponent": "Woolwich Wild",
+        "pool": "E",
+        "ranking": null,
+        "games": [
+          {
+            "date": "Feb 7, 2026",
+            "tournament": "February Tournament",
+            "score": "KAN 1 - WW 0",
+            "result": "win"
+          }
+        ]
+      }
+    ],
+    "ranking_records": {
+      "KAN": {
+        "record": "26-14-7",
+        "rating": 86.36,
+        "agd": 1.1
+      },
+      "ENS": {
+        "record": "unknown",
+        "rating": null,
+        "agd": null
+      },
+      "KIN": {
+        "record": "30-6-11",
+        "rating": 87.59,
+        "agd": 1.76
+      },
+      "WIN": {
+        "record": "19-19-5",
+        "rating": 84.9,
+        "agd": 0.02
+      },
+      "DUR": {
+        "record": "24-16-11",
+        "rating": 85.5,
+        "agd": 0.49
+      },
+      "LON": {
+        "record": "32-7-8",
+        "rating": 87.43,
+        "agd": 1.61
+      },
+      "NHT": {
+        "record": "28-16-12",
+        "rating": 85.1,
+        "agd": 0.35
+      },
+      "WAT": {
+        "record": "30-11-6",
+        "rating": 86.89,
+        "agd": 0.97
+      }
+    }
+  }
+}
