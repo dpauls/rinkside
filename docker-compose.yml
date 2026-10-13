@@ -71,7 +71,7 @@ services:
   #   Resets to clean, then jumps directly to that step.
   mock-jump:
     build: .
-    entrypoint: ["sh", "-c", "python3 src/daemon.py --mock-dir test/mock_responses --mock-step ${1:-0} --once --skip-push", "--"]
+    entrypoint: ["sh", "-c", "python3 src/daemon.py --mock-dir test/mock_responses --mock-step $${1:-0} --once --skip-push", "--"]
     environment:
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
       - TZ=${TZ:-America/Toronto}
