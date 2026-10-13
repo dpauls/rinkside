@@ -17,30 +17,50 @@
         .site-header {
             background: linear-gradient(135deg, var(--rangers-blue) 0%, #002878 100%);
             color: white;
-            padding: 1rem 1.25rem;
+            padding: 0.85rem 1.25rem;
             margin: 0 -1.25rem 1rem;
             border-bottom: 4px solid var(--rangers-red);
         }
         .site-header-inner {
             display: flex;
             align-items: center;
+            justify-content: space-between;
             gap: 1rem;
             max-width: 900px;
             margin: 0 auto;
         }
-        .site-header img {
+        .site-header-logo-kgha {
             height: 60px;
             width: auto;
+            flex-shrink: 0;
+        }
+        .site-header-logo-tourney {
+            height: 64px;
+            width: 64px;
+            object-fit: contain;
+            flex-shrink: 0;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.35));
+        }
+        .site-header-titles {
+            flex: 1;
+            min-width: 0;
         }
         .site-header h1 {
             margin: 0;
             font-size: 1.5rem;
             color: white;
+            line-height: 1.2;
         }
         .site-header p {
-            margin: 0.15rem 0 0;
+            margin: 0.2rem 0 0;
             font-size: 0.85rem;
-            color: rgba(255,255,255,0.8);
+            color: rgba(255,255,255,0.85);
+        }
+        @media (max-width: 600px) {
+            .site-header-logo-kgha { height: 46px; }
+            .site-header-logo-tourney { height: 50px; width: 50px; }
+            .site-header h1 { font-size: 1.25rem; }
+            .site-header p { font-size: 0.78rem; }
         }
         #updated { font-size: 0.8rem; color: var(--pico-muted-color); margin-bottom: 0.5rem; }
 
@@ -170,11 +190,12 @@
 <main class="container">
     <div class="site-header">
         <div class="site-header-inner">
-            <img src="https://cloud.rampinteractive.com/kanatagirlshockeyassociation/css/img/assocLogo.svg" alt="KGHA">
-            <div>
+            <img class="site-header-logo-kgha" src="https://cloud.rampinteractive.com/kanatagirlshockeyassociation/css/img/assocLogo.svg" alt="KGHA">
+            <div class="site-header-titles">
                 <h1 id="team-name">Kanata Rangers</h1>
                 <p id="tournament-info">Tournament Tracker</p>
             </div>
+            <img id="tourney-logo" class="site-header-logo-tourney" src="images/pink-the-rink-logo.png" alt="Pink the Rink Logo">
         </div>
     </div>
     <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem;margin-bottom:0.75rem">
@@ -779,6 +800,13 @@ async function loadAndRender() {
         document.getElementById('team-name').textContent = d.our_team_name;
         document.getElementById('tournament-info').innerHTML =
             `${esc(d.tournament.name)} \u00b7 ${esc(d.tournament.location)} \u00b7 ${esc(d.tournament.dates)}`;
+        if (d.tournament && d.tournament.logo) {
+            const logoEl = document.getElementById('tourney-logo');
+            if (logoEl) {
+                logoEl.src = d.tournament.logo;
+                logoEl.style.display = 'block';
+            }
+        }
         document.getElementById('updated').textContent =
             `Last updated: ${fmtGenerated(d.generated_at)} \u00b7 Auto-refreshes every 15s`;
 

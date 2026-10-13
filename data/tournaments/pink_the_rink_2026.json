@@ -5,7 +5,8 @@
     "location": "Etobicoke, ON",
     "dates": "October 16-18, 2026",
     "our_team": "KAN",
-    "header_image": ""
+    "header_image": "",
+    "logo": "images/pink-the-rink-logo.png"
   },
   "ramp": {
     "base_url": "https://www.owha.on.ca",
