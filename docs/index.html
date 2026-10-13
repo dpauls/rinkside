@@ -3,7 +3,14 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Kanata Rangers - U15B Provincials 2026</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#001f5b">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Rinkside">
+    <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+    <link rel="icon" type="image/png" href="images/icon-192.png">
+    <title>Rinkside - Tournament Companion</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
     <style>
         :root {
@@ -201,6 +208,7 @@
     <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem;margin-bottom:0.75rem">
         <p id="updated" style="margin:0">Loading...</p>
         <div style="display:flex;gap:0.4rem">
+            <button id="install-btn" onclick="promptInstall()" style="background:#059669;border:none;padding:0.25rem 0.55rem;font-size:0.75rem;border-radius:4px;cursor:pointer;color:#fff;width:auto;display:none" title="Install Rinkside to your home screen for quick access and full-screen view">📲 Install App</button>
             <button id="wake-btn" onclick="toggleWakeLock()" style="background:#475569;border:none;padding:0.25rem 0.55rem;font-size:0.75rem;border-radius:4px;cursor:pointer;color:#fff;width:auto" title="Keeps your screen on at the rink so you receive continuous live smart watch alerts">⚡ Keep Awake (Rink Mode)</button>
             <button id="alert-btn" onclick="toggleAlerts()" style="background:#0284c7;border:none;padding:0.25rem 0.55rem;font-size:0.75rem;border-radius:4px;cursor:pointer;color:#fff;width:auto">🔔 Watch Alerts</button>
         </div>
@@ -869,6 +877,65 @@ async function loadAndRender() {
 // Initial load + periodic refresh
 loadAndRender();
 setInterval(loadAndRender, REFRESH_MS);
+
+// Register Service Worker for PWA & Background Alerts
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').then((reg) => {
+            console.log('Rinkside Service Worker active:', reg.scope);
+        }).catch((err) => {
+            console.warn('Service Worker registration failed:', err);
+        });
+    });
+}
+
+// PWA Install prompt handling
+let deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    const btn = document.getElementById('install-btn');
+    if (btn) btn.style.display = 'inline-block';
+});
+
+window.addEventListener('appinstalled', () => {
+    deferredPrompt = null;
+    const btn = document.getElementById('install-btn');
+    if (btn) btn.style.display = 'none';
+    console.log('Rinkside PWA installed successfully');
+});
+
+function promptInstall() {
+    if (deferredPrompt) {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then((choiceResult) => {
+            if (choiceResult.outcome === 'accepted') {
+                const btn = document.getElementById('install-btn');
+                if (btn) btn.style.display = 'none';
+            }
+            deferredPrompt = null;
+        });
+    } else {
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+        if (isIOS) {
+            alert('To install Rinkside on your iPhone:\n1. Tap the Share button (square with arrow ⎋) at the bottom.\n2. Scroll down and tap "Add to Home Screen ⊞".');
+        } else {
+            alert('To install Rinkside, open your browser menu (⋮) and tap "Install app" or "Add to Home screen".');
+        }
+    }
+}
+
+// Check if already in standalone mode (already installed)
+if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
+    const btn = document.getElementById('install-btn');
+    if (btn) btn.style.display = 'none';
+} else {
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    if (isIOS) {
+        const btn = document.getElementById('install-btn');
+        if (btn) btn.style.display = 'inline-block';
+    }
+}
 </script>
 </body>
 </html>
