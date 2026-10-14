@@ -164,6 +164,9 @@
     }
   },
   "tiebreakers": {
+    "source_name": "Pink the Rink XV Tournament Rules (Rule 16)",
+    "source_url": "https://etobicokedolphins.ca/Public/Documents/Pink_the_Rink_XV_Tournament_RULES_2026.pdf",
+    "description": "1. Number of Wins → 2. Head-to-Head (if exactly 2 teams tied; skipped if >2 teams) → 3. Goal Differential (GF - GA) → 4. Fewest Goals Allowed (GA) → 5. Fewest Penalty Minutes (PIM) → 6. Coin Toss. Rules applied in order; no reversion once used.",
     "rules": [
       "wins",
       "head_to_head_two_way_only",

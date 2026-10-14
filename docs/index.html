@@ -97,9 +97,9 @@
             white-space: nowrap;
         }
         .pool-pill {
-            background: var(--pico-card-background-color);
-            color: var(--pico-color);
-            border: 1px solid var(--pico-muted-border-color);
+            background: #f1f5f9 !important;
+            color: #1e293b !important;
+            border: 1px solid #cbd5e1 !important;
             padding: 0.35rem 0.85rem;
             border-radius: 20px;
             font-size: 0.85rem;
@@ -109,14 +109,30 @@
             white-space: nowrap;
             width: auto;
             margin: 0;
+            box-shadow: none;
+        }
+        @media (prefers-color-scheme: dark) {
+            .pool-pill {
+                background: #1e293b !important;
+                color: #f1f5f9 !important;
+                border-color: #334155 !important;
+            }
         }
         .pool-pill:hover {
-            border-color: var(--rangers-blue);
+            border-color: var(--rangers-blue) !important;
+            background: #e2e8f0 !important;
+            color: #0f172a !important;
+        }
+        @media (prefers-color-scheme: dark) {
+            .pool-pill:hover {
+                background: #334155 !important;
+                color: #ffffff !important;
+            }
         }
         .pool-pill.active {
-            background: var(--rangers-blue);
-            color: white;
-            border-color: var(--rangers-blue);
+            background: var(--rangers-blue) !important;
+            color: #ffffff !important;
+            border-color: var(--rangers-blue) !important;
             box-shadow: 0 2px 6px rgba(0, 56, 168, 0.3);
         }
 
@@ -296,7 +312,7 @@
             All game scores, schedules, and arena assignments come directly from the official <strong>OWHA RAMP Platform REST API</strong> (the same data source powering owha.on.ca and tournament portals). Refreshes continuously every 15–60 seconds.</p>
 
             <p style="margin-bottom:0.75rem"><strong>2. Standings &amp; Tiebreakers [Official Rules]</strong><br>
-            Pool rankings are sorted strictly according to official OWHA tournament tiebreaking hierarchy: (1) Total Wins, (2) Head-to-Head (2-way ties), (3) Goal Differential %, (4) Fewest Goals Against, (5) Fewest PIM.</p>
+            <span id="trust-tb-desc">Pool rankings and tiebreakers are governed strictly by official tournament rules.</span></p>
 
             <p style="margin-bottom:0.75rem"><strong>3. Clinch Projections [Mathematical Proof]</strong><br>
             Advancement and seed projections are computed by exhaustive mathematical permutation of all remaining games ($3^n$ win/loss/tie outcomes). Teams are marked <code>CLINCHED</code> only when qualification is mathematically 100% guaranteed.</p>
@@ -1049,8 +1065,18 @@ async function loadAndRender() {
 
         document.title = `${d.our_team_name} - ${d.tournament.name}`;
         document.getElementById('team-name').textContent = d.our_team_name;
-        document.getElementById('tournament-info').innerHTML =
-            `${esc(d.tournament.name)} \u00b7 ${esc(d.tournament.location)} \u00b7 ${esc(d.tournament.dates)}`;
+
+        // Strip redundant tournament name if custom banner is already displayed (e.g. "Pink the Rink XV - U18C" -> "U18C")
+        let subTitle = esc(d.tournament.name || '');
+        if (d.tournament && d.tournament.banner_text) {
+            const bannerNorm = d.tournament.banner_text.trim().toLowerCase();
+            const nameNorm = (d.tournament.name || '').trim();
+            if (nameNorm.toLowerCase().startsWith(bannerNorm)) {
+                subTitle = esc(nameNorm.substring(bannerNorm.length).replace(/^[\s\-–—:]+/, ''));
+            }
+        }
+        const subParts = [subTitle, esc(d.tournament.location), esc(d.tournament.dates)].filter(Boolean);
+        document.getElementById('tournament-info').innerHTML = subParts.join(' \u00b7 ');
 
         // Dynamic banner & font loading
         if (d.tournament && d.tournament.banner_font_url && !document.getElementById('tourney-font-link')) {
@@ -1066,6 +1092,27 @@ async function loadAndRender() {
             if (d.tournament.banner_font) bannerEl.style.fontFamily = d.tournament.banner_font;
             if (d.tournament.banner_color) bannerEl.style.color = d.tournament.banner_color;
             bannerEl.style.display = 'block';
+        }
+
+        // Dynamic tiebreaker rules provenance & trust modal
+        const tbRules = d.tiebreaker_rules || {};
+        const provEl = document.getElementById('standings-provenance');
+        if (provEl) {
+            const srcName = tbRules.source_name || 'Official Tiebreaker Rules';
+            const srcUrl = tbRules.source_url;
+            if (srcUrl) {
+                provEl.innerHTML = `Official RAMP Feed &middot; <a href="${esc(srcUrl)}" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline">${esc(srcName)}</a>`;
+            } else {
+                provEl.textContent = `Official RAMP Feed \u00b7 ${srcName}`;
+            }
+        }
+        const tbDescEl = document.getElementById('trust-tb-desc');
+        if (tbDescEl) {
+            const srcName = tbRules.source_name || 'Official Tournament Rules';
+            const srcUrl = tbRules.source_url;
+            const linkHtml = srcUrl ? ` [<a href="${esc(srcUrl)}" target="_blank" rel="noopener">Official Rules PDF</a>]` : '';
+            const desc = tbRules.description || 'Pool rankings are sorted strictly according to tournament tiebreaker criteria.';
+            tbDescEl.innerHTML = `Pool rankings and playoff qualifications are determined strictly by <strong>${esc(srcName)}</strong>${linkHtml}:<br>${esc(desc)}`;
         }
 
         if (d.tournament && d.tournament.logo) {

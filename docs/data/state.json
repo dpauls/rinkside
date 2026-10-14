@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-13T20:33:17.683677-04:00",
+  "generated_at": "2026-10-13T21:19:04.760785-04:00",
   "tournament": {
     "id": "ptr_2026_u18c",
     "name": "Pink the Rink XV - U18C",
@@ -21991,6 +21991,9 @@
   },
   "tiebreaker_resolution": null,
   "tiebreaker_rules": {
+    "source_name": "Pink the Rink XV Tournament Rules (Rule 16)",
+    "source_url": "https://etobicokedolphins.ca/Public/Documents/Pink_the_Rink_XV_Tournament_RULES_2026.pdf",
+    "description": "1. Number of Wins \u2192 2. Head-to-Head (if exactly 2 teams tied; skipped if >2 teams) \u2192 3. Goal Differential (GF - GA) \u2192 4. Fewest Goals Allowed (GA) \u2192 5. Fewest Penalty Minutes (PIM) \u2192 6. Coin Toss. Rules applied in order; no reversion once used.",
     "rules": [
       "wins",
       "head_to_head_two_way_only",
@@ -22073,36 +22076,7 @@
       "alerts": []
     }
   },
-  "bench": {
-    "our_game": {
-      "home": "KAN",
-      "away": "BEL",
-      "home_name": "Kanata Rangers",
-      "away_name": "Belmont Blazers",
-      "home_score": 2,
-      "away_score": 1
-    },
-    "other_game": null,
-    "projections": {
-      "win": {
-        "advance": 27,
-        "total": 27,
-        "advance_any": true
-      },
-      "tie": {
-        "advance": 23,
-        "total": 27,
-        "advance_any": true
-      },
-      "loss": {
-        "advance": 18,
-        "total": 27,
-        "advance_any": true
-      }
-    },
-    "indicator": "green",
-    "reason": "A tie advances us in 23 of 27 remaining scenarios. Safe to play it out."
-  },
+  "bench": null,
   "event_log": [],
   "narrative": "**Where We Stand**\nWe are at the starting line in Pool B with a clean slate of 0 points. Our path forward is clear: out of 729 possible combinations of outcomes in the pool, we advance in 309 of them.\n\n**Our Next Game**\nWe take the ice for our tournament opener against the Nepean Wildcats today, Friday, Oct 16, at 2:15 PM. Every shift matters as we look to secure our first points of the weekend.\n\n**Around the Pool**\nPool B action begins at 12:30 PM with Wilmot Wolverine facing the Belmont Blazers. We will follow that result closely as we prepare for our own debut this afternoon.",
   "coaches_corner": {

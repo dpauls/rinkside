@@ -18,6 +18,10 @@ class GeminiProvider(LLMProvider):
 
     DEFAULT_FLASH_MODEL = os.environ.get("GEMINI_FLASH_MODEL", "gemini-3.8-flash")
     DEFAULT_PRO_MODEL = os.environ.get("GEMINI_PRO_MODEL", "gemini-3.1-pro-preview")
+    MAX_DAILY_CALLS = int(os.environ.get("GEMINI_MAX_DAILY_CALLS", "350"))
+
+    _daily_calls = 0
+    _last_call_date = None
 
     def __init__(self, api_key: Optional[str] = None):
         if not api_key:
@@ -44,6 +48,19 @@ class GeminiProvider(LLMProvider):
         if not self.is_available():
             log.warning("GeminiProvider: No API key available.")
             return None
+
+        # Safety circuit breaker to guarantee spend limit protection
+        from datetime import date
+        today = date.today().isoformat()
+        if GeminiProvider._last_call_date != today:
+            GeminiProvider._daily_calls = 0
+            GeminiProvider._last_call_date = today
+
+        if GeminiProvider._daily_calls >= self.MAX_DAILY_CALLS:
+            log.warning(f"GeminiProvider safety limit reached: {self.MAX_DAILY_CALLS} calls today. Halting API calls to protect budget.")
+            return None
+
+        GeminiProvider._daily_calls += 1
 
         primary_model = model or self.DEFAULT_FLASH_MODEL
         # Fallback sequence in case of daily quota exhaustion or 503 capacity spikes

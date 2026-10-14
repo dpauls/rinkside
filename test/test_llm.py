@@ -60,6 +60,21 @@ class TestLLMRouter(unittest.TestCase):
         self.assertEqual(resp, "Fallback response")
         self.assertEqual(len(mock_claude.calls), 1)
 
+    def test_gemini_safety_circuit_breaker(self):
+        from src.llm.gemini import GeminiProvider
+        provider = GeminiProvider(api_key="test-key")
+        # Set limit to 2
+        provider.MAX_DAILY_CALLS = 2
+        GeminiProvider._daily_calls = 2
+        from datetime import date
+        GeminiProvider._last_call_date = date.today().isoformat()
+
+        # Should be stopped by circuit breaker without making HTTP calls
+        res = provider.generate("test", purpose="goal_reaction")
+        self.assertIsNone(res)
+        # Reset for subsequent tests
+        GeminiProvider._daily_calls = 0
+
 
 if __name__ == '__main__':
     unittest.main()
