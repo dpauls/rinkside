@@ -13,12 +13,12 @@ services:
       - GIT_COMMITTER_EMAIL=${GIT_USER_EMAIL:-tracker@example.com}
     volumes:
       - ~/.gitconfig:/root/.gitconfig:ro
-      - ~/.git-credentials:/root/.git-credentials:ro
+      - ~/.git-credentials:/root/.git-credentials
       - ./.git:/app/.git
       - ./data:/app/data
       - ./docs:/app/docs
       - ./logs:/app/logs
-    command: ["--interval", "60"]
+    command: ["--interval", "60", "--push"]
     init: true
     stop_grace_period: 3s
     restart: unless-stopped

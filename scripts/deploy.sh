@@ -12,6 +12,11 @@ if [ -f .env ]; then
     scp -i "$KEY" -o StrictHostKeyChecking=no .env "$HOST":~/rinkside/.env
 fi
 
+if [ -f ~/.git-credentials ]; then
+    echo "==> Syncing git credentials and config to Oracle Cloud VM..."
+    scp -i "$KEY" -o StrictHostKeyChecking=no ~/.gitconfig ~/.git-credentials "$HOST":~/
+fi
+
 echo "==> Syncing and rebuilding on Oracle Cloud VM ($HOST)..."
 ssh -i "$KEY" -o StrictHostKeyChecking=no "$HOST" "
     set -e
