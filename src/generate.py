@@ -445,6 +445,9 @@ def generate(data_path='data/tournaments/pink_the_rink_2026.json', skip_narrativ
     output_dir.mkdir(parents=True, exist_ok=True)
     (output_dir / 'state.json').write_text(json.dumps(state, indent=2))
     (output_dir / '.state_live.json').write_text(json.dumps(state, indent=2))
+    stem = Path(data_path).stem
+    if stem not in ('tournament', 'state'):
+        (output_dir / f'.state_{stem}_live.json').write_text(json.dumps(state, indent=2))
     print(f'Generated state.json ({(output_dir / "state.json").stat().st_size} bytes)')
     return state
 

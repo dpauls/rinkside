@@ -958,7 +958,7 @@ def main():
 
     # Always generate and push current state on startup
     log.info('Initial generate and push...')
-    generate(str(tourn_path), skip_narrative=True)
+    state = generate(str(tourn_path), skip_narrative=True)
 
     # Generate narrative + Coach's Corner if missing (startup or after reroll)
     if not args.skip_narrative and (not tournament_data.get('_narrative') or not tournament_data.get('_coaches_corner')):
@@ -1049,13 +1049,11 @@ def main():
         _publish_to_git()
 
     if storage:
-        state_path = SHADOW_STATE_PATH if SHADOW_STATE_PATH.exists() else STATE_PATH
-        if state_path.exists():
-            try:
-                storage.save_state(json.loads(state_path.read_text()))
-                log.info(f"Initial state published to storage backend ({args.storage})")
-            except Exception as e:
-                log.warning(f"Could not publish initial state to storage: {e}")
+        try:
+            storage.save_state(state)
+            log.info(f"Initial state published to storage backend ({args.storage})")
+        except Exception as e:
+            log.warning(f"Could not publish initial state to storage: {e}")
 
     if not args.skip_push:
         git_push()
