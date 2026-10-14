@@ -16,7 +16,8 @@ echo "==> Syncing and rebuilding on Oracle Cloud VM ($HOST)..."
 ssh -i "$KEY" -o StrictHostKeyChecking=no "$HOST" "
     set -e
     cd ~/rinkside
-    git pull origin main
+    git fetch origin main
+    git reset --hard origin/main
     docker compose build
     docker compose up -d tracker
     echo '==> Recent container logs:'
