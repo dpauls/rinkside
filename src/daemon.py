@@ -376,6 +376,9 @@ def process_changes(changes, tournament_data, prev_scenarios, skip_narrative=Fal
     # Build rich tournament context for event impact comments
     completed_games = build_games_list(our_pool, tournament_data, 'final')
     upcoming_games = build_games_list(our_pool, tournament_data, 'scheduled')
+    live_games = build_games_list(our_pool, tournament_data, 'in_progress')
+    tournament_name = tournament_data.get('tournament', {}).get('name', 'Pink the Rink XV - U18C')
+
     standings_summary = ', '.join(
         f"{s['name'].split('#')[0].strip()} {s['pts']}pts ({s['w']}W-{s['l']}L-{s['t']}T)"
         for s in standings
@@ -389,17 +392,19 @@ def process_changes(changes, tournament_data, prev_scenarios, skip_narrative=Fal
         for g in upcoming_games
     ) or 'No more scheduled games — this is the final round'
 
-    # For small scenario counts, include key scenario outcomes
+    # Determine round-robin phase
+    remaining_count = len(get_remaining_games(our_pool, tournament_data.get('pool_games', [])))
+    total_pool_games = len([g for g in tournament_data.get('pool_games', []) if g.get('pool') == our_pool])
+    rr_phase = "early" if remaining_count >= max(total_pool_games - 1, 1) else ("late" if remaining_count <= 2 else "mid")
+
     scenario_detail = None
-    remaining_count = len(get_remaining_games(our_pool, tournament_data['pool_games']))
-    if remaining_count <= 3 and curr_analysis['total'] <= 27:
-        # Small enough to summarize meaningfully
+    if remaining_count <= 3 and curr_analysis.get('total', 0) <= 27:
         from collections import Counter
         outcome_summary = Counter()
-        for sc in curr_analysis['scenarios']:
-            if sc['result']['advancing']:
-                outcome_summary[sc['result']['advancing'][0]] += 1
-            elif sc['unresolved']:
+        for sc in curr_analysis.get('scenarios', []):
+            for adv_t in sc.get('result', {}).get('advancing', []):
+                outcome_summary[adv_t] += 1
+            if sc.get('unresolved'):
                 outcome_summary['UNRESOLVED'] += 1
         scenario_detail = ', '.join(f"{t}: {c}/{curr_analysis['total']}" for t, c in outcome_summary.most_common())
 
@@ -427,7 +432,10 @@ def process_changes(changes, tournament_data, prev_scenarios, skip_narrative=Fal
                 detail = generate_event_impact(
                     'game_started', home_name, away_name, hs, as_,
                     is_our_game, our_team_name,
-                    tournament_context=tournament_context)
+                    tournament_context=tournament_context,
+                    in_progress_games=live_games,
+                    round_robin_phase=rr_phase,
+                    tournament_name=tournament_name)
             events.append(create_event('info', headline, detail))
 
         elif change['type'] == 'score_change':
@@ -453,7 +461,10 @@ def process_changes(changes, tournament_data, prev_scenarios, skip_narrative=Fal
                 detail = generate_event_impact(
                     'score_change', home_name, away_name, hs, as_,
                     is_our_game, our_team_name, holds_count, holds_total,
-                    tournament_context=tournament_context)
+                    tournament_context=tournament_context,
+                    in_progress_games=live_games,
+                    round_robin_phase=rr_phase,
+                    tournament_name=tournament_name)
 
             events.append(create_event('goal', headline, detail))
 
@@ -652,10 +663,20 @@ def run_cycle(tournament_data, mock_source=None, skip_narrative=False, skip_push
                         f"Pool {our_pool} winner is UNRESOLVED by our tiebreaker data. "
                         f"Officials will determine the winner.")
 
+            t_name = tournament_data.get('tournament', {}).get('name', 'Pink the Rink XV - U18C')
             narrative = generate_overall_narrative_with_context(
-                prev_narrative, standings, scenario_data,
-                tournament_data['teams'][our_team]['name'], our_pool,
-                qf_standings, completed, upcoming, recent_change_descs, live)
+                standings=standings,
+                scenarios=scenario_data,
+                our_team_name=tournament_data['teams'][our_team]['name'],
+                our_pool=our_pool,
+                qf_pool_standings=qf_standings,
+                completed_games=completed,
+                upcoming_games=upcoming,
+                live_games=live,
+                recent_changes=recent_change_descs,
+                prev_narrative=prev_narrative,
+                tournament_name=t_name
+            )
 
     # Store narrative in tournament data for generate.py to pick up
     if narrative:
@@ -667,7 +688,7 @@ def run_cycle(tournament_data, mock_source=None, skip_narrative=False, skip_push
 
     # Generate Coach's Corner content -- only when the "for_game" changes
     coaches_corner = tournament_data.get('_coaches_corner', {})
-    has_any_final = any(c['type'] == 'game_final' for c in changes)
+    has_any_final = any(c['type'] == 'game_final' for c in all_changes)
 
     if not skip_narrative:
         our_team_name = tournament_data['teams'][our_team]['name']
@@ -725,7 +746,8 @@ def run_cycle(tournament_data, mock_source=None, skip_narrative=False, skip_push
                                   f"Results: {', '.join(recent_results[-3:])}.")
             else:
                 cherry_context = f"Tournament state: {', '.join(recent_results[-3:])}. Next: {current_for_game}."
-            don_cherry = generate_don_cherry(cherry_context, our_team_name)
+            t_name = tournament_data.get('tournament', {}).get('name', 'Pink the Rink XV - U18C')
+            don_cherry = generate_don_cherry(cherry_context, our_team_name, tournament_name=t_name)
             if don_cherry:
                 coaches_corner['don_cherry'] = don_cherry
 
@@ -802,7 +824,7 @@ def run_cycle(tournament_data, mock_source=None, skip_narrative=False, skip_push
 
     # Generate tiebreaker health analysis on game finals when yellow scenarios exist
     tb_health = tournament_data.get('_tb_health')
-    has_any_final = any(c['type'] == 'game_final' for c in changes)
+    has_any_final = any(c['type'] == 'game_final' for c in all_changes)
     if not skip_narrative and has_any_final:
         our_analysis = enumerate_scenarios(our_pool, tournament_data)
         from generate import build_scenario_data
@@ -841,6 +863,7 @@ def run_cycle(tournament_data, mock_source=None, skip_narrative=False, skip_push
         state['tiebreaker_health'] = tb_health
     SHADOW_STATE_PATH.parent.mkdir(parents=True, exist_ok=True)
     SHADOW_STATE_PATH.write_text(json.dumps(state, indent=2))
+    _publish_to_git()
 
     if storage_backend:
         storage_backend.save_state(state)
@@ -932,9 +955,11 @@ def main():
 
         # Welcome narrative
         log.info('Generating welcome narrative...')
+        t_name = tournament_data.get('tournament', {}).get('name', 'Pink the Rink XV - U18C')
         welcome = generate_overall_narrative(
             standings, scenario_data, our_team_name,
-            our_pool, qf_standings, [], upcoming, [])
+            our_pool, qf_standings, [], upcoming, [],
+            tournament_name=t_name)
         if welcome:
             state['narrative'] = welcome
             tournament_data['_narrative'] = welcome
@@ -999,6 +1024,7 @@ def main():
         SHADOW_STATE_PATH.parent.mkdir(parents=True, exist_ok=True)
         SHADOW_STATE_PATH.write_text(json.dumps(state, indent=2))
         _write_data(tournament_data)
+        _publish_to_git()
 
     if not args.skip_push:
         git_push()

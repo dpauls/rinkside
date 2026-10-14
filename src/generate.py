@@ -357,6 +357,43 @@ def generate(data_path='data/tournaments/pink_the_rink_2026.json', skip_narrativ
     rooting_guide = generate_rooting_guide(our_pool, data, our_team)
     bench_data = compute_bench_analysis(data, our_team, our_pool)
 
+    all_pools = {}
+    for pid in struct.get_pools().keys():
+        p_analysis = our_analysis if pid == our_pool else (other_analysis if pid == other_pool else None)
+        p_standings = build_standings(pid, data, p_analysis)
+        all_pools[pid] = {
+            'pool_id': pid,
+            'name': f'Pool {pid}',
+            'is_our_pool': (pid == our_pool),
+            'standings': p_standings,
+            'upcoming': build_games_list(pid, data, 'scheduled'),
+            'completed': build_games_list(pid, data, 'final'),
+            'live_games': build_games_list(pid, data, 'in_progress'),
+        }
+
+    # All division games (all pools combined, sorted chronologically)
+    all_division_games = []
+    streams = load_streams(data)
+    for g in data.get('pool_games', []):
+        gid = g.get('game_id') or g.get('GID')
+        stream_url = g.get('stream_url') or g.get('broadcast_url') or streams.get(str(gid)) or streams.get(gid)
+        teams = data.get('teams', {})
+        all_division_games.append({
+            'game_id': gid,
+            'pool': g.get('pool'),
+            'date': g.get('date'),
+            'arena': g.get('arena'),
+            'home': g.get('home'),
+            'away': g.get('away'),
+            'home_name': teams.get(g.get('home'), {}).get('name', g.get('home')),
+            'away_name': teams.get(g.get('away'), {}).get('name', g.get('away')),
+            'home_score': g.get('home_score'),
+            'away_score': g.get('away_score'),
+            'status': g.get('status'),
+            'stream_url': stream_url,
+        })
+    all_division_games.sort(key=lambda g: g.get('date') or '')
+
     state = {
         'generated_at': datetime.now().astimezone().isoformat(),
         'tournament': data['tournament'],
@@ -376,6 +413,8 @@ def generate(data_path='data/tournaments/pink_the_rink_2026.json', skip_narrativ
 
         'other_pool_standings': build_standings(other_pool, data, other_analysis) if other_analysis else [],
         'other_pool_upcoming': build_games_list(other_pool, data, 'scheduled'),
+        'all_pools': all_pools,
+        'all_division_games': all_division_games,
 
         'bracket': build_bracket(data),
         'playoffs': playoff_bracket,

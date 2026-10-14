@@ -6,7 +6,11 @@
     "dates": "October 16-18, 2026",
     "our_team": "KAN",
     "header_image": "",
-    "logo": "images/pink-the-rink-logo.png"
+    "logo": "images/pink-the-rink-logo.png",
+    "banner_text": "PINK THE RINK XV",
+    "banner_color": "#ff99cc",
+    "banner_font": "'Oswald', sans-serif",
+    "banner_font_url": "https://fonts.googleapis.com/css2?family=Oswald:wght@700&display=swap"
   },
   "ramp": {
     "base_url": "https://www.owha.on.ca",

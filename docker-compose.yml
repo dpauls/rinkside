@@ -3,6 +3,8 @@ services:
   tracker:
     build: .
     environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - GEMINI_FLASH_MODEL=${GEMINI_FLASH_MODEL:-gemini-3.8-flash}
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
       - TZ=${TZ:-America/Toronto}
       - GIT_AUTHOR_NAME=${GIT_USER_NAME:-Rangers Tracker Bot}
@@ -27,6 +29,8 @@ services:
   mock-test:
     build: .
     environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - GEMINI_FLASH_MODEL=${GEMINI_FLASH_MODEL:-gemini-3.8-flash}
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
       - TZ=${TZ:-America/Toronto}
       - GIT_AUTHOR_NAME=${GIT_USER_NAME:-Rangers Tracker Bot}

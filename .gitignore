@@ -8,4 +8,5 @@ data/.tournament_live.json
 .*_live.json
 docs/data/.state_live.json
 test/mock_responses/.mock_step
+test/mock_responses_ptr/.mock_step
 logs/

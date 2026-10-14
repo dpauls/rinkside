@@ -54,22 +54,71 @@
         }
         .site-header h1 {
             margin: 0;
-            font-size: 1.5rem;
+            font-size: 1.45rem;
             color: white;
             line-height: 1.2;
         }
+        .tourney-banner {
+            font-family: var(--banner-font, 'Oswald', sans-serif);
+            color: var(--banner-color, #ff99cc);
+            font-size: 1.3rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.4);
+            margin: 0.15rem 0 0.1rem;
+            line-height: 1.2;
+        }
         .site-header p {
-            margin: 0.2rem 0 0;
-            font-size: 0.85rem;
+            margin: 0.15rem 0 0;
+            font-size: 0.82rem;
             color: rgba(255,255,255,0.85);
         }
         @media (max-width: 600px) {
             .site-header-logo-kgha { height: 46px; }
             .site-header-logo-tourney { height: 50px; width: 50px; }
-            .site-header h1 { font-size: 1.25rem; }
-            .site-header p { font-size: 0.78rem; }
+            .site-header h1 { font-size: 1.2rem; }
+            .tourney-banner { font-size: 1.05rem; }
+            .site-header p { font-size: 0.75rem; }
         }
         #updated { font-size: 0.8rem; color: var(--pico-muted-color); margin-bottom: 0.5rem; }
+
+        .pool-selector-container {
+            margin: 1.25rem 0 0.75rem;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+        .pool-selector-container::-webkit-scrollbar { display: none; }
+        .pool-pills {
+            display: flex;
+            gap: 0.45rem;
+            padding: 0.2rem 0;
+            white-space: nowrap;
+        }
+        .pool-pill {
+            background: var(--pico-card-background-color);
+            color: var(--pico-color);
+            border: 1px solid var(--pico-muted-border-color);
+            padding: 0.35rem 0.85rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+            width: auto;
+            margin: 0;
+        }
+        .pool-pill:hover {
+            border-color: var(--rangers-blue);
+        }
+        .pool-pill.active {
+            background: var(--rangers-blue);
+            color: white;
+            border-color: var(--rangers-blue);
+            box-shadow: 0 2px 6px rgba(0, 56, 168, 0.3);
+        }
 
         .live-banner {
             background: #d32f2f; color: white;
@@ -200,13 +249,17 @@
             <img class="site-header-logo-kgha" src="https://cloud.rampinteractive.com/kanatagirlshockeyassociation/css/img/assocLogo.svg" alt="KGHA">
             <div class="site-header-titles">
                 <h1 id="team-name">Kanata Rangers</h1>
+                <div id="tourney-banner" class="tourney-banner" style="display:none">PINK THE RINK XV</div>
                 <p id="tournament-info">Tournament Tracker</p>
             </div>
             <img id="tourney-logo" class="site-header-logo-tourney" src="images/pink-the-rink-logo.png" alt="Pink the Rink Logo">
         </div>
     </div>
     <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem;margin-bottom:0.75rem">
-        <p id="updated" style="margin:0">Loading...</p>
+        <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap">
+            <p id="updated" style="margin:0">Loading...</p>
+            <button onclick="openTrustModal()" style="background:transparent;border:1px solid var(--pico-muted-border-color);color:var(--pico-muted-color);padding:0.15rem 0.5rem;font-size:0.72rem;border-radius:12px;cursor:pointer;width:auto" title="Data provenance and mathematical methodology">ℹ️ Sources &amp; Trust</button>
+        </div>
         <div style="display:flex;gap:0.4rem">
             <button id="install-btn" onclick="promptInstall()" style="background:#059669;border:none;padding:0.25rem 0.55rem;font-size:0.75rem;border-radius:4px;cursor:pointer;color:#fff;width:auto;display:none" title="Install Rinkside to your home screen for quick access and full-screen view">📲 Install App</button>
             <button id="wake-btn" onclick="toggleWakeLock()" style="background:#475569;border:none;padding:0.25rem 0.55rem;font-size:0.75rem;border-radius:4px;cursor:pointer;color:#fff;width:auto" title="Keeps your screen on at the rink so you receive continuous live smart watch alerts">⚡ Keep Awake (Rink Mode)</button>
@@ -218,12 +271,43 @@
     <div id="narrative-area"></div>
     <div id="event-log-area"></div>
 
-    <h2 id="pool-header">Pool Standings</h2>
+    <div class="pool-selector-container">
+        <div id="pool-pills" class="pool-pills" role="tablist"></div>
+    </div>
+
+    <div style="display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:0.5rem;margin-top:0.75rem;margin-bottom:0.4rem">
+        <h2 id="pool-header" style="margin:0">Pool Standings</h2>
+        <span id="standings-provenance" style="font-size:0.75rem;color:var(--pico-muted-color)">Official RAMP Feed &middot; OWHA Tiebreakers</span>
+    </div>
     <div id="standings-area"><p class="loading">Loading standings...</p></div>
 
     <div id="scenarios-area"></div>
     <div id="upcoming-area"></div>
     <div id="completed-area"></div>
+
+    <!-- Data Provenance & Trust Modal -->
+    <dialog id="trust-modal" style="border-radius:8px;max-width:540px;width:92%;padding:1.5rem;box-shadow:0 10px 30px rgba(0,0,0,0.4);border:1px solid var(--pico-muted-border-color)">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem">
+            <h3 style="margin:0;font-size:1.15rem;color:var(--rangers-blue)">ℹ️ Sources &amp; Trust</h3>
+            <button onclick="closeTrustModal()" style="background:transparent;border:none;font-size:1.3rem;cursor:pointer;padding:0;width:auto;color:var(--pico-muted-color)">&times;</button>
+        </div>
+        <div style="font-size:0.86rem;line-height:1.5;color:var(--pico-color)">
+            <p style="margin-bottom:0.75rem"><strong>1. Live Scores &amp; Game Results [Official]</strong><br>
+            All game scores, schedules, and arena assignments come directly from the official <strong>OWHA RAMP Platform REST API</strong> (the same data source powering owha.on.ca and tournament portals). Refreshes continuously every 15–60 seconds.</p>
+
+            <p style="margin-bottom:0.75rem"><strong>2. Standings &amp; Tiebreakers [Official Rules]</strong><br>
+            Pool rankings are sorted strictly according to official OWHA tournament tiebreaking hierarchy: (1) Total Wins, (2) Head-to-Head (2-way ties), (3) Goal Differential %, (4) Fewest Goals Against, (5) Fewest PIM.</p>
+
+            <p style="margin-bottom:0.75rem"><strong>3. Clinch Projections [Mathematical Proof]</strong><br>
+            Advancement and seed projections are computed by exhaustive mathematical permutation of all remaining games ($3^n$ win/loss/tie outcomes). Teams are marked <code>CLINCHED</code> only when qualification is mathematically 100% guaranteed.</p>
+
+            <p style="margin-bottom:0"><strong>4. Live Commentary [AI-Assisted Context]</strong><br>
+            Game quips and Don Cherry insights are generated by Google Gemini 3.8 Flash, conditioned strictly on verified RAMP tournament data and exact mathematical stakes.</p>
+        </div>
+        <div style="text-align:right;margin-top:1.25rem">
+            <button onclick="closeTrustModal()" style="background:var(--rangers-blue);color:#fff;border:none;padding:0.35rem 1rem;border-radius:4px;cursor:pointer;width:auto">Close</button>
+        </div>
+    </dialog>
 
     <div id="venues-area"></div>
 
@@ -795,11 +879,170 @@ function renderPlayoffs(playoffs) {
     return `<h3>Semifinals</h3>${semisHtml}<h3>Consolation</h3>${consolHtml}<h3>Championship Final</h3>${finalHtml}`;
 }
 
+let currentState = null;
+let selectedPool = null;
+
+function openTrustModal() {
+    const m = document.getElementById('trust-modal');
+    if (m) m.showModal ? m.showModal() : (m.style.display = 'block');
+}
+
+function closeTrustModal() {
+    const m = document.getElementById('trust-modal');
+    if (m) m.close ? m.close() : (m.style.display = 'none');
+}
+
+function selectPool(poolId) {
+    selectedPool = poolId;
+    renderPoolView();
+}
+
+function renderPoolPills(d) {
+    const container = document.getElementById('pool-pills');
+    if (!container) return;
+    const allPools = d.all_pools || {};
+    const poolKeys = Object.keys(allPools).sort();
+
+    if (poolKeys.length === 0) {
+        container.parentElement.style.display = 'none';
+        return;
+    }
+    container.parentElement.style.display = 'block';
+
+    if (!selectedPool || (!allPools[selectedPool] && selectedPool !== 'ALL')) {
+        selectedPool = d.our_pool || poolKeys[0];
+    }
+
+    let pillsHtml = poolKeys.map(pid => {
+        const isOur = (pid === d.our_pool);
+        const activeCls = (selectedPool === pid) ? ' active' : '';
+        const label = isOur ? `⭐ Pool ${pid} (Our Pool)` : `Pool ${pid}`;
+        return `<button class="pool-pill${activeCls}" onclick="selectPool('${pid}')">${esc(label)}</button>`;
+    }).join('');
+
+    const allActive = (selectedPool === 'ALL') ? ' active' : '';
+    const totalDivisionGames = (d.all_division_games || []).length;
+    pillsHtml += `<button class="pool-pill${allActive}" onclick="selectPool('ALL')">📋 All Division Games (${totalDivisionGames})</button>`;
+
+    container.innerHTML = pillsHtml;
+}
+
+function renderAllDivisionGames(games, ourTeam) {
+    if (!games || games.length === 0) return '<p>No division games scheduled.</p>';
+    return games.map(g => {
+        const venueObj = currentVenues[g.arena];
+        const arenaBadge = g.arena ? (venueObj && venueObj.maps_url 
+            ? `<a href="${esc(venueObj.maps_url)}" target="_blank" rel="noopener" style="font-size:0.75rem;margin-left:0.3rem;color:#0284c7;text-decoration:none">📍 ${esc(g.arena)}</a>`
+            : `<span style="font-size:0.75rem;color:var(--pico-muted-color);margin-left:0.3rem">(${esc(g.arena)})</span>`) : '';
+        const poolBadge = g.pool ? `<span style="background:var(--pico-card-background-color);border:1px solid var(--pico-muted-border-color);font-size:0.7rem;font-weight:bold;padding:0.1rem 0.35rem;border-radius:4px;margin-right:0.4rem">Pool ${esc(g.pool)}</span>` : '';
+        const streamBtn = g.stream_url
+            ? `<a href="${esc(g.stream_url)}" target="_blank" rel="noopener" class="stream-badge${g.status === 'in_progress' ? ' stream-badge-live' : ''}">▶ Stream</a>`
+            : '';
+
+        if (g.status === 'final') {
+            return `<div class="game-card"><div>
+                ${poolBadge}
+                <span${cls(g.home, ourTeam)}>${esc(g.home_name)}</span>
+                <span class="score">${g.home_score}</span> -
+                <span class="score">${g.away_score}</span>
+                <span${cls(g.away, ourTeam)}>${esc(g.away_name)}</span>
+                ${streamBtn}
+            </div><div style="font-size:0.8rem;color:var(--pico-muted-color)">Final ${arenaBadge}</div></div>`;
+        } else if (g.status === 'in_progress') {
+            return `<div class="game-card" style="border-left:3px solid #d32f2f;padding-left:0.5rem"><div>
+                ${poolBadge}
+                <span${cls(g.home, ourTeam)}>${esc(g.home_name)}</span>
+                <span class="score" style="color:#d32f2f">${g.home_score || 0}</span> -
+                <span class="score" style="color:#d32f2f">${g.away_score || 0}</span>
+                <span${cls(g.away, ourTeam)}>${esc(g.away_name)}</span>
+                <span style="color:#d32f2f;font-weight:bold;font-size:0.75rem;margin-left:0.3rem">(LIVE)</span>
+                ${streamBtn}
+            </div><div style="font-size:0.8rem;color:var(--pico-muted-color)">${fmtDate(g.date)} ${arenaBadge}</div></div>`;
+        }
+        return `<div class="game-card"><div>
+            ${poolBadge}
+            <span${cls(g.home, ourTeam)}>${esc(g.home_name)}</span> vs
+            <span${cls(g.away, ourTeam)}>${esc(g.away_name)}</span>
+            ${streamBtn}
+        </div><div style="text-align:right;font-size:0.8rem;color:var(--pico-muted-color)">#${g.game_id}<br>${fmtDate(g.date)} ${arenaBadge}</div></div>`;
+    }).join('');
+}
+
+function renderPoolView() {
+    if (!currentState) return;
+    const d = currentState;
+    renderPoolPills(d);
+
+    if (selectedPool === 'ALL') {
+        document.getElementById('pool-header').textContent = 'All Division Games';
+        document.getElementById('standings-provenance').textContent = 'All Pools Combined \u00b7 Chronological';
+        document.getElementById('scenarios-area').innerHTML = '';
+        
+        let multiStandings = '';
+        const allPools = d.all_pools || {};
+        Object.keys(allPools).sort().forEach(pid => {
+            const p = allPools[pid];
+            multiStandings += `<h3 style="font-size:1rem;margin-top:1.25rem;margin-bottom:0.4rem">Pool ${pid} Standings</h3>`;
+            multiStandings += renderStandings(p.standings, false, d.our_team, 0, d.tiebreaker_rules);
+        });
+        document.getElementById('standings-area').innerHTML = multiStandings;
+
+        document.getElementById('upcoming-area').innerHTML =
+            '<h2>Full Division Scoreboard (17 Games)</h2>' + renderAllDivisionGames(d.all_division_games, d.our_team);
+        document.getElementById('completed-area').innerHTML = '';
+        return;
+    }
+
+    const poolData = (d.all_pools && d.all_pools[selectedPool]) ? d.all_pools[selectedPool] : null;
+    const isOur = (selectedPool === d.our_pool);
+
+    document.getElementById('pool-header').textContent = `Pool ${selectedPool} Standings`;
+    document.getElementById('standings-provenance').textContent = 'Official RAMP Feed \u00b7 OWHA Tiebreakers';
+
+    const standingsRows = poolData ? poolData.standings : (isOur ? d.standings : []);
+    const showAdv = isOur && d.scenarios && d.scenarios.total > 1;
+    const resolvedTotal = d.scenarios ? ((d.scenarios.green || 0) + (d.scenarios.red || 0)) : 0;
+
+    let standingsHtml = renderStandings(standingsRows, showAdv, d.our_team, resolvedTotal, d.tiebreaker_rules);
+    if (isOur && d.tiebreaker_resolution && d.tiebreaker_resolution.length > 0) {
+        standingsHtml += '<div style="font-size:0.82rem;margin-top:0.5rem;padding:0.5rem 0.75rem;background:var(--pico-card-background-color);border-radius:4px">';
+        standingsHtml += '<strong style="font-size:0.8rem">Tiebreaker resolution:</strong>';
+        d.tiebreaker_resolution.forEach(tb => {
+            tb.lines.forEach(line => {
+                standingsHtml += `<div style="margin-top:0.25rem;font-size:0.8rem;color:var(--pico-muted-color)">${esc(line.trim())}</div>`;
+            });
+        });
+        standingsHtml += '</div>';
+    }
+    document.getElementById('standings-area').innerHTML = standingsHtml;
+
+    if (isOur) {
+        document.getElementById('scenarios-area').innerHTML =
+            renderScenarios(d.scenarios, d.our_team_name, d.our_pool, d.our_team) + renderTiebreakerHealth(d);
+    } else {
+        document.getElementById('scenarios-area').innerHTML = '';
+    }
+
+    const upcomingGames = poolData ? poolData.upcoming : (isOur ? d.upcoming : []);
+    const completedGames = poolData ? poolData.completed : (isOur ? d.completed : []);
+
+    document.getElementById('upcoming-area').innerHTML =
+        upcomingGames && upcomingGames.length > 0
+            ? `<h2>Pool ${selectedPool} Upcoming</h2>` + renderGames(upcomingGames, `Upcoming Games`, d.our_team, false)
+            : '';
+
+    document.getElementById('completed-area').innerHTML =
+        completedGames && completedGames.length > 0
+            ? renderGames(completedGames, `Completed Games`, d.our_team, true)
+            : '';
+}
+
 async function loadAndRender() {
     try {
         const resp = await fetch(DATA_URL + '?t=' + Date.now());
         if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
         const d = await resp.json();
+        currentState = d;
 
         currentVenues = d.venues || {};
         handleEventAlerts(d.event_log, d.our_team);
@@ -808,6 +1051,23 @@ async function loadAndRender() {
         document.getElementById('team-name').textContent = d.our_team_name;
         document.getElementById('tournament-info').innerHTML =
             `${esc(d.tournament.name)} \u00b7 ${esc(d.tournament.location)} \u00b7 ${esc(d.tournament.dates)}`;
+
+        // Dynamic banner & font loading
+        if (d.tournament && d.tournament.banner_font_url && !document.getElementById('tourney-font-link')) {
+            const fontLink = document.createElement('link');
+            fontLink.id = 'tourney-font-link';
+            fontLink.rel = 'stylesheet';
+            fontLink.href = d.tournament.banner_font_url;
+            document.head.appendChild(fontLink);
+        }
+        const bannerEl = document.getElementById('tourney-banner');
+        if (bannerEl && d.tournament && d.tournament.banner_text) {
+            bannerEl.textContent = d.tournament.banner_text;
+            if (d.tournament.banner_font) bannerEl.style.fontFamily = d.tournament.banner_font;
+            if (d.tournament.banner_color) bannerEl.style.color = d.tournament.banner_color;
+            bannerEl.style.display = 'block';
+        }
+
         if (d.tournament && d.tournament.logo) {
             const logoEl = document.getElementById('tourney-logo');
             if (logoEl) {
@@ -822,35 +1082,8 @@ async function loadAndRender() {
         document.getElementById('narrative-area').innerHTML = renderNarrative(d.narrative);
         document.getElementById('event-log-area').innerHTML = renderEventLog(d.event_log);
 
-        document.getElementById('pool-header').textContent = `Pool ${d.our_pool} Standings`;
-        const showAdv = d.scenarios && d.scenarios.total > 1;
-        const resolvedTotal = d.scenarios ? ((d.scenarios.green || 0) + (d.scenarios.red || 0)) : 0;
-        let standingsHtml = renderStandings(d.standings, showAdv, d.our_team, resolvedTotal, d.tiebreaker_rules);
-        // Add tiebreaker resolution note if available
-        if (d.tiebreaker_resolution && d.tiebreaker_resolution.length > 0) {
-            standingsHtml += '<div style="font-size:0.82rem;margin-top:0.5rem;padding:0.5rem 0.75rem;background:var(--pico-card-background-color);border-radius:4px">';
-            standingsHtml += '<strong style="font-size:0.8rem">Tiebreaker resolution:</strong>';
-            d.tiebreaker_resolution.forEach(tb => {
-                const teamNames = tb.teams.join(', ');
-                tb.lines.forEach(line => {
-                    standingsHtml += `<div style="margin-top:0.25rem;font-size:0.8rem;color:var(--pico-muted-color)">${esc(line.trim())}</div>`;
-                });
-            });
-            standingsHtml += '</div>';
-        }
-        document.getElementById('standings-area').innerHTML = standingsHtml;
-
-        document.getElementById('scenarios-area').innerHTML = renderScenarios(d.scenarios, d.our_team_name, d.our_pool, d.our_team) + renderTiebreakerHealth(d);
-
-        document.getElementById('upcoming-area').innerHTML =
-            d.upcoming && d.upcoming.length > 0
-                ? '<h2>Coming Up</h2>' + renderGames(d.upcoming, 'Upcoming Games', d.our_team, false)
-                : '';
-
-        document.getElementById('completed-area').innerHTML =
-            d.completed && d.completed.length > 0
-                ? renderGames(d.completed, 'Completed Games', d.our_team, true)
-                : '';
+        // Render selected pool view (or default our_pool)
+        renderPoolView();
 
         document.getElementById('venues-area').innerHTML = renderVenues(d.venues);
         document.getElementById('coaches-corner-area').innerHTML = renderCoachesCorner(d);
