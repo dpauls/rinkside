@@ -1,3 +1,4 @@
 jinja2
 anthropic
 requests
+boto3

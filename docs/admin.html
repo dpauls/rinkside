@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stream Manager · Rinkside Admin</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        body { background: #0f172a; color: #f1f5f9; padding-bottom: 3rem; }
+        .admin-header {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border-bottom: 2px solid #334155;
+            padding: 1.25rem 1rem;
+            margin-bottom: 1.5rem;
+            border-radius: 8px;
+        }
+        .pin-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.98);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 1000;
+        }
+        .pin-card {
+            background: #1e293b; border: 1px solid #475569;
+            padding: 2rem; border-radius: 12px; max-width: 360px; width: 90%;
+            text-align: center;
+        }
+        .game-admin-card {
+            background: #1e293b; border: 1px solid #334155;
+            border-radius: 8px; padding: 1rem; margin-bottom: 1rem;
+        }
+        .stream-active {
+            background: rgba(239, 68, 68, 0.15); border-left: 4px solid #ef4444;
+            padding: 0.5rem 0.75rem; border-radius: 4px; margin-top: 0.5rem; font-size: 0.85rem;
+        }
+        .btn-stream {
+            background: #ef4444; color: white; border: none; font-weight: bold;
+        }
+        .btn-stream:hover { background: #dc2626; }
+        .toast {
+            position: fixed; bottom: 1.5rem; right: 1.5rem;
+            background: #059669; color: white; padding: 0.75rem 1.25rem;
+            border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            display: none; z-index: 2000; font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<div id="pin-overlay" class="pin-overlay">
+    <div class="pin-card">
+        <h3 style="margin-top:0">🔑 Staff & Admin Access</h3>
+        <p style="font-size:0.85rem;color:#94a3b8">Enter your tournament Admin PIN to manage YouTube live streams and broadcasts.</p>
+        <input type="password" id="pin-input" placeholder="Admin PIN" style="text-align:center;font-size:1.4rem;letter-spacing:0.3em;margin-bottom:0.75rem" autocomplete="off" inputmode="numeric">
+        <button onclick="checkAdminPin()" style="width:100%;margin-bottom:0.5rem">Unlock Console</button>
+        <div id="pin-error" style="color:#ef4444;font-size:0.85rem;display:none;margin-top:0.5rem">Invalid Admin PIN. Try again.</div>
+        <p style="margin-top:1rem;margin-bottom:0"><a href="./" style="font-size:0.8rem;color:#94a3b8;text-decoration:none">⬅️ Return to Public Dashboard</a></p>
+    </div>
+</div>
+
+<div id="toast" class="toast">✓ Saved successfully!</div>
+
+<main class="container" style="max-width:760px;padding-top:1rem">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+        <a href="./" style="font-size:0.85rem;color:#38bdf8;text-decoration:none">⬅️ Back to Tournament</a>
+        <button onclick="logoutAdmin()" style="background:transparent;border:1px solid #475569;color:#94a3b8;padding:0.25rem 0.6rem;font-size:0.75rem;border-radius:4px;cursor:pointer">Lock Console</button>
+    </div>
+
+    <div class="admin-header">
+        <h2 style="margin:0 0 0.25rem">📹 Live Stream Broadcast Manager</h2>
+        <p style="margin:0;font-size:0.85rem;color:#94a3b8" id="admin-subtitle">Attach YouTube livestream links on the fly. Parents' screens update immediately.</p>
+    </div>
+
+    <div id="games-list">
+        <p style="text-align:center;color:#64748b">Loading tournament schedule...</p>
+    </div>
+</main>
+
+<script>
+const LOCAL_DATA_URL = 'data/state.json';
+let activeDataUrl = window.RUSTIC_S3_DATA_URL || LOCAL_DATA_URL;
+let stateData = null;
+let currentStreams = {};
+
+async function fetchTournamentState() {
+    if (activeDataUrl && activeDataUrl !== LOCAL_DATA_URL) {
+        try {
+            const resp = await fetch(activeDataUrl + '?t=' + Date.now());
+            if (resp.ok) {
+                const d = await resp.json();
+                if (d.s3_public_url) activeDataUrl = d.s3_public_url;
+                return d;
+            }
+        } catch (e) {
+            console.warn('Live fetch error:', e);
+        }
+    }
+    const resp = await fetch(LOCAL_DATA_URL + '?t=' + Date.now());
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const d = await resp.json();
+    if (d.s3_public_url) activeDataUrl = d.s3_public_url;
+    return d;
+}
+
+async function sha256Hex(text) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(text);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+function getAdminPinStorageKey() {
+    if (!stateData || !stateData.tournament) return 'rinkside_admin_last_pin';
+    const tId = stateData.tournament.id || 'tournament';
+    return `rinkside_${tId}_admin_last_pin`;
+}
+
+async function checkAdminAuth() {
+    if (!stateData) return false;
+    const key = getAdminPinStorageKey();
+    const storedPin = sessionStorage.getItem(key);
+
+    if (storedPin && stateData.auth && stateData.auth.admin_pin_hash) {
+        const hash = await sha256Hex(stateData.auth.salt + ':' + storedPin);
+        if (hash === stateData.auth.admin_pin_hash) {
+            document.getElementById('pin-overlay').style.display = 'none';
+            return true;
+        }
+    }
+    document.getElementById('pin-overlay').style.display = 'flex';
+    return false;
+}
+
+async function checkAdminPin() {
+    const input = document.getElementById('pin-input').value.trim();
+    if (!stateData) return;
+
+    let valid = false;
+    if (stateData.auth && stateData.auth.admin_pin_hash) {
+        const hash = await sha256Hex(stateData.auth.salt + ':' + input);
+        if (hash === stateData.auth.admin_pin_hash) {
+            valid = true;
+        }
+    } else {
+        if (input === '9876') valid = true;
+    }
+
+    if (valid) {
+        sessionStorage.setItem(getAdminPinStorageKey(), input);
+        document.getElementById('pin-overlay').style.display = 'none';
+        renderAdminConsole();
+    } else {
+        document.getElementById('pin-error').style.display = 'block';
+    }
+}
+
+document.getElementById('pin-input').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') checkAdminPin();
+});
+
+function logoutAdmin() {
+    sessionStorage.removeItem(getAdminPinStorageKey());
+    document.getElementById('pin-overlay').style.display = 'flex';
+    document.getElementById('pin-input').value = '';
+}
+
+function esc(s) {
+    if (s == null) return '';
+    const d = document.createElement('div');
+    d.textContent = String(s);
+    return d.innerHTML;
+}
+
+function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.style.display = 'block';
+    setTimeout(() => { t.style.display = 'none'; }, 3500);
+}
+
+function renderAdminConsole() {
+    if (!stateData) return;
+    const tName = (stateData.tournament && stateData.tournament.name) || 'Tournament';
+    document.getElementById('admin-subtitle').textContent = `${tName} · Live Broadcast Stream Assignment`;
+
+    const games = stateData.all_division_games || [];
+    if (games.length === 0) {
+        document.getElementById('games-list').innerHTML = '<p style="color:#94a3b8">No games found in schedule.</p>';
+        return;
+    }
+
+    let html = '';
+    games.forEach(g => {
+        const gid = String(g.game_id || '');
+        const currentUrl = g.stream_url || currentStreams[gid] || '';
+        const isLive = g.status === 'in_progress';
+        const isFinal = g.status === 'final';
+
+        html += `
+            <div class="game-admin-card" id="card-${gid}">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:0.5rem">
+                    <div>
+                        <strong style="font-size:1.05rem">${esc(g.home_name)} vs ${esc(g.away_name)}</strong>
+                        <div style="font-size:0.8rem;color:#94a3b8;margin-top:0.15rem">
+                            Game #${gid} · ${g.pool ? 'Pool ' + g.pool + ' · ' : ''}${esc(g.date || '')} ${g.arena ? '· 📍 ' + esc(g.arena) : ''}
+                        </div>
+                    </div>
+                    <span style="font-size:0.75rem;padding:0.2rem 0.5rem;border-radius:4px;background:${isLive ? '#ef4444' : (isFinal ? '#334155' : '#0284c7')}">
+                        ${isLive ? '🔴 LIVE NOW' : (isFinal ? 'FINAL' : 'SCHEDULED')}
+                    </span>
+                </div>
+
+                ${currentUrl ? `
+                    <div class="stream-active">
+                        <strong>Active Stream:</strong> <a href="${esc(currentUrl)}" target="_blank" rel="noopener" style="color:#38bdf8;word-break:break-all">${esc(currentUrl)}</a>
+                    </div>
+                ` : `
+                    <div style="font-size:0.8rem;color:#64748b;margin-top:0.4rem">⚪ No stream link attached</div>
+                `}
+
+                <div style="margin-top:0.75rem;display:flex;gap:0.5rem;flex-wrap:wrap">
+                    <input type="url" id="input-${gid}" placeholder="Paste YouTube link (https://youtu.be/...)" value="${esc(currentUrl)}" style="flex:1;min-width:240px;margin-bottom:0;font-size:0.85rem">
+                    <button onclick="saveStream('${gid}')" class="btn-stream" style="padding:0.4rem 0.85rem;font-size:0.85rem;margin-bottom:0">Save Stream</button>
+                    ${currentUrl ? `<button onclick="removeStream('${gid}')" style="background:#475569;border:none;padding:0.4rem 0.6rem;font-size:0.85rem;margin-bottom:0">Clear</button>` : ''}
+                </div>
+            </div>
+        `;
+    });
+
+    document.getElementById('games-list').innerHTML = html;
+}
+
+async function saveStream(gid) {
+    const input = document.getElementById(`input-${gid}`);
+    if (!input) return;
+    const url = input.value.trim();
+    if (!url) {
+        alert('Please enter a valid YouTube or streaming URL.');
+        return;
+    }
+
+    currentStreams[gid] = url;
+    await persistStreams();
+    showToast(`✓ Attached stream to Game #${gid}`);
+}
+
+async function removeStream(gid) {
+    if (!confirm(`Remove streaming link from Game #${gid}?`)) return;
+    delete currentStreams[gid];
+    const input = document.getElementById(`input-${gid}`);
+    if (input) input.value = '';
+    await persistStreams();
+    showToast(`Removed stream from Game #${gid}`);
+}
+
+async function persistStreams() {
+    // If Pre-Authenticated Request (PAR) URL exists in auth, PUT directly
+    const parUrl = stateData && stateData.auth && stateData.auth.streams_par_url;
+    if (parUrl) {
+        try {
+            const resp = await fetch(parUrl, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(currentStreams, null, 2)
+            });
+            if (resp.ok) {
+                console.log('Successfully saved streams via OCI PAR');
+                renderAdminConsole();
+                return;
+            }
+        } catch (e) {
+            console.warn('PAR write error:', e);
+        }
+    }
+
+    // Local storage mirror & prompt CLI instruction if needed
+    localStorage.setItem('rinkside_admin_streams', JSON.stringify(currentStreams));
+    renderAdminConsole();
+}
+
+async function initAdmin() {
+    try {
+        stateData = await fetchTournamentState();
+        if (stateData.all_division_games) {
+            stateData.all_division_games.forEach(g => {
+                if (g.stream_url && (g.game_id || g.gid)) {
+                    currentStreams[String(g.game_id || g.gid)] = g.stream_url;
+                }
+            });
+        }
+        if (await checkAdminAuth()) {
+            renderAdminConsole();
+        }
+    } catch (e) {
+        document.getElementById('games-list').innerHTML = `<p style="color:#ef4444">Could not load schedule: ${esc(e.message)}</p>`;
+    }
+}
+
+initAdmin();
+</script>
+</body>
+</html>

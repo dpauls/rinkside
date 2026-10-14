@@ -96,14 +96,13 @@ flowchart TD
     Narrative --> Compiler
 
     Compiler -->|Shadow Write| Shadow
-    Compiler -->|Commit & Push| GitRepo
-    Compiler -->|Dual-Write| S3Bucket
-    GitRepo -->|Deploy| GHPages
-    S3Bucket -.->|Live Sync| SpectatorApp
+    Compiler -->|HTTP PUT 50ms| S3Bucket
+    GitRepo -->|Static Asset Hosting| GHPages
 
-    GHPages -->|HTTP/2 Fetch state.json| SpectatorApp
-    GHPages -->|HTTP/2 Fetch state.json| ScenarioApp
-    GHPages -->|HTTP/2 Fetch state.json| BenchApp
+    S3Bucket -->|HTTP GET Direct state.json| SpectatorApp
+    S3Bucket -->|HTTP GET Direct state.json| ScenarioApp
+    S3Bucket -->|HTTP GET Direct state.json| BenchApp
+    GHPages -.->|Fallback state.json| SpectatorApp
     SpectatorApp -->|Vibrate & Push API| Wearables
 ```
 
@@ -499,8 +498,53 @@ $$\text{HasDownside} \iff P(\text{advance} \mid \text{margin} = -1) > 0 \quad \l
    If $P(\text{advance} \mid \text{margin} = -1) = 44.4\%$ (via goal differential tiebreaker) but $P(\text{advance} \mid \text{margin} = -2) = 0.0\%$:
    > *"HIGH DOWNSIDE: Conceding an empty-net goal (-2 margin) drops advancement odds from 44.4% to 0.0%. Protect GD unless tie is mandatory."*
 
-### 6.4 Bench PIN Security
-Tactical advice must not fall into the hands of opposing scouts or casual spectators browsing the public tracker. Access to `/bench.html` is guarded by client-side modal authorization with a 4-digit PIN (configured via `security.bench_pin` in tournament configuration, default `'1777'`). PIN state is persisted in browser session storage.
+### 6.4 Dynamic Salted SHA-256 PIN Security & Invalidation
+Tactical bench advice must not fall into the hands of opposing teams or casual spectators. However, hardcoding PINs in client-side code or storing raw boolean flags (`is_authenticated = true`) creates significant security flaws:
+1. Anyone inspecting `state.json` or source code could read the PIN.
+2. If a PIN leaked and was changed on the server, previously authenticated browsers remained permanently unlocked.
+
+To eliminate both vulnerabilities, Rinkside implements an **Environment-Driven, Salted SHA-256 Hash Architecture with Dynamic Client Invalidation**:
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Coach as Coach / Staff
+    participant Browser as bench.html / admin.html
+    participant State as state.json (OCI Object Storage)
+    participant Daemon as OCI VM (daemon.py + .env)
+
+    Note over Daemon: COACH_PIN=1777 in .env
+    Daemon->>State: Generates state.json with salt & sha256(salt:1777)
+    Coach->>Browser: Enters PIN "1777"
+    Browser->>Browser: Computes sha256(salt:1777)
+    alt Hash Matches
+        Browser->>Browser: Stores entered PIN string in sessionStorage
+        Browser->>Coach: Unlocks Bench Advisor UI
+    end
+
+    Note over Daemon: PIN Leaks! Admin changes COACH_PIN=2468 in .env
+    Daemon->>State: Re-uploads state.json with sha256(salt:2468)
+    Browser->>State: 15s polling refresh fetches updated state.json
+    Browser->>Browser: Re-evaluates sha256(salt:stored_pin) against new hash
+    Browser->>Coach: MISMATCH! Kicks coach out & pops PIN prompt
+```
+
+1. **Server-Side Hash Computation (`src/generate.py`):**
+   Pins are configured per deployment in `.env` (`COACH_PIN=1777`, `ADMIN_PIN=9876`). The generator reads the active tournament salt (e.g., `salt = "ptr_2026_u18c"`) and computes:
+   $$\text{coach\_pin\_hash} = \text{SHA-256}(\text{salt} + \text{":"} + \text{COACH\_PIN})$$
+   $$\text{admin\_pin\_hash} = \text{SHA-256}(\text{salt} + \text{":"} + \text{ADMIN\_PIN})$$
+   Only the salt and hex digests are published in `state.json`. Plaintext PINs are **never** committed or exposed over the wire.
+2. **Client-Side Comparison (`bench.html` & `admin.html`):**
+   The browser uses the native Web Crypto API (`crypto.subtle.digest('SHA-256', ...)`) to hash the user's input.
+3. **Dynamic Invalidation:**
+   The browser persists **only the entered PIN string** (scoped to tournament and team ID), never a raw authenticated boolean. On every 15-second data refresh, the browser re-hashes the stored PIN against the latest hash from OCI Object Storage. If you update `.env` on the VM, every client is immediately kicked out on their next poll.
+
+### 6.5 Live Stream Broadcast Management (`docs/admin.html`)
+To allow team staff or volunteers to attach YouTube livestream URLs directly from the arena concourse without requiring terminal or SSH access:
+1. **Admin Console (`docs/admin.html`):** Protected by `ADMIN_PIN`. Displays all division games with live/scheduled badges and a stream URL input box.
+2. **Pre-Authenticated Request (PAR) Ingestion:** When an admin saves a stream URL, the browser issues an HTTPS `PUT` of the updated streams dictionary to an OCI Pre-Authenticated Request URL (`STREAMS_PAR_URL`).
+3. **Autonomous Synchronization:** The background daemon on the VM monitors the object storage `streams.json`. When a change is detected, it immediately updates `state.json` and pushes to OCI Object Storage, displaying the red `▶ Stream` badge across all spectator PWAs within seconds.
+4. **CLI Alternative:** Terminal access via `python3 src/stream.py <game_id> <url>` remains fully functional as a local or SSH fallback.
 
 ---
 

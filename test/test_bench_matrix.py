@@ -76,7 +76,7 @@ class TestBenchMatrix(unittest.TestCase):
     def test_compute_bench_analysis_live(self):
         bench = compute_bench_analysis(self.tournament_data, 'KAN', 'B')
         self.assertIsNotNone(bench)
-        self.assertEqual(bench['bench_pin'], '1777')
+        self.assertNotIn('bench_pin', bench)  # Plaintext PIN is omitted for security
         self.assertIn('matrix', bench)
         self.assertIn('recommendation', bench)
 

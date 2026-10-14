@@ -5,20 +5,21 @@ services:
     environment:
       - GEMINI_API_KEY=${GEMINI_API_KEY}
       - GEMINI_FLASH_MODEL=${GEMINI_FLASH_MODEL:-gemini-3.8-flash}
-      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
       - TZ=${TZ:-America/Toronto}
-      - GIT_AUTHOR_NAME=${GIT_USER_NAME:-Rangers Tracker Bot}
-      - GIT_AUTHOR_EMAIL=${GIT_USER_EMAIL:-tracker@example.com}
-      - GIT_COMMITTER_NAME=${GIT_USER_NAME:-Rangers Tracker Bot}
-      - GIT_COMMITTER_EMAIL=${GIT_USER_EMAIL:-tracker@example.com}
+      - S3_BUCKET_NAME=${S3_BUCKET_NAME:-}
+      - S3_ENDPOINT_URL=${S3_ENDPOINT_URL:-}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-}
+      - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION:-ca-toronto-1}
+      - S3_PUBLIC_URL=${S3_PUBLIC_URL:-}
+      - COACH_PIN=${COACH_PIN:-1777}
+      - ADMIN_PIN=${ADMIN_PIN:-9876}
+      - STREAMS_PAR_URL=${STREAMS_PAR_URL:-}
     volumes:
-      - ~/.gitconfig:/root/.gitconfig:ro
-      - ~/.git-credentials:/root/.git-credentials
-      - ./.git:/app/.git
       - ./data:/app/data
       - ./docs:/app/docs
       - ./logs:/app/logs
-    command: ["--interval", "60", "--push"]
+    command: ["--interval", "60", "--storage", "s3", "--skip-push"]
     init: true
     stop_grace_period: 3s
     restart: unless-stopped

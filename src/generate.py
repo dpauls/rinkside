@@ -4,7 +4,9 @@ Site generator: loads tournament data, runs analysis, outputs docs/data/state.js
 The static index.html fetches this JSON and renders everything client-side.
 """
 import argparse
+import hashlib
 import json
+import os
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -429,6 +431,13 @@ def generate(data_path='data/tournaments/pink_the_rink_2026.json', skip_narrativ
         'tiebreaker_health': data.get('_tb_health'),
         'scouting': data.get('scouting'),
         'game_rules': data.get('game_rules'),
+        'auth': {
+            'salt': data.get('tournament', {}).get('id', 'rinkside'),
+            'coach_pin_hash': hashlib.sha256(f"{data.get('tournament', {}).get('id', 'rinkside')}:{os.environ.get('COACH_PIN') or str(data.get('security', {}).get('bench_pin', '1777'))}".encode('utf-8')).hexdigest(),
+            'admin_pin_hash': hashlib.sha256(f"{data.get('tournament', {}).get('id', 'rinkside')}:{os.environ.get('ADMIN_PIN') or '9876'}".encode('utf-8')).hexdigest(),
+            'streams_par_url': os.environ.get('STREAMS_PAR_URL', ''),
+        },
+        's3_public_url': os.environ.get('S3_PUBLIC_URL', ''),
     }
 
     output_dir = Path(__file__).parent.parent / 'docs' / 'data'

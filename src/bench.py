@@ -262,5 +262,4 @@ def compute_bench_analysis(tournament_data: dict, our_team: str, our_pool: str) 
         'reason': eval_result['reason'],
         'empty_net_downside': eval_result['empty_net_downside'],
         'empty_net_warning': eval_result['empty_net_warning'],
-        'bench_pin': bench_pin,
     }

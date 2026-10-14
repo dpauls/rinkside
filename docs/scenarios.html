@@ -138,7 +138,29 @@
 </main>
 
 <script>
-const DATA_URL = 'data/state.json';
+const LOCAL_DATA_URL = 'data/state.json';
+let activeDataUrl = window.RUSTIC_S3_DATA_URL || LOCAL_DATA_URL;
+
+async function fetchTournamentState() {
+    if (activeDataUrl && activeDataUrl !== LOCAL_DATA_URL) {
+        try {
+            const resp = await fetch(activeDataUrl + '?t=' + Date.now());
+            if (resp.ok) {
+                const d = await resp.json();
+                if (d.s3_public_url) activeDataUrl = d.s3_public_url;
+                return d;
+            }
+        } catch (e) {
+            console.warn('S3 / Object storage fetch failed, falling back to local state:', e);
+        }
+    }
+    const resp = await fetch(LOCAL_DATA_URL + '?t=' + Date.now());
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const d = await resp.json();
+    if (d.s3_public_url) activeDataUrl = d.s3_public_url;
+    return d;
+}
+
 let currentFilter = 'all';
 let stateData = null;
 
@@ -366,9 +388,7 @@ function render() {
 
 async function load() {
     try {
-        const resp = await fetch(DATA_URL + '?t=' + Date.now());
-        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-        stateData = await resp.json();
+        stateData = await fetchTournamentState();
         render();
     } catch (err) {
         document.getElementById('table-area').innerHTML =

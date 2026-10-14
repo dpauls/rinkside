@@ -573,7 +573,25 @@ def run_cycle(tournament_data, mock_source=None, skip_narrative=False, skip_push
         p_changes = update_tournament_data(tournament_data, api_games, p)
         all_changes.extend(p_changes)
 
-    if not all_changes:
+    # Check for stream updates from storage backend
+    streams_changed = False
+    if storage_backend:
+        remote_streams = storage_backend.load_streams()
+        if remote_streams is not None:
+            local_streams = {}
+            local_streams_file = PROJECT_ROOT / 'data' / 'streams.json'
+            if local_streams_file.exists():
+                try:
+                    local_streams = json.loads(local_streams_file.read_text())
+                except Exception:
+                    pass
+            if remote_streams != local_streams:
+                log.info(f"Stream configuration updated via storage: {remote_streams}")
+                local_streams_file.parent.mkdir(parents=True, exist_ok=True)
+                local_streams_file.write_text(json.dumps(remote_streams, indent=2))
+                streams_changed = True
+
+    if not all_changes and not streams_changed:
         log.debug('No changes detected')
         return False, tournament_data, prev_scenarios
 
@@ -1025,6 +1043,15 @@ def main():
         SHADOW_STATE_PATH.write_text(json.dumps(state, indent=2))
         _write_data(tournament_data)
         _publish_to_git()
+
+    if storage:
+        state_path = SHADOW_STATE_PATH if SHADOW_STATE_PATH.exists() else STATE_PATH
+        if state_path.exists():
+            try:
+                storage.save_state(json.loads(state_path.read_text()))
+                log.info(f"Initial state published to storage backend ({args.storage})")
+            except Exception as e:
+                log.warning(f"Could not publish initial state to storage: {e}")
 
     if not args.skip_push:
         git_push()
