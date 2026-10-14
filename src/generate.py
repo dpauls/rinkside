@@ -438,6 +438,7 @@ def generate(data_path='data/tournaments/pink_the_rink_2026.json', skip_narrativ
             'streams_par_url': os.environ.get('STREAMS_PAR_URL', ''),
         },
         's3_public_url': os.environ.get('S3_PUBLIC_URL', ''),
+        'trigger_event': data.get('_last_event') or (data.get('event_log', [])[-1] if data.get('event_log') else {'type': 'initial', 'headline': 'Baseline tournament initialization'}),
     }
 
     output_dir = Path(__file__).parent.parent / 'docs' / 'data'

@@ -879,6 +879,10 @@ def run_cycle(tournament_data, mock_source=None, skip_narrative=False, skip_push
         state['bench'] = bench
     if tb_health:
         state['tiebreaker_health'] = tb_health
+    if events:
+        state['trigger_event'] = events[-1]
+    elif not state.get('trigger_event'):
+        state['trigger_event'] = {'type': 'initial', 'headline': 'Baseline tournament initialization'}
     SHADOW_STATE_PATH.parent.mkdir(parents=True, exist_ok=True)
     SHADOW_STATE_PATH.write_text(json.dumps(state, indent=2))
     _publish_to_git()

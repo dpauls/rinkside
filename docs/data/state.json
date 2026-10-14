@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-14T18:18:25.569215-04:00",
+  "generated_at": "2026-10-14T18:22:07.299858-04:00",
   "tournament": {
     "id": "ptr_2026_u18c",
     "name": "Pink the Rink XV - U18C",
@@ -22117,5 +22117,9 @@
     "admin_pin_hash": "1807720e25464f66773ec1cf0cc12fad03801a57b7293bd519bb639033492a00",
     "streams_par_url": ""
   },
-  "s3_public_url": ""
+  "s3_public_url": "",
+  "trigger_event": {
+    "type": "initial",
+    "headline": "Baseline tournament initialization"
+  }
 }
