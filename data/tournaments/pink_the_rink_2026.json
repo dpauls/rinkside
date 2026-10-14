@@ -176,6 +176,32 @@
     ],
     "allow_reversion": false
   },
+  "game_rules": {
+    "source_name": "Pink the Rink XV Official Tournament Rules",
+    "source_url": "https://etobicokedolphins.ca/Public/Documents/Pink_the_Rink_XV_Tournament_RULES_2026.pdf",
+    "round_robin": {
+      "title": "Round Robin Format",
+      "periods": "3 periods (10 - 10 - 12 min) stop time",
+      "warmup": "3-minute warm-up on the clock prior to game",
+      "overtime": "No overtime — games end in a tie (2 pts win, 1 pt tie, 0 pts loss)",
+      "timeouts": "No timeouts allowed during round robin play",
+      "mercy_rule": "5-goal spread in 3rd period initiates run-time clock (resumes stop-time if lead drops < 5)",
+      "jerseys": "Home team wears dark colored jerseys"
+    },
+    "elimination": {
+      "title": "Playoff / Elimination Format (Semis & Final)",
+      "periods": "3 periods (10 - 10 - 12 min) stop time",
+      "timeouts": "One 30-second timeout per team (regulation or OT)",
+      "overtime": "5-minute sudden-victory 4-on-4 (teams do not change ends; penalties carry over as 4-on-3 / 5-on-3)",
+      "shootout": "Best-of-3 simultaneous shootout from centre ice. If tied, 1-shooter sudden death. All roster skaters must shoot before any player shoots twice."
+    },
+    "consolation": {
+      "title": "Consolation Games",
+      "matchups": "Pool A 3rd vs Pool B 3rd (Consolation 1) \u00b7 Pool A 4th vs Pool B 4th (Consolation 2)",
+      "periods": "3 periods (10 - 10 - 12 min) stop time",
+      "timeouts": "One 30-second timeout per team"
+    }
+  },
   "security": {
     "bench_pin": "1777"
   },

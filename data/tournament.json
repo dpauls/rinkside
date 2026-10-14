@@ -113,22 +113,48 @@
     "type": "two_pool_top2_advance",
     "pools": {
       "A": {
-        "teams": ["EOS", "WOO", "OTT", "MIT"],
+        "teams": [
+          "EOS",
+          "WOO",
+          "OTT",
+          "MIT"
+        ],
         "advance_count": 2
       },
       "B": {
-        "teams": ["KAN", "BEL", "NEP", "WIL"],
+        "teams": [
+          "KAN",
+          "BEL",
+          "NEP",
+          "WIL"
+        ],
         "advance_count": 2
       }
     },
     "playoffs": {
       "semis": [
-        {"name": "Semi 1", "home": "1st in Pool A", "away": "2nd in Pool B"},
-        {"name": "Semi 2", "home": "1st in Pool B", "away": "2nd in Pool A"}
+        {
+          "name": "Semi 1",
+          "home": "1st in Pool A",
+          "away": "2nd in Pool B"
+        },
+        {
+          "name": "Semi 2",
+          "home": "1st in Pool B",
+          "away": "2nd in Pool A"
+        }
       ],
       "consolation": [
-        {"name": "Consolation 1", "home": "3rd in Pool A", "away": "3rd in Pool B"},
-        {"name": "Consolation 2", "home": "4th in Pool A", "away": "4th in Pool B"}
+        {
+          "name": "Consolation 1",
+          "home": "3rd in Pool A",
+          "away": "3rd in Pool B"
+        },
+        {
+          "name": "Consolation 2",
+          "home": "4th in Pool A",
+          "away": "4th in Pool B"
+        }
       ],
       "final": {
         "name": "Championship Final",
@@ -140,7 +166,7 @@
   "tiebreakers": {
     "source_name": "Pink the Rink XV Tournament Rules (Rule 16)",
     "source_url": "https://etobicokedolphins.ca/Public/Documents/Pink_the_Rink_XV_Tournament_RULES_2026.pdf",
-    "description": "1. Number of Wins → 2. Head-to-Head (if exactly 2 teams tied; skipped if >2 teams) → 3. Goal Differential (GF - GA) → 4. Fewest Goals Allowed (GA) → 5. Fewest Penalty Minutes (PIM) → 6. Coin Toss. Rules applied in order; no reversion once used.",
+    "description": "1. Number of Wins \u2192 2. Head-to-Head (if exactly 2 teams tied; skipped if >2 teams) \u2192 3. Goal Differential (GF - GA) \u2192 4. Fewest Goals Allowed (GA) \u2192 5. Fewest Penalty Minutes (PIM) \u2192 6. Coin Toss. Rules applied in order; no reversion once used.",
     "rules": [
       "wins",
       "head_to_head_two_way_only",
@@ -152,5 +178,31 @@
   },
   "security": {
     "bench_pin": "1777"
+  },
+  "game_rules": {
+    "source_name": "Pink the Rink XV Official Tournament Rules",
+    "source_url": "https://etobicokedolphins.ca/Public/Documents/Pink_the_Rink_XV_Tournament_RULES_2026.pdf",
+    "round_robin": {
+      "title": "Round Robin Format",
+      "periods": "3 periods (10 - 10 - 12 min) stop time",
+      "warmup": "3-minute warm-up on the clock prior to game",
+      "overtime": "No overtime \u2014 games end in a tie (2 pts win, 1 pt tie, 0 pts loss)",
+      "timeouts": "No timeouts allowed during round robin play",
+      "mercy_rule": "5-goal spread in 3rd period initiates run-time clock (resumes stop-time if lead drops < 5)",
+      "jerseys": "Home team wears dark colored jerseys"
+    },
+    "elimination": {
+      "title": "Playoff / Elimination Format (Semis & Final)",
+      "periods": "3 periods (10 - 10 - 12 min) stop time",
+      "timeouts": "One 30-second timeout per team (regulation or OT)",
+      "overtime": "5-minute sudden-victory 4-on-4 (teams do not change ends; penalties carry over as 4-on-3 / 5-on-3)",
+      "shootout": "Best-of-3 simultaneous shootout from centre ice. If tied, 1-shooter sudden death. All roster skaters must shoot before any player shoots twice."
+    },
+    "consolation": {
+      "title": "Consolation Games",
+      "matchups": "Pool A 3rd vs Pool B 3rd (Consolation 1) \u00b7 Pool A 4th vs Pool B 4th (Consolation 2)",
+      "periods": "3 periods (10 - 10 - 12 min) stop time",
+      "timeouts": "One 30-second timeout per team"
+    }
   }
 }

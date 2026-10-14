@@ -21,6 +21,20 @@ Rinkside provides parents, coaches, and distant family with a real-time tourname
 
 ---
 
+## Architecture & Technical Deep-Dive 📐
+
+For a comprehensive explanation of Rinkside's design patterns, hybrid cloud architecture, tiebreaker engines, and clinch calculation mathematics, see **[ARCHITECTURE.md](ARCHITECTURE.md)**.
+
+Key architecture highlights include:
+- **Hybrid Cloud Topology**: Autonomous Always-Free Oracle Cloud VM daemon + Edge CDN GitHub Pages static client.
+- **Pluggable Tiebreaker System**: Strategy pattern supporting non-reverting tiebreaker chains, raw GD vs ratio formulas, and custom tournament rules.
+- **Deterministic Scenario Solver**: $3^n$ outcome space traversal with mathematical clinch proofs and GD margin threshold calculus.
+- **Bench Coach Tactical Calculus**: Real-time goalie-pull risk vs reward indicator and score-margin matrix.
+- **Hierarchical AI Commentary**: Two-tier Gemini 3 Flash reasoning (sub-second quips vs deep thought tournament digests) with spend safety circuit breaker.
+- **Mobile-First Live Rink UX**: Screen Wake Lock "Rink Mode", multi-pool pill navigation, and smart watch haptic alerts.
+
+---
+
 ## Quick Start
 
 ### 1. Requirements & Setup

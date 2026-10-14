@@ -272,9 +272,10 @@
         </div>
     </div>
     <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem;margin-bottom:0.75rem">
-        <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap">
+        <div style="display:flex;align-items:center;gap:0.4rem;flex-wrap:wrap">
             <p id="updated" style="margin:0">Loading...</p>
             <button onclick="openTrustModal()" style="background:transparent;border:1px solid var(--pico-muted-border-color);color:var(--pico-muted-color);padding:0.15rem 0.5rem;font-size:0.72rem;border-radius:12px;cursor:pointer;width:auto" title="Data provenance and mathematical methodology">ℹ️ Sources &amp; Trust</button>
+            <button onclick="openRulesModal()" style="background:transparent;border:1px solid var(--pico-muted-border-color);color:var(--pico-muted-color);padding:0.15rem 0.5rem;font-size:0.72rem;border-radius:12px;cursor:pointer;width:auto" title="Official Period Lengths, Overtime, and Shootout Rules">📋 Format &amp; Rules</button>
         </div>
         <div style="display:flex;gap:0.4rem">
             <button id="install-btn" onclick="promptInstall()" style="background:#059669;border:none;padding:0.25rem 0.55rem;font-size:0.75rem;border-radius:4px;cursor:pointer;color:#fff;width:auto;display:none" title="Install Rinkside to your home screen for quick access and full-screen view">📲 Install App</button>
@@ -325,13 +326,30 @@
         </div>
     </dialog>
 
+    <!-- Game Rules & Tournament Format Modal -->
+    <dialog id="rules-modal" style="border-radius:8px;max-width:540px;width:92%;padding:1.5rem;box-shadow:0 10px 30px rgba(0,0,0,0.4);border:1px solid var(--pico-muted-border-color)">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem">
+            <h3 style="margin:0;font-size:1.15rem;color:var(--rangers-blue)">📋 Game Rules &amp; Tournament Format</h3>
+            <button onclick="closeRulesModal()" style="background:transparent;border:none;font-size:1.3rem;cursor:pointer;padding:0;width:auto;color:var(--pico-muted-color)">&times;</button>
+        </div>
+        <div id="rules-modal-content" style="font-size:0.86rem;line-height:1.5;color:var(--pico-color)">
+            <p class="loading">Loading format details...</p>
+        </div>
+        <div style="text-align:right;margin-top:1.25rem">
+            <button onclick="closeRulesModal()" style="background:var(--rangers-blue);color:#fff;border:none;padding:0.35rem 1rem;border-radius:4px;cursor:pointer;width:auto">Close</button>
+        </div>
+    </dialog>
+
     <div id="venues-area"></div>
 
     <div id="coaches-corner-area"></div>
 
     <div id="clinch-watch-area"></div>
 
-    <h2>Playoff Bracket</h2>
+    <div style="display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:0.5rem;margin-top:1.5rem;margin-bottom:0.4rem">
+        <h2 style="margin:0">Playoff Bracket</h2>
+        <span style="font-size:0.75rem;color:var(--pico-muted-color)">5-Min Sudden-Victory OT (4-on-4) &middot; Simultaneous Shootout</span>
+    </div>
     <div id="bracket-area"></div>
 
     <div id="beyond-pool-area"></div>
@@ -576,9 +594,36 @@ function renderTiebreakerHealth(d) {
     </div>`;
 }
 
+function getStorageKey(suffix) {
+    if (!currentState || !currentState.tournament) {
+        return `rinkside_default_${suffix}`;
+    }
+    const tId = currentState.tournament.id || 'tournament';
+    const ourTeamKey = currentState.our_team;
+    const teamNum = (currentState.teams && ourTeamKey && currentState.teams[ourTeamKey] && currentState.teams[ourTeamKey].number)
+        ? currentState.teams[ourTeamKey].number
+        : (ourTeamKey || 'team');
+    return `rinkside_${tId}_${teamNum}_${suffix}`;
+}
+
+function getGameSubs() {
+    const key = getStorageKey('game_subs');
+    let raw = localStorage.getItem(key);
+    if (!raw && localStorage.getItem('rangers_game_subs')) {
+        raw = localStorage.getItem('rangers_game_subs');
+        localStorage.setItem(key, raw);
+    }
+    return JSON.parse(raw || '[]');
+}
+
+function setGameSubs(subs) {
+    const key = getStorageKey('game_subs');
+    localStorage.setItem(key, JSON.stringify(subs));
+}
+
 function isGameSubscribed(gid) {
     if (!gid) return false;
-    const subs = JSON.parse(localStorage.getItem('rangers_game_subs') || '[]');
+    const subs = getGameSubs();
     return subs.includes(String(gid));
 }
 
@@ -600,14 +645,14 @@ function toggleGameSub(gid, event) {
 }
 
 function toggleGameSubInternal(gid) {
-    let subs = JSON.parse(localStorage.getItem('rangers_game_subs') || '[]');
+    let subs = getGameSubs();
     const sGid = String(gid);
     if (subs.includes(sGid)) {
         subs = subs.filter(x => x !== sGid);
     } else {
         subs.push(sGid);
     }
-    localStorage.setItem('rangers_game_subs', JSON.stringify(subs));
+    setGameSubs(subs);
     loadAndRender();
 }
 
@@ -825,7 +870,7 @@ function handleEventAlerts(events, ourTeam) {
     if (events.length > lastEventCount) {
         const newEvents = events.slice(lastEventCount);
         lastEventCount = events.length;
-        const subs = JSON.parse(localStorage.getItem('rangers_game_subs') || '[]');
+        const subs = getGameSubs();
 
         newEvents.forEach(e => {
             if (e.type === 'goal' || e.type === 'final') {
@@ -906,6 +951,62 @@ function openTrustModal() {
 function closeTrustModal() {
     const m = document.getElementById('trust-modal');
     if (m) m.close ? m.close() : (m.style.display = 'none');
+}
+
+function openRulesModal() {
+    populateRulesModal();
+    const m = document.getElementById('rules-modal');
+    if (m) m.showModal ? m.showModal() : (m.style.display = 'block');
+}
+
+function closeRulesModal() {
+    const m = document.getElementById('rules-modal');
+    if (m) m.close ? m.close() : (m.style.display = 'none');
+}
+
+function populateRulesModal() {
+    const container = document.getElementById('rules-modal-content');
+    if (!container || !currentState) return;
+    const gr = currentState.game_rules || {};
+    const rr = gr.round_robin || {};
+    const elim = gr.elimination || {};
+    const con = gr.consolation || {};
+    const srcLink = gr.source_url ? `<p style="margin-bottom:0.75rem;font-size:0.75rem;color:var(--pico-muted-color)">Official Document: <a href="${esc(gr.source_url)}" target="_blank" rel="noopener">${esc(gr.source_name || 'Tournament Rules PDF')}</a></p>` : '';
+
+    container.innerHTML = `
+        ${srcLink}
+        <div style="margin-bottom:0.85rem;background:var(--pico-card-background-color);padding:0.75rem;border-radius:6px;border-left:3px solid var(--rangers-blue);border-top:1px solid var(--pico-muted-border-color);border-right:1px solid var(--pico-muted-border-color);border-bottom:1px solid var(--pico-muted-border-color)">
+            <h4 style="margin:0 0 0.35rem;font-size:0.95rem;color:var(--rangers-blue)">🏒 ${esc(rr.title || 'Round Robin Format')}</h4>
+            <div style="font-size:0.82rem;line-height:1.45">
+                <p style="margin:0 0 0.2rem"><strong>Periods:</strong> ${esc(rr.periods || '3 periods (10-10-12 min) stop time')}</p>
+                <p style="margin:0 0 0.2rem"><strong>Warm-up:</strong> ${esc(rr.warmup || '3-minute warm-up')}</p>
+                <p style="margin:0 0 0.2rem"><strong>Overtime:</strong> ${esc(rr.overtime || 'No overtime (games end in a tie)')}</p>
+                <p style="margin:0 0 0.2rem"><strong>Timeouts:</strong> ${esc(rr.timeouts || 'No timeouts in round robin')}</p>
+                <p style="margin:0 0 0.2rem"><strong>Mercy Rule:</strong> ${esc(rr.mercy_rule || '5-goal spread in 3rd period initiates run-time')}</p>
+                <p style="margin:0"><strong>Jerseys:</strong> ${esc(rr.jerseys || 'Home team wears dark jerseys')}</p>
+            </div>
+        </div>
+
+        <div style="margin-bottom:0.85rem;background:var(--pico-card-background-color);padding:0.75rem;border-radius:6px;border-left:3px solid #059669;border-top:1px solid var(--pico-muted-border-color);border-right:1px solid var(--pico-muted-border-color);border-bottom:1px solid var(--pico-muted-border-color)">
+            <h4 style="margin:0 0 0.35rem;font-size:0.95rem;color:#059669">🏆 ${esc(elim.title || 'Playoff / Elimination Format')}</h4>
+            <div style="font-size:0.82rem;line-height:1.45">
+                <p style="margin:0 0 0.2rem"><strong>Periods:</strong> ${esc(elim.periods || '3 periods (10-10-12 min) stop time')}</p>
+                <p style="margin:0 0 0.2rem"><strong>Timeouts:</strong> ${esc(elim.timeouts || 'One 30-second timeout per team')}</p>
+                <p style="margin:0 0 0.2rem"><strong>Overtime:</strong> ${esc(elim.overtime || '5-minute sudden-victory 4-on-4 (teams do not change ends)')}</p>
+                <p style="margin:0"><strong>Shootout:</strong> ${esc(elim.shootout || 'Best-of-3 simultaneous shootout from centre ice. Full roster rule.')}</p>
+            </div>
+        </div>
+
+        ${con.title ? `
+        <div style="background:var(--pico-card-background-color);padding:0.75rem;border-radius:6px;border-left:3px solid #64748b;border-top:1px solid var(--pico-muted-border-color);border-right:1px solid var(--pico-muted-border-color);border-bottom:1px solid var(--pico-muted-border-color)">
+            <h4 style="margin:0 0 0.35rem;font-size:0.95rem;color:#475569">🎖️ ${esc(con.title)}</h4>
+            <div style="font-size:0.82rem;line-height:1.45">
+                <p style="margin:0 0 0.2rem"><strong>Matchups:</strong> ${esc(con.matchups || 'A3 vs B3, A4 vs B4')}</p>
+                <p style="margin:0 0 0.2rem"><strong>Periods:</strong> ${esc(con.periods || '3 periods (10-10-12 min) stop time')}</p>
+                <p style="margin:0"><strong>Timeouts:</strong> ${esc(con.timeouts || 'One 30-second timeout per team')}</p>
+            </div>
+        </div>` : ''}
+    `;
 }
 
 function selectPool(poolId) {

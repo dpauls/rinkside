@@ -428,6 +428,7 @@ def generate(data_path='data/tournaments/pink_the_rink_2026.json', skip_narrativ
         'coaches_corner': data.get('_coaches_corner'),
         'tiebreaker_health': data.get('_tb_health'),
         'scouting': data.get('scouting'),
+        'game_rules': data.get('game_rules'),
     }
 
     output_dir = Path(__file__).parent.parent / 'docs' / 'data'

@@ -139,8 +139,20 @@
 const DATA_URL = 'data/state.json';
 let stateData = null;
 
+function getBenchAuthKey() {
+    if (!stateData || !stateData.tournament) return 'rinkside_bench_auth';
+    const tId = stateData.tournament.id || 'tournament';
+    const ourTeamKey = stateData.our_team;
+    const teamNum = (stateData.teams && ourTeamKey && stateData.teams[ourTeamKey] && stateData.teams[ourTeamKey].number)
+        ? stateData.teams[ourTeamKey].number
+        : (ourTeamKey || 'team');
+    return `rinkside_${tId}_${teamNum}_bench_auth`;
+}
+
 function checkAuth() {
-    if (sessionStorage.getItem('bench_auth') === 'true') {
+    const key = getBenchAuthKey();
+    if (sessionStorage.getItem(key) === 'true' || sessionStorage.getItem('bench_auth') === 'true') {
+        sessionStorage.setItem(key, 'true');
         document.getElementById('pin-overlay').style.display = 'none';
         return true;
     }
@@ -152,7 +164,7 @@ function checkPin() {
     const input = document.getElementById('pin-input').value.trim();
     const correctPin = (stateData && stateData.bench && stateData.bench.bench_pin) || '1777';
     if (input === correctPin) {
-        sessionStorage.setItem('bench_auth', 'true');
+        sessionStorage.setItem(getBenchAuthKey(), 'true');
         document.getElementById('pin-overlay').style.display = 'none';
         renderContent();
     } else {
