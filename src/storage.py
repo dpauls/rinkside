@@ -110,11 +110,28 @@ class S3Storage(StorageBackend):
         if self.bucket:
             try:
                 import boto3
+                import hashlib
+                from botocore.client import Config
+                cfg = Config(
+                    signature_version="s3v4",
+                    s3={"addressing_style": "path"},
+                    request_checksum_calculation="when_required"
+                )
                 self._s3_client = boto3.client(
                     "s3",
                     endpoint_url=self.endpoint_url,
-                    region_name=self.region_name
+                    region_name=self.region_name,
+                    config=cfg
                 )
+
+                def _disable_chunked(request, **kwargs):
+                    if "x-amz-content-sha256" in request.headers:
+                        if request.headers["x-amz-content-sha256"] == "STREAMING-AWS4-HMAC-SHA256-PAYLOAD":
+                            request.headers["x-amz-content-sha256"] = hashlib.sha256(
+                                request.body if isinstance(request.body, bytes) else b""
+                            ).hexdigest()
+
+                self._s3_client.meta.events.register("request-created.s3.PutObject", _disable_chunked)
             except ImportError:
                 log.warning("S3Storage: boto3 package not installed. Operating in local-mirror mode only.")
 
