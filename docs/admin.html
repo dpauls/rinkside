@@ -78,8 +78,9 @@
 </main>
 
 <script>
+const OCI_DATA_URL = 'https://objectstorage.ca-toronto-1.oraclecloud.com/n/yzjspjx2rhjg/b/rinkside/o/data/state.json';
 const LOCAL_DATA_URL = 'data/state.json';
-let activeDataUrl = window.RUSTIC_S3_DATA_URL || LOCAL_DATA_URL;
+let activeDataUrl = window.RUSTIC_S3_DATA_URL || OCI_DATA_URL;
 let stateData = null;
 let currentStreams = {};
 

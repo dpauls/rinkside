@@ -1,7 +1,9 @@
 import hashlib
 import json
 import os
+import shutil
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -13,6 +15,7 @@ class TestAuthPins(unittest.TestCase):
     def setUp(self):
         self.orig_coach = os.environ.get('COACH_PIN')
         self.orig_admin = os.environ.get('ADMIN_PIN')
+        self.temp_dir = tempfile.mkdtemp()
 
     def tearDown(self):
         if self.orig_coach is not None:
@@ -24,11 +27,12 @@ class TestAuthPins(unittest.TestCase):
             os.environ['ADMIN_PIN'] = self.orig_admin
         else:
             os.environ.pop('ADMIN_PIN', None)
+        shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     def test_salted_pin_hash_generation(self):
         os.environ['COACH_PIN'] = '2468'
         os.environ['ADMIN_PIN'] = '1357'
-        state = generate('data/tournaments/pink_the_rink_2026.json', skip_narrative=True)
+        state = generate('data/tournaments/pink_the_rink_2026.json', skip_narrative=True, output_dir=self.temp_dir)
 
         self.assertIn('auth', state)
         auth = state['auth']
@@ -52,12 +56,12 @@ class TestAuthPins(unittest.TestCase):
     def test_dynamic_pin_invalidation(self):
         # First generate with PIN 1111
         os.environ['COACH_PIN'] = '1111'
-        state1 = generate('data/tournaments/pink_the_rink_2026.json', skip_narrative=True)
+        state1 = generate('data/tournaments/pink_the_rink_2026.json', skip_narrative=True, output_dir=self.temp_dir)
         hash1 = state1['auth']['coach_pin_hash']
 
         # Change PIN in .env to 2222
         os.environ['COACH_PIN'] = '2222'
-        state2 = generate('data/tournaments/pink_the_rink_2026.json', skip_narrative=True)
+        state2 = generate('data/tournaments/pink_the_rink_2026.json', skip_narrative=True, output_dir=self.temp_dir)
         hash2 = state2['auth']['coach_pin_hash']
 
         # Hashes must differ immediately, invalidating previous client sessions

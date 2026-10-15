@@ -11,6 +11,12 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
+try:
+    from dotenv import load_dotenv
+    load_dotenv(Path(__file__).parent.parent / '.env')
+except Exception:
+    pass
+
 from analyze import (
     load_tournament,
     compute_standings,
@@ -291,7 +297,7 @@ def build_tiebreaker_resolution(pool_id, data, analysis):
     return resolutions
 
 
-def generate(data_path='data/tournaments/pink_the_rink_2026.json', skip_narrative=False):
+def generate(data_path='data/tournaments/pink_the_rink_2026.json', skip_narrative=False, output_dir=None):
     # In daemon mode, read from tournament-specific shadow file if it exists
     path_obj = Path(data_path)
     shadow_data = path_obj.parent / f".{path_obj.stem}_live.json"
@@ -437,18 +443,21 @@ def generate(data_path='data/tournaments/pink_the_rink_2026.json', skip_narrativ
             'admin_pin_hash': hashlib.sha256(f"{data.get('tournament', {}).get('id', 'rinkside')}:{os.environ.get('ADMIN_PIN') or '9876'}".encode('utf-8')).hexdigest(),
             'streams_par_url': os.environ.get('STREAMS_PAR_URL', ''),
         },
-        's3_public_url': os.environ.get('S3_PUBLIC_URL', ''),
+        's3_public_url': os.environ.get('S3_PUBLIC_URL', 'https://objectstorage.ca-toronto-1.oraclecloud.com/n/yzjspjx2rhjg/b/rinkside/o/data/state.json'),
         'trigger_event': data.get('_last_event') or (data.get('event_log', [])[-1] if data.get('event_log') else {'type': 'initial', 'headline': 'Baseline tournament initialization'}),
     }
 
-    output_dir = Path(__file__).parent.parent / 'docs' / 'data'
-    output_dir.mkdir(parents=True, exist_ok=True)
-    (output_dir / 'state.json').write_text(json.dumps(state, indent=2))
-    (output_dir / '.state_live.json').write_text(json.dumps(state, indent=2))
+    if output_dir is None:
+        target_dir = Path(__file__).parent.parent / 'docs' / 'data'
+    else:
+        target_dir = Path(output_dir)
+    target_dir.mkdir(parents=True, exist_ok=True)
+    (target_dir / 'state.json').write_text(json.dumps(state, indent=2))
+    (target_dir / '.state_live.json').write_text(json.dumps(state, indent=2))
     stem = Path(data_path).stem
     if stem not in ('tournament', 'state'):
-        (output_dir / f'.state_{stem}_live.json').write_text(json.dumps(state, indent=2))
-    print(f'Generated state.json ({(output_dir / "state.json").stat().st_size} bytes)')
+        (target_dir / f'.state_{stem}_live.json').write_text(json.dumps(state, indent=2))
+    print(f'Generated state.json ({(target_dir / "state.json").stat().st_size} bytes)')
     return state
 
 

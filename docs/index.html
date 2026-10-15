@@ -361,8 +361,9 @@
 </main>
 
 <script>
+const OCI_DATA_URL = 'https://objectstorage.ca-toronto-1.oraclecloud.com/n/yzjspjx2rhjg/b/rinkside/o/data/state.json';
 const LOCAL_DATA_URL = 'data/state.json';
-let activeDataUrl = window.RUSTIC_S3_DATA_URL || LOCAL_DATA_URL;
+let activeDataUrl = window.RUSTIC_S3_DATA_URL || OCI_DATA_URL;
 
 async function fetchTournamentState() {
     if (activeDataUrl && activeDataUrl !== LOCAL_DATA_URL) {
@@ -652,7 +653,11 @@ function isGameSubscribed(gid) {
 function toggleGameSub(gid, event) {
     if (event) event.stopPropagation();
     if (!('Notification' in window)) {
-        alert('This browser does not support web notifications.');
+        if (/iPhone|iPad|iPod/.test(navigator.userAgent)) {
+            alert('To receive notifications on iOS:\n1. Tap the Share button in Safari (box with up arrow)\n2. Tap "Add to Home Screen"\n3. Open Rinkside from your Home Screen');
+        } else {
+            alert('This browser does not support web notifications.');
+        }
         return;
     }
     if (Notification.permission !== 'granted') {
@@ -687,7 +692,7 @@ function renderGames(games, label, ourTeam, isFinal) {
             : `<span style="font-size:0.75rem;color:var(--pico-muted-color);margin-left:0.3rem">(${esc(g.arena)})</span>`) : '';
         const gid = g.game_id || g.gid || '';
         const isOur = (g.home === ourTeam || g.away === ourTeam);
-        const isSub = isGameSubscribed(gid) || isOur;
+        const isSub = isGameSubscribed(gid);
         const subBadge = (isFinal || !gid) ? '' : ` <button onclick="toggleGameSub('${gid}', event)" style="background:${isSub ? '#0284c7' : '#475569'};border:none;padding:0.12rem 0.4rem;font-size:0.65rem;border-radius:4px;cursor:pointer;color:#fff;margin-left:0.3rem;display:inline-block;width:auto">${isSub ? '🔔 Subscribed' : '🔕 Alert me'}</button>`;
         const streamBtn = g.stream_url
             ? `<a href="${esc(g.stream_url)}" target="_blank" rel="noopener" class="stream-badge${g.status === 'in_progress' ? ' stream-badge-live' : ''}">▶ Stream</a>`
@@ -855,7 +860,11 @@ async function toggleWakeLock() {
 
 function toggleAlerts() {
     if (!('Notification' in window)) {
-        alert('This browser does not support web notifications.');
+        if (/iPhone|iPad|iPod/.test(navigator.userAgent)) {
+            alert('To receive notifications on iOS:\n1. Tap the Share button in Safari (box with up arrow)\n2. Tap "Add to Home Screen"\n3. Open Rinkside from your Home Screen');
+        } else {
+            alert('This browser does not support web notifications.');
+        }
         return;
     }
     if (Notification.permission === 'granted') {
@@ -896,10 +905,9 @@ function handleEventAlerts(events, ourTeam) {
 
         newEvents.forEach(e => {
             if (e.type === 'goal' || e.type === 'final') {
-                const isOurGame = ourTeam && e.headline && e.headline.includes(ourTeam);
                 const isSubbed = subs.some(gid => e.headline && e.headline.includes(String(gid)));
 
-                if (isOurGame || isSubbed || alertsEnabled) {
+                if (isSubbed || alertsEnabled) {
                     if ('vibrate' in navigator) navigator.vibrate([200, 100, 200]);
                     if ('Notification' in window && Notification.permission === 'granted') {
                         new Notification(e.headline, {
