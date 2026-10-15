@@ -459,13 +459,41 @@ def generate_pregame_talking_points(our_team_name, opponent_name, opponent_ranki
                                      scenarios_summary, what_at_stake,
                                      tournament_name='Pink the Rink XV - U18C',
                                      opponent_results=None, common_opponents=None,
-                                     prev_talking_points=None):
+                                     prev_talking_points=None,
+                                     our_ranking='?', rankings_confidence=0):
     """Generate pre-game talking points for the team meeting."""
     results_str = '\n'.join(f'  - {r}' for r in (our_recent_results or [])) or '  No games played yet.'
     opp_results_str = '\n'.join(f'  - {r}' for r in (opponent_results or [])) or '  No games played yet.'
     common_str = '\n'.join(f'  - {c}' for c in (common_opponents or [])) or '  None yet.'
 
     is_opener = not our_recent_results and not opponent_results
+
+    has_both_rankings = (
+        our_ranking and str(our_ranking) != '?' and
+        opponent_ranking and str(opponent_ranking) != '?'
+    )
+    conf = int(rankings_confidence or 0)
+    if not has_both_rankings or conf <= 0:
+        rankings_guide = (
+            "Provincial rankings: Not available or too early in the season to be meaningful. "
+            "Do NOT mention provincial rankings or seedings (and never confuse the division 'U18C' with a #18 ranking)."
+        )
+    elif conf <= 25:
+        rankings_guide = (
+            f"Provincial rankings ({our_team_name}: #{our_ranking}, {opponent_name}: #{opponent_ranking} — "
+            f"Early-season confidence: {conf}/100): Very few games have been played so far this season. "
+            f"You may mention rankings only as a very light footnote, and emphasize that on-ice play matters far more right now."
+        )
+    elif conf <= 65:
+        rankings_guide = (
+            f"Provincial rankings ({our_team_name}: #{our_ranking}, {opponent_name}: #{opponent_ranking} — "
+            f"Confidence: {conf}/100): Moderate-confidence rankings; use as a rough gauge of relative strength alongside tournament results."
+        )
+    else:
+        rankings_guide = (
+            f"Provincial rankings ({our_team_name}: #{our_ranking}, {opponent_name}: #{opponent_ranking} — "
+            f"High confidence: {conf}/100): Established rankings — factor this relative strength directly into how we prepare for {opponent_name}."
+        )
 
     prev_block = ''
     if prev_talking_points:
@@ -493,6 +521,7 @@ prepare talking points for a pre-game team meeting at {tournament_name}.
 {prev_block}
 === FACTS ===
 Next opponent: {opponent_name}
+{rankings_guide}
 Our tournament results so far (most recent first):
 {results_str}
 
@@ -528,7 +557,7 @@ def generate_don_cherry(context, our_team_name='Kanata Rangers', tournament_name
 CONTINUITY RULE: Build on your ongoing tournament storyline where natural (e.g., following up on what you told the kids before the game), and MUST use a DIFFERENT opening phrase than your previous segment above!
 """
 
-    prompt = f"""You are Don Cherry from Coach's Corner on Hockey Night in Canada, commenting on the {our_team_name} girls minor hockey team (U18C / U15B) competing at {tournament_name}.
+    prompt = f"""You are Don Cherry from Coach's Corner on Hockey Night in Canada, commenting on the {our_team_name} girls minor hockey team (Under-18 C division) competing at {tournament_name}.
 {prev_block}
 === CURRENT SITUATION ===
 {context}
@@ -549,7 +578,7 @@ STYLE RULES:
 2. Use punchy, telegraphic clauses separated by hyphens or exclamation marks ("Boom-boom-boom, tape-to-tape, in the net!").
 3. Use occasional CAPITAL letters for vocal acoustic punches (e.g., "THAT", "BOOM", "HOLY JUMPIN'", "KABOOM").
 4. Incorporate authentic Cherry expressions: "Beauty!", "Double thumbs up!", "Atta girl!", "Worked their socks off!", "Between the pipes", "Tender".
-5. NEVER use clichés like "rankings don't score goals" or dry statistical jargon (no expected goals or spreadsheet talk).
+5. NEVER mention team rankings or seedings (and never confuse Under-18 C with a #18 ranking), and NEVER use clichés like "rankings don't score goals" or dry statistical jargon.
 6. NEVER be mean, sarcastic, or negative toward kids. You are their biggest cheerleader.
 7. LENGTH CONSTRAINT: Exactly 2 to 3 punchy sentences (maximum 75 words total). Must fit cleanly in a mobile card.
 

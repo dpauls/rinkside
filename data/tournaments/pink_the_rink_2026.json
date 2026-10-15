@@ -19,6 +19,11 @@
     "division_id": 25410,
     "game_type": 0
   },
+  "rankings": {
+    "source_name": "MyHockeyRankings (Ontario Girls U18C)",
+    "url": "https://myhockeyrankings.com/rank.php?y=2026&v=2025",
+    "confidence": 10
+  },
   "teams": {
     "KAN": {
       "name": "Kanata Rangers",

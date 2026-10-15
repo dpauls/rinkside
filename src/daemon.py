@@ -766,8 +766,9 @@ def run_cycle(tournament_data, mock_source=None, skip_narrative=False, skip_push
         tournament_data['_narrative'] = narrative
         _write_data(tournament_data)
 
-    # Generate state.json
-    generate(str(DATA_PATH), skip_narrative=True)
+    # Generate state.json from live shadow data
+    live_data_path = SHADOW_DATA_PATH if SHADOW_DATA_PATH.exists() else DATA_PATH
+    state = generate(str(live_data_path), skip_narrative=True)
 
     # Generate Coach's Corner content -- only when the "for_game" changes
     coaches_corner = tournament_data.get('_coaches_corner', {})
@@ -775,6 +776,8 @@ def run_cycle(tournament_data, mock_source=None, skip_narrative=False, skip_push
 
     if not skip_narrative:
         our_team_name = tournament_data['teams'][our_team]['name']
+        our_ranking = tournament_data['teams'][our_team].get('ranking', '?')
+        rankings_conf = tournament_data.get('rankings', {}).get('confidence', 0)
         from generate import build_games_list, build_standings
 
         # Determine what game Coach's Corner should be about:
@@ -902,7 +905,9 @@ def run_cycle(tournament_data, mock_source=None, skip_narrative=False, skip_push
                         tournament_name=t_name,
                         opponent_results=opp_results,
                         common_opponents=common_opps,
-                        prev_talking_points=prev_tp)
+                        prev_talking_points=prev_tp,
+                        our_ranking=our_ranking,
+                        rankings_confidence=rankings_conf)
                     if talking_points:
                         coaches_corner['talking_points'] = talking_points
 
@@ -940,9 +945,7 @@ def run_cycle(tournament_data, mock_source=None, skip_narrative=False, skip_push
                 tournament_data['_tb_health'] = tb_health
                 _write_data(tournament_data)
 
-    # Inject narrative, coaches corner, bench, and tb health into state.json
-    state_path = SHADOW_STATE_PATH if SHADOW_STATE_PATH.exists() else STATE_PATH
-    state = json.loads(state_path.read_text())
+    # Inject narrative, coaches corner, bench, and tb health into fresh state
     if narrative or tournament_data.get('_narrative'):
         state['narrative'] = narrative or tournament_data.get('_narrative')
     if coaches_corner:
@@ -974,6 +977,8 @@ def main():
     parser.add_argument('--mock-dir', help='Use mock data from directory instead of live API')
     parser.add_argument('--mock-reset', action='store_true', help='Reset mock data to step 0')
     parser.add_argument('--mock-step', type=int, help='Jump to a specific mock step (resets first, then advances to this step)')
+    parser.add_argument('--reset-narrative', action='store_true',
+                        help='Clear saved narrative, Coach\'s Corner, and event log to start fresh')
     parser.add_argument('--once', action='store_true', help='Run one cycle and exit')
     parser.add_argument('--skip-narrative', action='store_true', help='Skip Claude API calls')
     parser.add_argument('--skip-push', action='store_true', help='Skip git push (default for modern storage backend)')
@@ -1000,6 +1005,14 @@ def main():
     _set_data_path(tourn_path)
     tournament_data = load_team_map()
     storage = build_storage(args.storage)
+
+    if args.reset_narrative:
+        tournament_data['event_log'] = []
+        tournament_data.pop('_narrative', None)
+        tournament_data.pop('_coaches_corner', None)
+        tournament_data.pop('_tb_health', None)
+        _write_data(tournament_data)
+        log.info('Reset narrative history (_narrative, _coaches_corner, _tb_health, event_log cleared)')
 
     mock_source = None
     if args.mock_dir:
@@ -1028,14 +1041,17 @@ def main():
     prev_scenarios = None
     log.info(f'Daemon starting. Mock: {args.mock_dir or "OFF"}, Narrative: {not args.skip_narrative}, Push: {not args.skip_push}')
 
-    # Always generate and push current state on startup
+    # Always generate and push current state on startup from live shadow data
     log.info('Initial generate and push...')
-    state = generate(str(tourn_path), skip_narrative=True)
+    live_data_path = SHADOW_DATA_PATH if SHADOW_DATA_PATH.exists() else tourn_path
+    state = generate(str(live_data_path), skip_narrative=True)
 
     # Generate narrative + Coach's Corner if missing (startup or after reroll)
     if not args.skip_narrative and (not tournament_data.get('_narrative') or not tournament_data.get('_coaches_corner')):
         our_team = tournament_data['tournament']['our_team']
         our_team_name = tournament_data['teams'][our_team]['name']
+        our_ranking = tournament_data['teams'][our_team].get('ranking', '?')
+        rankings_conf = tournament_data.get('rankings', {}).get('confidence', 0)
         our_pool = tournament_data['teams'][our_team]['pool']
         our_analysis = enumerate_scenarios(our_pool, tournament_data)
         from generate import build_standings, build_scenario_data, build_games_list
@@ -1049,9 +1065,6 @@ def main():
             if other_pool_init else []
         )
         upcoming = build_games_list(our_pool, tournament_data, 'scheduled')
-
-        state_path = SHADOW_STATE_PATH if SHADOW_STATE_PATH.exists() else STATE_PATH
-        state = json.loads(state_path.read_text())
 
         # Welcome narrative
         t_name = tournament_data.get('tournament', {}).get('name', 'Pink the Rink XV - U18C')
@@ -1123,7 +1136,9 @@ def main():
                 scenarios_ctx, adv_desc,
                 tournament_name=t_name,
                 opponent_results=opp_results_cc,
-                common_opponents=common_opps_cc)
+                common_opponents=common_opps_cc,
+                our_ranking=our_ranking,
+                rankings_confidence=rankings_conf)
             if talking:
                 coaches_corner['talking_points'] = talking
 
@@ -1131,10 +1146,18 @@ def main():
             state['coaches_corner'] = coaches_corner
             tournament_data['_coaches_corner'] = coaches_corner
 
-        SHADOW_STATE_PATH.parent.mkdir(parents=True, exist_ok=True)
-        SHADOW_STATE_PATH.write_text(json.dumps(state, indent=2))
         _write_data(tournament_data)
-        _publish_to_git()
+
+    # Always ensure saved narrative / coaches_corner / tb_health are present in fresh state
+    if tournament_data.get('_narrative'):
+        state['narrative'] = tournament_data['_narrative']
+    if tournament_data.get('_coaches_corner'):
+        state['coaches_corner'] = tournament_data['_coaches_corner']
+    if tournament_data.get('_tb_health'):
+        state['tiebreaker_health'] = tournament_data['_tb_health']
+    SHADOW_STATE_PATH.parent.mkdir(parents=True, exist_ok=True)
+    SHADOW_STATE_PATH.write_text(json.dumps(state, indent=2))
+    _publish_to_git()
 
     if storage:
         try:
