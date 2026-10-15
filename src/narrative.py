@@ -347,7 +347,8 @@ def evaluate_narrative(current_narrative, changes, prev_scenarios, curr_scenario
 
 def generate_game_final_comment(game, standings, prev_scenarios, curr_scenarios,
                                  our_team, our_team_name, our_pool, teams=None,
-                                 tournament_name='Pink the Rink XV - U18C'):
+                                 tournament_name='Pink the Rink XV - U18C',
+                                 game_events=None):
     """Generate 1-2 sentence commentary when a game finishes."""
     is_our_game = (game['home'] == our_team or game['away'] == our_team)
 
@@ -370,16 +371,20 @@ def generate_game_final_comment(game, standings, prev_scenarios, curr_scenarios,
     elif curr_scenarios and curr_count == 0 and curr_total > 0:
         clinch_note = f'\n{our_team_name} has been ELIMINATED from Pool {our_pool}.'
 
+    arc_str = ''
+    if game_events:
+        arc_str = '\nIn-game scoring progression & earlier commentary:\n' + '\n'.join(f'  - {e}' for e in game_events[-6:]) + '\n'
+
     prompt = f"""A game just finished at {tournament_name}.
 
 Result: {home_name} {game['home_score']} - {game['away_score']} {away_name} (Pool {our_pool})
 {'This was OUR game.' if is_our_game else 'We were not playing in this game.'}
-
+{arc_str}
 Updated standings: {standings_str}
 Scenario impact: Out of {curr_total} remaining outcome combinations, {our_team_name} advances in {curr_count} (was {prev_count} of {prev_total}).
 {clinch_note}
 
-Write 1-2 sentences using "we/us/our" when referring to {our_team_name}. Be specific about the concrete playoff implications."""
+Write 1-2 sentences using "we/us/our" when referring to {our_team_name}. If in-game progression is shown above, tie the final result to how the game unfolded (e.g. holding off a push, rallying back, pulling away late), and state the concrete playoff implications."""
 
     return _call(prompt, max_tokens=180, label="game_final_comment", thinking_level="high")
 
@@ -388,7 +393,8 @@ def generate_event_impact(event_type, home_name, away_name, home_score, away_sco
                           is_our_game, our_team_name, scenarios_if_holds=None,
                           total_scenarios=None, tournament_context=None,
                           in_progress_games=None, round_robin_phase="mid",
-                          tournament_name="Pink the Rink XV - U18C"):
+                          tournament_name="Pink the Rink XV - U18C",
+                          recent_events=None):
     """Generate a 1-sentence impact comment for any live game event.
     
     Uses low thinking level for fast, sub-second delivery to parents on mobile.
@@ -409,6 +415,13 @@ def generate_event_impact(event_type, home_name, away_name, home_score, away_sco
 {digest}
 === END BASELINE ===\n"""
 
+    story_block = ""
+    if recent_events:
+        story_lines = "\n".join(f"  - {ev}" for ev in recent_events[-6:])
+        story_block = f"""=== RECENT COMMENTARY STORY ARC ===
+{story_lines}
+=== END STORY ARC ===\n"""
+
     math_impact = ""
     if scenarios_if_holds is not None and total_scenarios:
         math_impact = f"\nMathematical projection: If this score holds as final, we advance in {scenarios_if_holds} of {total_scenarios} scenarios."
@@ -420,8 +433,7 @@ def generate_event_impact(event_type, home_name, away_name, home_score, away_sco
     )
 
     prompt = f"""You are the live rinkside commentator for {our_team_name} at {tournament_name}.
-{ctx_block}
-=== CURRENT LIVE STATE ===
+{ctx_block}{story_block}=== CURRENT LIVE STATE ===
 This game: {score_str} ({'OUR GAME' if is_our_game else 'Other Pool Game'})
 Concurrent games in progress: {active_games_str}{math_impact}
 
@@ -432,6 +444,7 @@ Event: {event_type.upper().replace('_', ' ')}: {score_str}
 Write EXACTLY 1 punchy, informative sentence for parents reading live on their phones.
 - Use "we", "us", "our" for {our_team_name}.
 - {phase_guide}
+- CONTINUITY: If recent commentary is provided above, connect this moment to the unfolding game story (e.g. answering right back, erasing an early deficit, trading goals, or building a cushion) and do NOT repeat phrases or sentence structures from earlier events.
 - CALIBRATION:
   * High-impact (lead change, breaking a deadlock, extending cushion): highlight what it means for our pool standing.
   * Routine (insurance goal, minor score): deliver energetic, fun hockey commentary.
@@ -444,36 +457,79 @@ Write EXACTLY 1 punchy, informative sentence for parents reading live on their p
 def generate_pregame_talking_points(our_team_name, opponent_name, opponent_ranking,
                                      our_recent_results, our_pim, standings,
                                      scenarios_summary, what_at_stake,
-                                     tournament_name='Pink the Rink XV - U18C'):
+                                     tournament_name='Pink the Rink XV - U18C',
+                                     opponent_results=None, common_opponents=None,
+                                     prev_talking_points=None):
     """Generate pre-game talking points for the team meeting."""
-    results_str = '\n'.join(f'  - {r}' for r in (our_recent_results or [])) or '  No games yet.'
+    results_str = '\n'.join(f'  - {r}' for r in (our_recent_results or [])) or '  No games played yet.'
+    opp_results_str = '\n'.join(f'  - {r}' for r in (opponent_results or [])) or '  No games played yet.'
+    common_str = '\n'.join(f'  - {c}' for c in (common_opponents or [])) or '  None yet.'
+
+    is_opener = not our_recent_results and not opponent_results
+
+    prev_block = ''
+    if prev_talking_points:
+        prev_block = f"""
+=== PREVIOUS GAME TALKING POINTS (for story continuity) ===
+{prev_talking_points}
+=== END PREVIOUS ===
+Build naturally on our weekend progression without repeating the same phrases.
+"""
+
+    if is_opener:
+        instructions = f"""Since this is the TOURNAMENT OPENER and neither team has played a game yet, be creative and engaging!
+Write 3 short talking points using **bold headings** followed by 1-2 sentences each:
+**Mindset** — Channel opening-game energy, shake off the highway travel legs to Etobicoke, and set the tone on the very first shift.
+**The Opponent** — Offer a creative, insightful angle on {opponent_name} (for example, if both teams are from the Ottawa region like Kanata and Nepean, note the fun Ottawa-area rivalry playing out on Toronto ice; what to expect in a tight opening matchup; never call any game "easy" or "winnable").
+**What We Need** — Explain the tournament format ({what_at_stake}), why banking 2 points and a positive goal differential in Game 1 sets up the whole weekend, and what the coach's locker-room message should be."""
+    else:
+        instructions = f"""Write 3 short, insightful talking points using **bold headings** followed by 1-2 sentences each:
+**Mindset** — Address our most recent result directly (bounce back from a tough result or build on momentum) and frame the locker-room focus.
+**The Opponent** — Provide genuine scouting insight on {opponent_name} based on their tournament history above: who they've played, how our results against common opponents compare, what their scoring/defensive numbers reveal about how good they are, and how we match up. Never say "easy" or "winnable".
+**What We Need** — Concrete points, tiebreaker/goal-differential awareness, and the coach's closing message for what it takes to advance ({what_at_stake})."""
 
     prompt = f"""You are helping the coaching staff of {our_team_name}
 prepare talking points for a pre-game team meeting at {tournament_name}.
-
+{prev_block}
 === FACTS ===
 Next opponent: {opponent_name}
-Our results so far (most recent first):
+Our tournament results so far (most recent first):
 {results_str}
 
-Current standings: {standings}
-Tournament stakes: {what_at_stake}
+{opponent_name}'s tournament results so far:
+{opp_results_str}
+
+Common opponents comparison in this tournament:
+{common_str}
+
+Current pool standings:
+{standings}
+
+Scenario outlook: {scenarios_summary}
+Tournament advancement stakes: {what_at_stake}
 === END FACTS ===
 
-Write 3 short talking points using **bold headings** followed by 1-2 sentences each:
-**Mindset** address the most recent result directly. Bounce back from a loss, or build on a win.
-**The Opponent** what to expect and respect. Never say "easy" or "winnable".
-**What We Need** points, strategy, tiebreaker awareness.
+{instructions}
 
-Practical, motivating, and age-appropriate for minor girls hockey."""
+Practical, motivating, and age-appropriate for minor girls hockey. Keep under 160 words total."""
 
-    return _call(prompt, max_tokens=280, label="pregame_talking_points", thinking_level="high")
+    return _call(prompt, max_tokens=320, label="pregame_talking_points", thinking_level="high")
 
 
-def generate_don_cherry(context, our_team_name='Kanata Rangers', tournament_name='Pink the Rink XV - U18C'):
+def generate_don_cherry(context, our_team_name='Kanata Rangers', tournament_name='Pink the Rink XV - U18C',
+                        prev_don_cherry=None):
     """Generate authentic Don Cherry commentary for Coach's Corner."""
-    prompt = f"""You are Don Cherry from Coach's Corner on Hockey Night in Canada, commenting on the {our_team_name} girls minor hockey team (U18C / U15B) competing at {tournament_name}.
+    prev_block = ""
+    if prev_don_cherry:
+        prev_block = f"""
+=== YOUR PREVIOUS COACH'S CORNER SEGMENT ===
+{prev_don_cherry}
+=== END PREVIOUS SEGMENT ===
+CONTINUITY RULE: Build on your ongoing tournament storyline where natural (e.g., following up on what you told the kids before the game), and MUST use a DIFFERENT opening phrase than your previous segment above!
+"""
 
+    prompt = f"""You are Don Cherry from Coach's Corner on Hockey Night in Canada, commenting on the {our_team_name} girls minor hockey team (U18C / U15B) competing at {tournament_name}.
+{prev_block}
 === CURRENT SITUATION ===
 {context}
 === END SITUATION ===
@@ -500,6 +556,34 @@ STYLE RULES:
 Write Don Cherry's commentary:"""
 
     return _call(prompt, max_tokens=140, label="don_cherry", thinking_level="high", temperature=1.0)
+
+
+def generate_tiebreaker_health(our_team_name, standings_summary, yellow_count,
+                                green_count, red_count, total, tiebreaker_state,
+                                tournament_name='Pink the Rink XV - U18C'):
+    """Generate LLM analysis of the tiebreaker health for yellow scenarios."""
+    if yellow_count == 0:
+        return None
+
+    prompt = f"""You are analyzing tiebreaker scenarios for {our_team_name} at {tournament_name}.
+
+SCORING: Win = 2 points, Tie = 1 point each, Loss = 0 points.
+
+=== SCENARIO BREAKDOWN ===
+Total scenarios: {total}
+Green (we advance deterministically on points/H2H): {green_count}
+Yellow (depends on goal differential / goals for / goals against): {yellow_count}
+Red (eliminated deterministically): {red_count}
+
+=== CURRENT STANDINGS ===
+{standings_summary}
+
+=== TIEBREAKER METRICS ===
+{tiebreaker_state}
+
+Write 2-3 concise sentences explaining our position in the {yellow_count} score-dependent (Yellow) scenarios. Highlight our current Goal Differential (GD) and Goals Against (GA) compared to our pool rivals, and what margin we need to watch for. Use "we/us/our" for {our_team_name}. Keep under 85 words."""
+
+    return _call(prompt, max_tokens=180, label="tiebreaker_health", thinking_level="high")
 
 
 def generate_bench_commentary(our_team_name, our_score, their_score, opp_name,

@@ -354,6 +354,61 @@ def create_event(event_type, headline, detail=None):
     }
 
 
+def _get_advancement_desc(tournament_data, our_pool):
+    """Return human-readable advancement rule string based on tournament structure."""
+    stype = tournament_data.get('structure', {}).get('type', '')
+    if stype == 'two_pool_top2_advance':
+        return (f"Top 2 teams in Pool {our_pool} advance to the Semifinals "
+                f"(1st plays 2nd from the other pool); 3rd place plays in the Consolation Game.")
+    return f"Only the Pool {our_pool} winner advances to the Quarter-Final."
+
+
+def _build_opponent_context(our_team, opp_id, completed_games, teams):
+    """Build opponent_results and common_opponents lists from completed pool games."""
+    our_name = teams.get(our_team, {}).get('name', our_team)
+    opp_name = teams.get(opp_id, {}).get('name', opp_id)
+
+    opp_results = []
+    our_by_opp = {}
+    opp_by_opp = {}
+
+    for g in completed_games:
+        h, a = g['home'], g['away']
+        hs, as_ = g.get('home_score', 0), g.get('away_score', 0)
+        h_name = g.get('home_name') or teams.get(h, {}).get('name', h)
+        a_name = g.get('away_name') or teams.get(a, {}).get('name', a)
+
+        if h == opp_id or a == opp_id:
+            opp_is_home = (h == opp_id)
+            opp_g = hs if opp_is_home else as_
+            other_g = as_ if opp_is_home else hs
+            other_id = a if opp_is_home else h
+            other_name = a_name if opp_is_home else h_name
+            tag = 'WIN' if opp_g > other_g else ('LOSS' if other_g > opp_g else 'TIE')
+            opp_results.append(f"{h_name} {hs}-{as_} {a_name} [{opp_name} {tag} vs {other_name}]")
+            opp_by_opp[other_id] = (tag, opp_g, other_g, other_name)
+
+        if h == our_team or a == our_team:
+            we_home = (h == our_team)
+            our_g = hs if we_home else as_
+            other_g = as_ if we_home else hs
+            other_id = a if we_home else h
+            other_name = a_name if we_home else h_name
+            tag = 'WIN' if our_g > other_g else ('LOSS' if other_g > our_g else 'TIE')
+            our_by_opp[other_id] = (tag, our_g, other_g, other_name)
+
+    common_opponents = []
+    for shared_id, (our_tag, our_g, our_ga, shared_name) in our_by_opp.items():
+        if shared_id in opp_by_opp and shared_id != opp_id:
+            opp_tag, opp_g, opp_ga, _ = opp_by_opp[shared_id]
+            common_opponents.append(
+                f"vs {shared_name}: {our_name} had {our_tag} ({our_g}-{our_ga}), "
+                f"while {opp_name} had {opp_tag} ({opp_g}-{opp_ga})"
+            )
+
+    return opp_results, common_opponents
+
+
 def process_changes(changes, tournament_data, prev_scenarios, skip_narrative=False):
     """Process detected changes: generate events and narrative."""
     our_team = tournament_data['tournament']['our_team']
@@ -415,11 +470,14 @@ def process_changes(changes, tournament_data, prev_scenarios, skip_narrative=Fal
         'scenario_detail': scenario_detail,
     }
 
+    existing_log = tournament_data.get('event_log', [])
+
     for change in changes:
         g = change['curr']
         home_name = teams.get(g['home'], {}).get('name', g['home'])
         away_name = teams.get(g['away'], {}).get('name', g['away'])
         game_info = {**g, 'home_name': home_name, 'away_name': away_name}
+        rolling_log = existing_log + events
 
         if change['type'] == 'game_started':
             hs = g.get('home_score', 0) or 0
@@ -435,7 +493,8 @@ def process_changes(changes, tournament_data, prev_scenarios, skip_narrative=Fal
                     tournament_context=tournament_context,
                     in_progress_games=live_games,
                     round_robin_phase=rr_phase,
-                    tournament_name=tournament_name)
+                    tournament_name=tournament_name,
+                    recent_events=rolling_log[-5:])
             events.append(create_event('info', headline, detail))
 
         elif change['type'] == 'score_change':
@@ -464,7 +523,8 @@ def process_changes(changes, tournament_data, prev_scenarios, skip_narrative=Fal
                     tournament_context=tournament_context,
                     in_progress_games=live_games,
                     round_robin_phase=rr_phase,
-                    tournament_name=tournament_name)
+                    tournament_name=tournament_name,
+                    recent_events=rolling_log[-5:])
 
             events.append(create_event('goal', headline, detail))
 
@@ -475,9 +535,14 @@ def process_changes(changes, tournament_data, prev_scenarios, skip_narrative=Fal
 
             detail = None
             if not skip_narrative:
+                game_events = [
+                    e for e in rolling_log
+                    if home_name in e.get('headline', '') and away_name in e.get('headline', '')
+                ]
                 detail = generate_game_final_comment(
                     game_info, standings, prev_scenarios, curr_scenarios,
-                    our_team, our_team_name, our_pool, teams)
+                    our_team, our_team_name, our_pool, teams,
+                    game_events=game_events)
 
             events.append(create_event('final', headline, detail))
 
@@ -735,7 +800,7 @@ def run_cycle(tournament_data, mock_source=None, skip_narrative=False, skip_push
             if pool_done and our_analysis_cc['total'] == 1:
                 sc = our_analysis_cc['scenarios'][0]
                 if sc['result']['advancing'] and our_team in sc['result']['advancing']:
-                    current_for_game = 'Quarter-Final'
+                    current_for_game = 'Playoffs'
                 elif sc['result']['advancing']:
                     current_for_game = 'ELIMINATED'
                 else:
@@ -752,48 +817,49 @@ def run_cycle(tournament_data, mock_source=None, skip_narrative=False, skip_push
 
         if should_regen_corner:
             log.info(f'Coach\'s Corner: regenerating (was "{prev_for_game}", now "{current_for_game}")')
+            prev_cherry = coaches_corner.get('don_cherry')
+            prev_tp = coaches_corner.get('talking_points')
             coaches_corner['for_game'] = current_for_game
+            adv_desc = _get_advancement_desc(tournament_data, our_pool)
+            t_name = tournament_data.get('tournament', {}).get('name', 'Pink the Rink XV - U18C')
 
             # Don Cherry
             recent_results = [e['headline'] for e in tournament_data.get('event_log', []) if e['type'] == 'final']
             if current_for_game == 'ELIMINATED':
-                cherry_context = (f"Tournament is over for us. Results: {', '.join(recent_results[-3:])}. "
-                                  f"We didn't win the pool. Be encouraging about the season and the effort.")
-            elif current_for_game == 'Quarter-Final':
-                cherry_context = (f"We won our pool and advance to the Quarter-Final! "
+                cherry_context = (f"Pool play is over for us. Results: {', '.join(recent_results[-3:])}. "
+                                  f"We did not advance to the championship bracket. Be encouraging about the effort.")
+            elif current_for_game == 'Playoffs':
+                cherry_context = (f"We finished top 2 in Pool {our_pool} and advance to the Semifinals! "
                                   f"Results: {', '.join(recent_results[-3:])}.")
             else:
-                cherry_context = f"Tournament state: {', '.join(recent_results[-3:])}. Next: {current_for_game}."
-            t_name = tournament_data.get('tournament', {}).get('name', 'Pink the Rink XV - U18C')
-            don_cherry = generate_don_cherry(cherry_context, our_team_name, tournament_name=t_name)
+                cherry_context = f"Tournament state: {', '.join(recent_results[-3:])}. Next: {current_for_game}. ({adv_desc})"
+            don_cherry = generate_don_cherry(
+                cherry_context, our_team_name,
+                tournament_name=t_name, prev_don_cherry=prev_cherry)
             if don_cherry:
                 coaches_corner['don_cherry'] = don_cherry
 
             # Pre-game talking points
             if current_for_game == 'ELIMINATED':
-                # Post-elimination: focus on season recap and looking forward
                 talking = generate_pregame_talking_points(
-                    our_team_name, 'Season Recap', '?',
+                    our_team_name, 'Tournament Recap', '?',
                     [e['headline'] for e in tournament_data.get('event_log', []) if e['type'] == 'final'],
-                    0, 'Pool play is over. We did not advance.',
-                    'Tournament is over for us.',
-                    'Focus on the positives from this season and this tournament. Cheer up the players.')
+                    0, 'Pool play is over. We did not advance to the Semifinals.',
+                    'Pool play concluded.',
+                    'Focus on the positives from this tournament and any remaining consolation game. Cheer up the players.',
+                    tournament_name=t_name,
+                    prev_talking_points=prev_tp)
                 if talking:
                     coaches_corner['talking_points'] = talking
-            elif current_for_game == 'Quarter-Final':
-                # QF prep -- find the QF opponent from bracket
-                qf_opp = 'TBD'
-                for b in tournament_data.get('bracket', []):
-                    if b.get('round') == 'QF' and 'C1' in str(b.get('label', '')):
-                        # Pool F winner
-                        qf_opp = 'the Pool F winner'
-                        break
+            elif current_for_game == 'Playoffs':
                 talking = generate_pregame_talking_points(
-                    our_team_name, qf_opp, '?',
+                    our_team_name, 'Semifinal Opponent', '?',
                     [e['headline'] for e in tournament_data.get('event_log', []) if e['type'] == 'final'],
-                    0, 'We won our pool and advance to the Quarter-Final!',
-                    'Single elimination -- win or go home.',
-                    'Quarter-Final game. Everything we worked for comes down to this.')
+                    0, f'We clinched a top-2 spot in Pool {our_pool} and advance to the Semifinals!',
+                    'Single elimination Semifinal -- win to advance to the Championship Final.',
+                    adv_desc,
+                    tournament_name=t_name,
+                    prev_talking_points=prev_tp)
                 if talking:
                     coaches_corner['talking_points'] = talking
             else:
@@ -821,16 +887,22 @@ def run_cycle(tournament_data, mock_source=None, skip_narrative=False, skip_push
                             f"{g['home_name']} {g['home_score']}-{g['away_score']} {g['away_name']} [{result_tag}] {recency}".strip()
                         )
 
-                    our_analysis = enumerate_scenarios(our_pool, tournament_data)
+                    opp_results, common_opps = _build_opponent_context(
+                        our_team, opp_id, completed, tournament_data['teams'])
 
+                    our_analysis = enumerate_scenarios(our_pool, tournament_data)
                     our_count = our_analysis['counts'].get(our_team, 0)
                     det = our_analysis['total'] - our_analysis.get('unresolved_count', 0)
-                    stake = f"We win the pool in {our_count} of {det} deterministic scenarios."
+                    stake = f"We advance to the Semifinals in {our_count} of {det} deterministic scenarios."
 
                     talking_points = generate_pregame_talking_points(
                         our_team_name, opp_name, opp_ranking,
                         our_results, 0, stake, stake,
-                        'Only pool winners advance to the quarterfinal.')
+                        adv_desc,
+                        tournament_name=t_name,
+                        opponent_results=opp_results,
+                        common_opponents=common_opps,
+                        prev_talking_points=prev_tp)
                     if talking_points:
                         coaches_corner['talking_points'] = talking_points
 
@@ -969,22 +1041,32 @@ def main():
         from generate import build_standings, build_scenario_data, build_games_list
         standings = build_standings(our_pool, tournament_data, our_analysis)
         scenario_data = build_scenario_data(our_analysis, our_team)
-        qf_standings = build_standings('F', tournament_data, enumerate_scenarios('F', tournament_data))
+        struct_init = build_structure_from_config(tournament_data)
+        other_pools_init = [p for p in struct_init.get_pools().keys() if p != our_pool]
+        other_pool_init = other_pools_init[0] if other_pools_init else None
+        qf_standings = (
+            build_standings(other_pool_init, tournament_data, enumerate_scenarios(other_pool_init, tournament_data))
+            if other_pool_init else []
+        )
         upcoming = build_games_list(our_pool, tournament_data, 'scheduled')
 
         state_path = SHADOW_STATE_PATH if SHADOW_STATE_PATH.exists() else STATE_PATH
         state = json.loads(state_path.read_text())
 
         # Welcome narrative
-        log.info('Generating welcome narrative...')
         t_name = tournament_data.get('tournament', {}).get('name', 'Pink the Rink XV - U18C')
-        welcome = generate_overall_narrative(
-            standings, scenario_data, our_team_name,
-            our_pool, qf_standings, [], upcoming, [],
-            tournament_name=t_name)
-        if welcome:
-            state['narrative'] = welcome
-            tournament_data['_narrative'] = welcome
+        adv_desc = _get_advancement_desc(tournament_data, our_pool)
+        if not tournament_data.get('_narrative'):
+            log.info('Generating welcome narrative...')
+            welcome = generate_overall_narrative(
+                standings, scenario_data, our_team_name,
+                our_pool, qf_standings, [], upcoming, [],
+                tournament_name=t_name)
+            if welcome:
+                state['narrative'] = welcome
+                tournament_data['_narrative'] = welcome
+        else:
+            state['narrative'] = tournament_data['_narrative']
 
         # Initial Coach's Corner
         log.info('Generating Coach\'s Corner...')
@@ -1006,22 +1088,22 @@ def main():
         # Context strings
         recent_finals = [e['headline'] for e in tournament_data.get('event_log', []) if e['type'] == 'final']
         if recent_finals:
-            cherry_ctx = f"Tournament state: {', '.join(recent_finals[-3:])}."
+            cherry_ctx = f"Tournament state: {', '.join(recent_finals[-3:])}. ({adv_desc})"
         else:
-            cherry_ctx = (f"Tournament is about to start. {our_team_name} is ranked #18. "
-                         f"Only the pool winner advances.")
+            cherry_ctx = (f"Tournament ({t_name}) is about to start! {our_team_name} is in Pool {our_pool}. "
+                         f"{adv_desc}")
 
         if completed_cc:
             standings_ctx = f'{len(completed_cc)} pool games completed.'
             our_count_cc = our_analysis['counts'].get(our_team, 0)
             det_cc = our_analysis['total'] - our_analysis.get('unresolved_count', 0)
-            scenarios_ctx = f'We win the pool in {our_count_cc} of {det_cc} deterministic scenarios.'
+            scenarios_ctx = f'We advance to the Semifinals in {our_count_cc} of {det_cc} deterministic scenarios.'
         else:
             standings_ctx = 'First game of the tournament.'
             scenarios_ctx = 'No games played yet.'
 
         # Don Cherry
-        cherry = generate_don_cherry(cherry_ctx, our_team_name)
+        cherry = generate_don_cherry(cherry_ctx, our_team_name, tournament_name=t_name)
         if cherry:
             coaches_corner['don_cherry'] = cherry
 
@@ -1032,10 +1114,16 @@ def main():
             opp_id = next_game['away'] if next_game['home'] == our_team else next_game['home']
             opp_name = tournament_data['teams'].get(opp_id, {}).get('name', opp_id)
             opp_ranking = tournament_data['teams'].get(opp_id, {}).get('ranking', '?')
+            coaches_corner['for_game'] = opp_name
+            opp_results_cc, common_opps_cc = _build_opponent_context(
+                our_team, opp_id, completed_cc, tournament_data['teams'])
             talking = generate_pregame_talking_points(
                 our_team_name, opp_name, opp_ranking,
                 our_results_cc, 0, standings_ctx,
-                scenarios_ctx, 'Only pool winners advance to the quarterfinal.')
+                scenarios_ctx, adv_desc,
+                tournament_name=t_name,
+                opponent_results=opp_results_cc,
+                common_opponents=common_opps_cc)
             if talking:
                 coaches_corner['talking_points'] = talking
 

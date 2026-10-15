@@ -402,6 +402,16 @@ def generate(data_path='data/tournaments/pink_the_rink_2026.json', skip_narrativ
         })
     all_division_games.sort(key=lambda g: g.get('date') or '')
 
+    scenario_data = build_scenario_data(our_analysis, our_team)
+    raw_scenarios = []
+    if scenario_data and 'scenarios' in scenario_data:
+        raw_scenarios = scenario_data.pop('scenarios') or []
+        sc_hash = hashlib.sha256(json.dumps(raw_scenarios, sort_keys=True).encode('utf-8')).hexdigest()[:12]
+        scenario_data['scenarios_hash'] = sc_hash
+
+    s3_state_url = os.environ.get('S3_PUBLIC_URL', 'https://objectstorage.ca-toronto-1.oraclecloud.com/n/yzjspjx2rhjg/b/rinkside/o/data/state.json')
+    s3_scenarios_url = s3_state_url.replace('state.json', 'scenarios.json') if 'state.json' in s3_state_url else ''
+
     state = {
         'generated_at': datetime.now().astimezone().isoformat(),
         'tournament': data['tournament'],
@@ -413,7 +423,7 @@ def generate(data_path='data/tournaments/pink_the_rink_2026.json', skip_narrativ
         'venues': data.get('venues', {}),
 
         'standings': build_standings(our_pool, data, our_analysis),
-        'scenarios': build_scenario_data(our_analysis, our_team),
+        'scenarios': scenario_data,
         'rooting_guide': rooting_guide,
         'upcoming': build_games_list(our_pool, data, 'scheduled'),
         'completed': build_games_list(our_pool, data, 'final'),
@@ -443,7 +453,8 @@ def generate(data_path='data/tournaments/pink_the_rink_2026.json', skip_narrativ
             'admin_pin_hash': hashlib.sha256(f"{data.get('tournament', {}).get('id', 'rinkside')}:{os.environ.get('ADMIN_PIN') or '9876'}".encode('utf-8')).hexdigest(),
             'streams_par_url': os.environ.get('STREAMS_PAR_URL', ''),
         },
-        's3_public_url': os.environ.get('S3_PUBLIC_URL', 'https://objectstorage.ca-toronto-1.oraclecloud.com/n/yzjspjx2rhjg/b/rinkside/o/data/state.json'),
+        's3_public_url': s3_state_url,
+        's3_scenarios_url': s3_scenarios_url,
         'trigger_event': data.get('_last_event') or (data.get('event_log', [])[-1] if data.get('event_log') else {'type': 'initial', 'headline': 'Baseline tournament initialization'}),
     }
 
@@ -454,10 +465,16 @@ def generate(data_path='data/tournaments/pink_the_rink_2026.json', skip_narrativ
     target_dir.mkdir(parents=True, exist_ok=True)
     (target_dir / 'state.json').write_text(json.dumps(state, indent=2))
     (target_dir / '.state_live.json').write_text(json.dumps(state, indent=2))
+    scenarios_payload = {
+        'generated_at': state['generated_at'],
+        'scenarios_hash': scenario_data.get('scenarios_hash', '') if scenario_data else '',
+        'scenarios': raw_scenarios,
+    }
+    (target_dir / 'scenarios.json').write_text(json.dumps(scenarios_payload, indent=2))
     stem = Path(data_path).stem
     if stem not in ('tournament', 'state'):
         (target_dir / f'.state_{stem}_live.json').write_text(json.dumps(state, indent=2))
-    print(f'Generated state.json ({(target_dir / "state.json").stat().st_size} bytes)')
+    print(f'Generated state.json ({(target_dir / "state.json").stat().st_size} bytes) + scenarios.json ({(target_dir / "scenarios.json").stat().st_size} bytes)')
     return state
 
 

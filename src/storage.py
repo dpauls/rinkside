@@ -106,6 +106,7 @@ class S3Storage(StorageBackend):
         self.region_name = region_name or os.environ.get("AWS_DEFAULT_REGION", "ca-toronto-1")
         self.local_storage = LocalStorage(local_mirror_dir)
         self._s3_client = None
+        self._last_scenarios_hash = None
 
         if self.bucket:
             try:
@@ -142,6 +143,25 @@ class S3Storage(StorageBackend):
         if not self._s3_client or not self.bucket:
             log.warning("S3Storage: S3 client or bucket not configured. Saved to local mirror only.")
             return True
+
+        # Check if scenarios.json needs to be uploaded (only when hash changes)
+        sc_hash = (state.get("scenarios") or {}).get("scenarios_hash")
+        sc_file = self.local_storage.base_dir / "scenarios.json"
+        if sc_file.exists() and (sc_hash != self._last_scenarios_hash or self._last_scenarios_hash is None):
+            sc_key = f"{self.prefix}/scenarios.json".lstrip("/")
+            try:
+                sc_payload = sc_file.read_bytes()
+                self._s3_client.put_object(
+                    Bucket=self.bucket,
+                    Key=sc_key,
+                    Body=sc_payload,
+                    ContentType="application/json",
+                    CacheControl="public, max-age=60"
+                )
+                self._last_scenarios_hash = sc_hash
+                log.info(f"S3Storage: Successfully uploaded s3://{self.bucket}/{sc_key} (hash={sc_hash})")
+            except Exception as e:
+                log.error(f"S3Storage upload error for scenarios key {sc_key}: {e}")
 
         key = f"{self.prefix}/{filename}".lstrip("/")
         try:
