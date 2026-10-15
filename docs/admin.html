@@ -186,12 +186,17 @@ function renderAdminConsole() {
     document.getElementById('admin-subtitle').textContent = `${tName} · Live Broadcast Stream Assignment`;
 
     const games = stateData.all_division_games || [];
+    const hasPar = !!(stateData.auth && stateData.auth.streams_par_url);
+    const statusBanner = hasPar
+        ? '<div style="background:#064e3b;border:1px solid #059669;color:#a7f3d0;padding:0.65rem 0.9rem;border-radius:6px;margin-bottom:1.25rem;font-size:0.85rem">🟢 <strong>Live Cloud Publishing Active</strong> — Links attached here save directly to Oracle Cloud and update across all fan dashboards within 60s.</div>'
+        : '<div style="background:#78350f;border:1px solid #d97706;color:#fde68a;padding:0.65rem 0.9rem;border-radius:6px;margin-bottom:1.25rem;font-size:0.85rem">⚠️ <strong>Local Preview Only</strong> — Cloud write URL not detected. Changes are saved only on this device.</div>';
+
     if (games.length === 0) {
-        document.getElementById('games-list').innerHTML = '<p style="color:#94a3b8">No games found in schedule.</p>';
+        document.getElementById('games-list').innerHTML = statusBanner + '<p style="color:#94a3b8">No games found in schedule.</p>';
         return;
     }
 
-    let html = '';
+    let html = statusBanner;
     games.forEach(g => {
         const gid = String(g.game_id || '');
         const currentUrl = g.stream_url || currentStreams[gid] || '';
@@ -242,8 +247,12 @@ async function saveStream(gid) {
     }
 
     currentStreams[gid] = url;
-    await persistStreams();
-    showToast(`✓ Attached stream to Game #${gid}`);
+    const cloudSaved = await persistStreams();
+    if (cloudSaved) {
+        showToast(`✓ Published stream to Game #${gid} (live in ~60s)`);
+    } else {
+        showToast(`⚠️ Saved locally (cloud sync inactive)`);
+    }
 }
 
 async function removeStream(gid) {
@@ -251,8 +260,12 @@ async function removeStream(gid) {
     delete currentStreams[gid];
     const input = document.getElementById(`input-${gid}`);
     if (input) input.value = '';
-    await persistStreams();
-    showToast(`Removed stream from Game #${gid}`);
+    const cloudSaved = await persistStreams();
+    if (cloudSaved) {
+        showToast(`✓ Removed stream from Game #${gid}`);
+    } else {
+        showToast(`Removed stream locally`);
+    }
 }
 
 async function persistStreams() {
@@ -267,17 +280,21 @@ async function persistStreams() {
             });
             if (resp.ok) {
                 console.log('Successfully saved streams via OCI PAR');
+                localStorage.setItem('rinkside_admin_streams', JSON.stringify(currentStreams));
                 renderAdminConsole();
-                return;
+                return true;
+            } else {
+                console.warn('PAR write failed HTTP', resp.status);
             }
         } catch (e) {
             console.warn('PAR write error:', e);
         }
     }
 
-    // Local storage mirror & prompt CLI instruction if needed
+    // Local storage mirror
     localStorage.setItem('rinkside_admin_streams', JSON.stringify(currentStreams));
     renderAdminConsole();
+    return false;
 }
 
 async function initAdmin() {
@@ -289,6 +306,19 @@ async function initAdmin() {
                     currentStreams[String(g.game_id || g.gid)] = g.stream_url;
                 }
             });
+        }
+        // Also fetch directly from PAR if available to load latest unbaked streams
+        const parUrl = stateData && stateData.auth && stateData.auth.streams_par_url;
+        if (parUrl) {
+            try {
+                const sResp = await fetch(parUrl + '?t=' + Date.now());
+                if (sResp.ok) {
+                    const remoteStreams = await sResp.json();
+                    Object.assign(currentStreams, remoteStreams);
+                }
+            } catch (e) {
+                console.warn('Could not read existing streams from PAR:', e);
+            }
         }
         if (await checkAdminAuth()) {
             renderAdminConsole();
