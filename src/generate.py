@@ -7,6 +7,7 @@ import argparse
 import hashlib
 import json
 import os
+import re
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -47,10 +48,19 @@ def build_standings(pool_id, data, analysis):
     total = analysis['total'] if analysis else 1
     deterministic = total - analysis.get('unresolved_count', 0) if analysis else 1
 
-    sorted_teams = sorted(st, key=lambda t: (st[t]['PTS'], st[t]['W'], st[t]['GF'] - st[t]['GA']), reverse=True)
+    try:
+        from tiebreakers.engine import build_engine_from_config
+    except ImportError:
+        from src.tiebreakers.engine import build_engine_from_config
+    try:
+        from analyze import determine_pool_rankings
+    except ImportError:
+        from src.analyze import determine_pool_rankings
 
-    # Find groups of teams tied on points (>0) and resolve tiebreakers for display
-    from analyze import resolve_tie
+    tb_engine = build_engine_from_config(data.get('tiebreakers', {}))
+    sorted_teams = determine_pool_rankings(list(st.keys()), st, h2h, tb_engine)
+
+    # Find groups of teams tied on points and resolve tiebreakers for display
     tie_notes = {}  # tid -> note explaining why they're ranked here
     i = 0
     while i < len(sorted_teams):
@@ -61,28 +71,40 @@ def build_standings(pool_id, data, analysis):
             group.append(sorted_teams[i])
             i += 1
 
-        if len(group) <= 1 or pts == 0:
-            continue  # No tie to explain, or all at 0 points
+        # Only explain ties if multiple teams are tied and at least one has played a game
+        has_played = any(st[t]['W'] + st[t]['L'] + st[t]['T'] > 0 for t in group)
+        if len(group) <= 1 or not has_played:
+            continue
 
-        # Run tiebreaker with spots=1 to force resolution for ordering explanation
-        # (with spots=len(group), everyone "advances" and no explanation is generated)
-        adv, elim, lines, gd_dep = resolve_tie(group, st, h2h, 1, indent='')
-        if adv is None:
-            # Unresolved
+        # Run tiebreaker with spots = len(group) - 1 to force resolution of all relative positions
+        spots = max(1, len(group) - 1)
+        adv, elim, lines, is_dep, is_unres = tb_engine.resolve_tie(group, st, h2h, spots, indent='')
+        if is_unres or adv is None:
             for tid in group:
-                tie_notes[tid] = 'Tied — needs rules v+ to resolve'
+                tie_notes[tid] = 'Tied — needs further rules or coin toss to resolve'
         elif lines:
-            # Extract a concise explanation from the resolution lines
+            decisive_lines = []
             for line in lines:
                 line = line.strip()
-                if not line:
+                if not line.startswith('Rule '):
                     continue
-                # Lines like "Rule i (wins): KAN (2W) > WIN (1W)"
-                # or "Rule iii (GD): WIN (+7) > KAN,KIN (+1)"
-                if line.startswith('Rule '):
-                    for tid in group:
-                        tie_notes[tid] = line
-                    break
+                lower = line.lower()
+                # Skip rules that resulted in a tie or were skipped
+                if any(skip in lower for skip in ['all tied', 'tied their game', 'no completed game', 'does not apply', 'skipped']):
+                    continue
+                decisive_lines.append(line)
+
+            if decisive_lines:
+                note = '; '.join(decisive_lines)
+                for tid in group:
+                    t_meta = teams.get(tid, {})
+                    lbl = t_meta.get('short_name') or t_meta.get('name', tid)
+                    note = re.sub(r'\b' + re.escape(tid) + r'\b', lbl, note)
+                for tid in group:
+                    tie_notes[tid] = note
+            else:
+                for tid in group:
+                    tie_notes[tid] = 'Tied — unresolved'
 
     rows = []
     for tid in sorted_teams:

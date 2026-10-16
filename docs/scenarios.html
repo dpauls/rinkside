@@ -122,13 +122,13 @@
                 <tbody>
                     <tr><td><strong>1</strong></td><td><strong>Most Wins</strong></td><td>Team with more wins ranks higher.</td><td style="color:#2e7d32">Deterministic</td></tr>
                     <tr><td><strong>2</strong></td><td><strong>Head-to-Head</strong></td><td>Direct game result between tied teams (applies strictly to 2-way ties; 3+ way ties skip directly to Rule 3 without reversion).</td><td style="color:#2e7d32">Deterministic</td></tr>
-                    <tr><td><strong>3</strong></td><td><strong>Goal Differential</strong></td><td>GF minus GA across pool games (max margin caps applied if configured).</td><td style="color:#f57f17">Score-dependent (see flip criteria above)</td></tr>
+                    <tr><td><strong>3</strong></td><td><strong>Goal Differential</strong></td><td>GF minus GA across pool games (max margin caps applied if configured).</td><td style="color:#f57f17">Score-dependent (see goal margin conditions in table above)</td></tr>
                     <tr><td><strong>4</strong></td><td><strong>Fewest Goals Against</strong></td><td>Lower GA ranks higher.</td><td style="color:#f57f17">Score-dependent</td></tr>
                     <tr><td><strong>5</strong></td><td><strong>Fewest Penalty Minutes</strong></td><td>Lowest total PIM ranks higher. Tracked directly from official RAMP scoresheets.</td><td style="color:#2e7d32">Tracked in RAMP</td></tr>
                     <tr><td><strong>6</strong></td><td><strong>Coin Toss</strong></td><td>Conducted by tournament officials if still tied after Rule 5.</td><td style="color:#c62828">Manual Official Coin Flip</td></tr>
                 </tbody>
             </table>
-            <p style="margin-top:0.5rem;color:var(--pico-muted-color)"><strong>Green</strong> scenarios are decided deterministically by wins and head-to-head. <strong>Yellow</strong> scenarios depend on actual score margins; their exact flip criteria are formulated dynamically above.</p>
+            <p style="margin-top:0.5rem;color:var(--pico-muted-color)"><strong>Green</strong> scenarios are decided deterministically by wins and head-to-head. <strong>Yellow</strong> scenarios depend on actual score margins; their exact goal margin requirements (e.g. <em>"advances if victory margin exceeds opponent by ≥ 2 goals"</em>) are displayed directly in the scenarios table above.</p>
         </div>
     </details>
 

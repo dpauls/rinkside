@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-15T21:16:17.793137-04:00",
+  "generated_at": "2026-10-15T21:35:32.079278-04:00",
   "tournament": {
     "id": "ptr_2026_u18c",
     "name": "Pink the Rink XV - U18C",
@@ -113,99 +113,87 @@
       "name": "Kanata Rangers",
       "ranking": null,
       "is_us": true,
-      "gp": 0,
-      "w": 0,
+      "gp": 1,
+      "w": 1,
       "l": 0,
       "t": 0,
-      "pts": 0,
-      "gf": 0,
-      "ga": 0,
-      "gd": 0,
+      "pts": 2,
+      "gf": 3,
+      "ga": 1,
+      "gd": 2,
       "status": "ALIVE",
-      "adv_count": 309,
-      "adv_pct": 50.0,
-      "tie_note": null
+      "adv_count": 65,
+      "adv_pct": 83.3,
+      "tie_note": "Rule (goal differential): Kanata Rangers (+2) > Belmont Blazers (+1)"
     },
     {
       "id": "BEL",
       "name": "Belmont Blazers",
       "ranking": null,
       "is_us": false,
-      "gp": 0,
-      "w": 0,
+      "gp": 1,
+      "w": 1,
       "l": 0,
       "t": 0,
-      "pts": 0,
-      "gf": 0,
-      "ga": 0,
-      "gd": 0,
+      "pts": 2,
+      "gf": 2,
+      "ga": 1,
+      "gd": 1,
       "status": "ALIVE",
-      "adv_count": 309,
-      "adv_pct": 50.0,
-      "tie_note": null
-    },
-    {
-      "id": "NEP",
-      "name": "Nepean Wildcats",
-      "ranking": null,
-      "is_us": false,
-      "gp": 0,
-      "w": 0,
-      "l": 0,
-      "t": 0,
-      "pts": 0,
-      "gf": 0,
-      "ga": 0,
-      "gd": 0,
-      "status": "ALIVE",
-      "adv_count": 309,
-      "adv_pct": 50.0,
-      "tie_note": null
+      "adv_count": 63,
+      "adv_pct": 80.8,
+      "tie_note": "Rule (goal differential): Kanata Rangers (+2) > Belmont Blazers (+1)"
     },
     {
       "id": "WIL",
       "name": "Wilmot Wolverine",
       "ranking": null,
       "is_us": false,
-      "gp": 0,
+      "gp": 1,
       "w": 0,
-      "l": 0,
+      "l": 1,
       "t": 0,
       "pts": 0,
-      "gf": 0,
-      "ga": 0,
-      "gd": 0,
+      "gf": 1,
+      "ga": 2,
+      "gd": -1,
       "status": "ALIVE",
-      "adv_count": 309,
-      "adv_pct": 50.0,
-      "tie_note": null
+      "adv_count": 15,
+      "adv_pct": 19.2,
+      "tie_note": "Rule (goal differential): Wilmot Wolverine (-1) > Nepean Wildcats (-2)"
+    },
+    {
+      "id": "NEP",
+      "name": "Nepean Wildcats",
+      "ranking": null,
+      "is_us": false,
+      "gp": 1,
+      "w": 0,
+      "l": 1,
+      "t": 0,
+      "pts": 0,
+      "gf": 1,
+      "ga": 3,
+      "gd": -2,
+      "status": "ALIVE",
+      "adv_count": 13,
+      "adv_pct": 16.7,
+      "tie_note": "Rule (goal differential): Wilmot Wolverine (-1) > Nepean Wildcats (-2)"
     }
   ],
   "scenarios": {
-    "total": 729,
-    "green": 309,
-    "yellow": 111,
-    "red": 309,
-    "our_count": 309,
-    "our_pct": 50.0,
-    "unresolved": 111,
-    "gd_dependent": 0,
+    "total": 81,
+    "green": 54,
+    "yellow": 15,
+    "red": 12,
+    "our_count": 65,
+    "our_pct": 81.8,
+    "unresolved": 3,
+    "gd_dependent": 15,
     "advance_count": 2,
     "advancement_round": "Semifinals",
-    "remaining_games": 6,
+    "remaining_games": 4,
     "remaining_info": [
-      {
-        "home": "WIL",
-        "away": "BEL",
-        "game_id": 2074770,
-        "date": "2026-10-16T12:30:00"
-      },
-      {
-        "home": "NEP",
-        "away": "KAN",
-        "game_id": 2074775,
-        "date": "2026-10-16T14:15:00"
-      },
       {
         "home": "KAN",
         "away": "BEL",
@@ -232,41 +220,27 @@
       }
     ],
     "counts": {
-      "KAN": 309,
-      "BEL": 309,
-      "NEP": 309,
-      "WIL": 309
+      "KAN": 65,
+      "BEL": 63,
+      "NEP": 13,
+      "WIL": 15
     },
-    "scenarios_hash": "b2e9d271bd78"
+    "scenarios_hash": "92a6431b1cb8"
   },
   "rooting_guide": [
-    {
-      "game_id": 2074770,
-      "home": "WIL",
-      "away": "BEL",
-      "home_name": "Wilmot Wolverine",
-      "away_name": "Belmont Blazers",
-      "root_for": "Tie",
-      "root_name": "Tie",
-      "home_adv_pct": 41.2,
-      "tie_adv_pct": 44.9,
-      "away_adv_pct": 41.2,
-      "swing_pct": 3.7,
-      "reasoning": "Root for a Tie: Maximizes KAN advancement odds at 44.9%."
-    },
     {
       "game_id": 2074808,
       "home": "WIL",
       "away": "NEP",
       "home_name": "Wilmot Wolverine",
       "away_name": "Nepean Wildcats",
-      "root_for": "Tie",
-      "root_name": "Tie",
-      "home_adv_pct": 41.2,
-      "tie_adv_pct": 44.9,
-      "away_adv_pct": 41.2,
-      "swing_pct": 3.7,
-      "reasoning": "Root for a Tie: Maximizes KAN advancement odds at 44.9%."
+      "root_for": "NEP",
+      "root_name": "Nepean Wildcats",
+      "home_adv_pct": 74.1,
+      "tie_adv_pct": 77.8,
+      "away_adv_pct": 88.9,
+      "swing_pct": 14.8,
+      "reasoning": "Root for Nepean Wildcats: Gives KAN 88.9% advancement odds vs 74.1% if Wilmot Wolverine wins."
     },
     {
       "game_id": 2074833,
@@ -274,13 +248,13 @@
       "away": "NEP",
       "home_name": "Belmont Blazers",
       "away_name": "Nepean Wildcats",
-      "root_for": "Tie",
-      "root_name": "Tie",
-      "home_adv_pct": 41.2,
-      "tie_adv_pct": 44.9,
-      "away_adv_pct": 41.2,
+      "root_for": "Neutral",
+      "root_name": "Neutral / No Preference",
+      "home_adv_pct": 81.5,
+      "tie_adv_pct": 81.5,
+      "away_adv_pct": 77.8,
       "swing_pct": 3.7,
-      "reasoning": "Root for a Tie: Maximizes KAN advancement odds at 44.9%."
+      "reasoning": "Game has equal impact on KAN advancement odds across outcomes (81.5%)."
     }
   ],
   "upcoming": [
@@ -337,8 +311,20 @@
       "stream_url": null
     }
   ],
-  "completed": [],
-  "live_games": [
+  "completed": [
+    {
+      "game_id": 2074775,
+      "date": "2026-10-16T14:15:00",
+      "arena": "Cwench Centre by Canlan Sports 2",
+      "home": "NEP",
+      "away": "KAN",
+      "home_name": "Nepean Wildcats",
+      "away_name": "Kanata Rangers",
+      "home_score": 1,
+      "away_score": 3,
+      "status": "final",
+      "stream_url": null
+    },
     {
       "game_id": 2074770,
       "date": "2026-10-16T12:30:00",
@@ -348,24 +334,12 @@
       "home_name": "Wilmot Wolverine",
       "away_name": "Belmont Blazers",
       "home_score": 1,
-      "away_score": 1,
-      "status": "in_progress",
-      "stream_url": null
-    },
-    {
-      "game_id": 2074775,
-      "date": "2026-10-16T14:15:00",
-      "arena": "Cwench Centre by Canlan Sports 2",
-      "home": "NEP",
-      "away": "KAN",
-      "home_name": "Nepean Wildcats",
-      "away_name": "Kanata Rangers",
-      "home_score": 0,
-      "away_score": 1,
-      "status": "in_progress",
+      "away_score": 2,
+      "status": "final",
       "stream_url": null
     }
   ],
+  "live_games": [],
   "other_pool_standings": [
     {
       "id": "WOO",
@@ -383,7 +357,7 @@
       "status": "ALIVE",
       "adv_count": 65,
       "adv_pct": 83.3,
-      "tie_note": "Rule (wins): all tied at 1W"
+      "tie_note": "Rule (goal differential): Woodstock Wildcats (+3) > Ottawa Ice (+1)"
     },
     {
       "id": "OTT",
@@ -401,7 +375,7 @@
       "status": "ALIVE",
       "adv_count": 63,
       "adv_pct": 80.8,
-      "tie_note": "Rule (wins): all tied at 1W"
+      "tie_note": "Rule (goal differential): Woodstock Wildcats (+3) > Ottawa Ice (+1)"
     },
     {
       "id": "EOS",
@@ -419,7 +393,7 @@
       "status": "ALIVE",
       "adv_count": 15,
       "adv_pct": 19.2,
-      "tie_note": null
+      "tie_note": "Rule (goal differential): East Ottawa Stars (-1) > Mitchell Meteors (-3)"
     },
     {
       "id": "MIT",
@@ -437,7 +411,7 @@
       "status": "ALIVE",
       "adv_count": 13,
       "adv_pct": 16.7,
-      "tie_note": null
+      "tie_note": "Rule (goal differential): East Ottawa Stars (-1) > Mitchell Meteors (-3)"
     }
   ],
   "other_pool_upcoming": [
@@ -518,7 +492,7 @@
           "status": "ALIVE",
           "adv_count": 65,
           "adv_pct": 83.3,
-          "tie_note": "Rule (wins): all tied at 1W"
+          "tie_note": "Rule (goal differential): Woodstock Wildcats (+3) > Ottawa Ice (+1)"
         },
         {
           "id": "OTT",
@@ -536,7 +510,7 @@
           "status": "ALIVE",
           "adv_count": 63,
           "adv_pct": 80.8,
-          "tie_note": "Rule (wins): all tied at 1W"
+          "tie_note": "Rule (goal differential): Woodstock Wildcats (+3) > Ottawa Ice (+1)"
         },
         {
           "id": "EOS",
@@ -554,7 +528,7 @@
           "status": "ALIVE",
           "adv_count": 15,
           "adv_pct": 19.2,
-          "tie_note": null
+          "tie_note": "Rule (goal differential): East Ottawa Stars (-1) > Mitchell Meteors (-3)"
         },
         {
           "id": "MIT",
@@ -572,7 +546,7 @@
           "status": "ALIVE",
           "adv_count": 13,
           "adv_pct": 16.7,
-          "tie_note": null
+          "tie_note": "Rule (goal differential): East Ottawa Stars (-1) > Mitchell Meteors (-3)"
         }
       ],
       "upcoming": [
@@ -671,72 +645,72 @@
           "name": "Kanata Rangers",
           "ranking": null,
           "is_us": true,
-          "gp": 0,
-          "w": 0,
+          "gp": 1,
+          "w": 1,
           "l": 0,
           "t": 0,
-          "pts": 0,
-          "gf": 0,
-          "ga": 0,
-          "gd": 0,
+          "pts": 2,
+          "gf": 3,
+          "ga": 1,
+          "gd": 2,
           "status": "ALIVE",
-          "adv_count": 309,
-          "adv_pct": 50.0,
-          "tie_note": null
+          "adv_count": 65,
+          "adv_pct": 83.3,
+          "tie_note": "Rule (goal differential): Kanata Rangers (+2) > Belmont Blazers (+1)"
         },
         {
           "id": "BEL",
           "name": "Belmont Blazers",
           "ranking": null,
           "is_us": false,
-          "gp": 0,
-          "w": 0,
+          "gp": 1,
+          "w": 1,
           "l": 0,
           "t": 0,
-          "pts": 0,
-          "gf": 0,
-          "ga": 0,
-          "gd": 0,
+          "pts": 2,
+          "gf": 2,
+          "ga": 1,
+          "gd": 1,
           "status": "ALIVE",
-          "adv_count": 309,
-          "adv_pct": 50.0,
-          "tie_note": null
-        },
-        {
-          "id": "NEP",
-          "name": "Nepean Wildcats",
-          "ranking": null,
-          "is_us": false,
-          "gp": 0,
-          "w": 0,
-          "l": 0,
-          "t": 0,
-          "pts": 0,
-          "gf": 0,
-          "ga": 0,
-          "gd": 0,
-          "status": "ALIVE",
-          "adv_count": 309,
-          "adv_pct": 50.0,
-          "tie_note": null
+          "adv_count": 63,
+          "adv_pct": 80.8,
+          "tie_note": "Rule (goal differential): Kanata Rangers (+2) > Belmont Blazers (+1)"
         },
         {
           "id": "WIL",
           "name": "Wilmot Wolverine",
           "ranking": null,
           "is_us": false,
-          "gp": 0,
+          "gp": 1,
           "w": 0,
-          "l": 0,
+          "l": 1,
           "t": 0,
           "pts": 0,
-          "gf": 0,
-          "ga": 0,
-          "gd": 0,
+          "gf": 1,
+          "ga": 2,
+          "gd": -1,
           "status": "ALIVE",
-          "adv_count": 309,
-          "adv_pct": 50.0,
-          "tie_note": null
+          "adv_count": 15,
+          "adv_pct": 19.2,
+          "tie_note": "Rule (goal differential): Wilmot Wolverine (-1) > Nepean Wildcats (-2)"
+        },
+        {
+          "id": "NEP",
+          "name": "Nepean Wildcats",
+          "ranking": null,
+          "is_us": false,
+          "gp": 1,
+          "w": 0,
+          "l": 1,
+          "t": 0,
+          "pts": 0,
+          "gf": 1,
+          "ga": 3,
+          "gd": -2,
+          "status": "ALIVE",
+          "adv_count": 13,
+          "adv_pct": 16.7,
+          "tie_note": "Rule (goal differential): Wilmot Wolverine (-1) > Nepean Wildcats (-2)"
         }
       ],
       "upcoming": [
@@ -793,8 +767,20 @@
           "stream_url": null
         }
       ],
-      "completed": [],
-      "live_games": [
+      "completed": [
+        {
+          "game_id": 2074775,
+          "date": "2026-10-16T14:15:00",
+          "arena": "Cwench Centre by Canlan Sports 2",
+          "home": "NEP",
+          "away": "KAN",
+          "home_name": "Nepean Wildcats",
+          "away_name": "Kanata Rangers",
+          "home_score": 1,
+          "away_score": 3,
+          "status": "final",
+          "stream_url": null
+        },
         {
           "game_id": 2074770,
           "date": "2026-10-16T12:30:00",
@@ -804,24 +790,12 @@
           "home_name": "Wilmot Wolverine",
           "away_name": "Belmont Blazers",
           "home_score": 1,
-          "away_score": 1,
-          "status": "in_progress",
-          "stream_url": null
-        },
-        {
-          "game_id": 2074775,
-          "date": "2026-10-16T14:15:00",
-          "arena": "Cwench Centre by Canlan Sports 2",
-          "home": "NEP",
-          "away": "KAN",
-          "home_name": "Nepean Wildcats",
-          "away_name": "Kanata Rangers",
-          "home_score": 0,
-          "away_score": 1,
-          "status": "in_progress",
+          "away_score": 2,
+          "status": "final",
           "stream_url": null
         }
-      ]
+      ],
+      "live_games": []
     }
   },
   "all_division_games": [
@@ -849,8 +823,8 @@
       "home_name": "Wilmot Wolverine",
       "away_name": "Belmont Blazers",
       "home_score": 1,
-      "away_score": 1,
-      "status": "in_progress",
+      "away_score": 2,
+      "status": "final",
       "stream_url": null
     },
     {
@@ -876,9 +850,9 @@
       "away": "KAN",
       "home_name": "Nepean Wildcats",
       "away_name": "Kanata Rangers",
-      "home_score": 0,
-      "away_score": 1,
-      "status": "in_progress",
+      "home_score": 1,
+      "away_score": 3,
+      "status": "final",
       "stream_url": null
     },
     {
@@ -1191,29 +1165,29 @@
           "clinched_first": false,
           "clinched_playoff": false,
           "eliminated": false,
-          "adv_pct": 54.7,
-          "first_pct": 30.0
+          "adv_pct": 84.0,
+          "first_pct": 50.6
         },
         "BEL": {
           "clinched_first": false,
           "clinched_playoff": false,
           "eliminated": false,
-          "adv_pct": 52.3,
-          "first_pct": 25.4
+          "adv_pct": 80.2,
+          "first_pct": 39.5
         },
         "NEP": {
           "clinched_first": false,
           "clinched_playoff": false,
           "eliminated": false,
-          "adv_pct": 47.7,
-          "first_pct": 23.2
+          "adv_pct": 17.3,
+          "first_pct": 4.9
         },
         "WIL": {
           "clinched_first": false,
           "clinched_playoff": false,
           "eliminated": false,
-          "adv_pct": 45.3,
-          "first_pct": 21.4
+          "adv_pct": 18.5,
+          "first_pct": 4.9
         }
       },
       "alerts": []
@@ -1254,140 +1228,56 @@
       "alerts": []
     }
   },
-  "bench": {
-    "our_game": {
-      "home": "NEP",
-      "away": "KAN",
-      "home_name": "Nepean Wildcats",
-      "away_name": "Kanata Rangers",
-      "home_score": 0,
-      "away_score": 1,
-      "our_score": 1,
-      "their_score": 0
-    },
-    "other_game": {
-      "home": "Wilmot Wolverine",
-      "away": "Belmont Blazers",
-      "home_score": 1,
-      "away_score": 1,
-      "margin": 0
-    },
-    "matrix": [
-      {
-        "margin": -3,
-        "label": "Lose by 3 (-3)",
-        "sim_score": "1-4",
-        "adv_count": 20,
-        "total": 74,
-        "adv_pct": 27.0,
-        "status": "POSSIBLE"
-      },
-      {
-        "margin": -2,
-        "label": "Lose by 2 (-2)",
-        "sim_score": "1-3",
-        "adv_count": 20,
-        "total": 74,
-        "adv_pct": 27.0,
-        "status": "POSSIBLE"
-      },
-      {
-        "margin": -1,
-        "label": "Lose by 1 (-1)",
-        "sim_score": "1-2",
-        "adv_count": 20,
-        "total": 72,
-        "adv_pct": 27.8,
-        "status": "POSSIBLE"
-      },
-      {
-        "margin": 0,
-        "label": "Tie (0)",
-        "sim_score": "1-1",
-        "adv_count": 33,
-        "total": 66,
-        "adv_pct": 50.0,
-        "status": "POSSIBLE"
-      },
-      {
-        "margin": 1,
-        "label": "Win by 1 (+1)",
-        "sim_score": "1-0",
-        "adv_count": 59,
-        "total": 75,
-        "adv_pct": 78.7,
-        "status": "HIGH"
-      },
-      {
-        "margin": 2,
-        "label": "Win by 2 (+2)",
-        "sim_score": "2-0",
-        "adv_count": 58,
-        "total": 74,
-        "adv_pct": 78.4,
-        "status": "HIGH"
-      },
-      {
-        "margin": 3,
-        "label": "Win by 3 (+3)",
-        "sim_score": "3-0",
-        "adv_count": 58,
-        "total": 74,
-        "adv_pct": 78.4,
-        "status": "HIGH"
-      }
-    ],
-    "indicator": "green",
-    "recommendation": "Protect 1-Goal Lead",
-    "reason": "Up by 1. Keep strong defensive structure, manage the puck, and protect the lead.",
-    "empty_net_downside": false,
-    "empty_net_warning": null
-  },
+  "bench": null,
   "event_log": [
     {
-      "time": "Thu Oct 15, 09:16 PM",
+      "time": "Thu Oct 15, 09:35 PM",
       "type": "final",
       "headline": "FINAL: Ottawa Ice 2 - 1 East Ottawa Stars (Game #2074766)",
-      "detail": null,
+      "detail": "Following Ottawa Ice's 2-1 victory over the East Ottawa Stars, we remain atop the standings with 2 points and a +2 goal differential. This out-of-town result significantly boosted our playoff outlook, leaving us in position to advance in 65 of the 81 remaining scenarios.",
       "game_id": 2074766
     },
     {
-      "time": "Thu Oct 15, 09:16 PM",
+      "time": "Thu Oct 15, 09:35 PM",
       "type": "final",
       "headline": "FINAL: Woodstock Wildcats 3 - 0 Mitchell Meteors (Game #2074771)",
-      "detail": null,
+      "detail": "Woodstock's 3-0 victory over Mitchell worked strongly in our favor, significantly sharpening our path to the postseason. Sitting atop the standings with two points, we now advance to the playoffs in 65 of the remaining 81 tournament scenarios.",
       "game_id": 2074771
     },
     {
-      "time": "Thu Oct 15, 09:16 PM",
-      "type": "info",
-      "headline": "GAME STARTED: Wilmot Wolverine vs Belmont Blazers (Game #2074770)",
-      "detail": null,
+      "time": "Thu Oct 15, 09:35 PM",
+      "type": "final",
+      "headline": "FINAL: Wilmot Wolverine 1 - 2 Belmont Blazers (Game #2074770)",
+      "detail": "Belmont\u2019s 2-1 victory over Wilmot keeps us sitting atop Pool B and significantly boosts our postseason outlook. Following the result, we now advance to the playoffs in 65 of the 81 remaining scenarios.",
       "game_id": 2074770
     },
     {
-      "time": "Thu Oct 15, 09:16 PM",
-      "type": "info",
-      "headline": "GAME STARTED: Nepean Wildcats vs Kanata Rangers (Game #2074775)",
-      "detail": null,
+      "time": "Thu Oct 15, 09:35 PM",
+      "type": "final",
+      "headline": "FINAL: Nepean Wildcats 1 - 3 Kanata Rangers (Game #2074775)",
+      "detail": "We secured a decisive 3\u20131 victory over the Nepean Wildcats, jumping to the top of Pool B with a +2 goal differential. This crucial win dramatically strengthens our playoff outlook, putting us in position to advance in 65 of the remaining 81 tournament scenarios.",
       "game_id": 2074775
     },
     {
-      "time": "Thu Oct 15, 09:16 PM",
+      "time": "Thu Oct 15, 09:35 PM",
       "type": "info",
       "headline": "Pool A: Ottawa Ice 2 - 1 East Ottawa Stars (Final)",
       "detail": "Cross-pool matchup update."
     },
     {
-      "time": "Thu Oct 15, 09:16 PM",
+      "time": "Thu Oct 15, 09:35 PM",
       "type": "info",
       "headline": "Pool A: Woodstock Wildcats 3 - 0 Mitchell Meteors (Final)",
       "detail": "Cross-pool matchup update."
     }
   ],
-  "narrative": null,
-  "coaches_corner": null,
-  "tiebreaker_health": null,
+  "narrative": "**Where We Stand**\nWe opened tournament play with a strong 3-1 victory over the Nepean Wildcats, putting us tied at the top of Pool B with two points and advancing in 65 of the 81 remaining scenarios.\n\n**Our Next Game**\nWe are back on the ice tonight, Friday, October 16 at 9:15 PM, when we face off against the Belmont Blazers.\n\n**Around the Pool**\nBelmont also claimed two points today by edging out the Wilmot Wolverine 2-1, setting up a battle for first place in our matchup tonight while Wilmot and Nepean clash later at 9:45 PM.",
+  "coaches_corner": {
+    "don_cherry": "I tell ya right now, I told those Kanata Rangers girls to work their socks off, and DID THEY EVER\u2014knocking off Nepean 3 to 1! Shot blocking, backchecking, protecting their tender\u2014THAT is how you play real Canadian hockey, absolute BEAUTIES! Now bring on the Belmont Blazers and keep rolling, double thumbs up!",
+    "for_game": "Belmont Blazers",
+    "talking_points": "**Mindset**  \nThat big 3-1 victory over Nepean proved what happens when we play our game, so let's carry that momentum straight onto the ice. We set a high standard in our opener\u2014now it\u2019s about keeping our foot on the gas and staying relentless from the opening draw.\n\n**The Opponent**  \nBelmont is coming off a disciplined 2-1 win against Wilmot, proving they can protect a tight lead and play solid defense. They won't give us much room to breathe, so we need to fight for inner-slot ice and crash"
+  },
+  "tiebreaker_health": "In the 15 score-dependent scenarios, we hold a key tiebreaker advantage with our pool-leading +2 goal differential (GD) and 1 goal against (GA). Belmont is our primary rival at +1 GD and 1 GA, giving us a narrow +1 GD cushion. To guarantee advancement when tied on points, we must protect this margin by minimizing goals allowed and maximizing our scoring differential in our final game.",
   "scouting": null,
   "game_rules": {
     "source_name": "Pink the Rink XV Official Tournament Rules",
@@ -1424,7 +1314,7 @@
   "s3_public_url": "https://objectstorage.ca-toronto-1.oraclecloud.com/n/yzjspjx2rhjg/b/rinkside/o/data/state.json",
   "s3_scenarios_url": "https://objectstorage.ca-toronto-1.oraclecloud.com/n/yzjspjx2rhjg/b/rinkside/o/data/scenarios.json",
   "trigger_event": {
-    "time": "Thu Oct 15, 09:16 PM",
+    "time": "Thu Oct 15, 09:35 PM",
     "type": "info",
     "headline": "Pool A: Woodstock Wildcats 3 - 0 Mitchell Meteors (Final)",
     "detail": "Cross-pool matchup update."

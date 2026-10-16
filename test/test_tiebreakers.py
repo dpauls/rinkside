@@ -131,6 +131,50 @@ class TestTiebreakers(unittest.TestCase):
         self.assertFalse(unres)
         self.assertTrue(any('fewest penalty minutes' in line for line in lines))
 
+    def test_build_standings_tiebreaker_notes(self):
+        """Verify build_standings identifies decisive tiebreakers and includes 0-point ties."""
+        from generate import build_standings
+        data = {
+            'teams': {
+                'KAN': {'name': 'Kanata Rangers', 'pool': 'B'},
+                'BEL': {'name': 'Belmont Blazers', 'pool': 'B'},
+                'WIL': {'name': 'Wilmot Wolverine', 'pool': 'B'},
+                'NEP': {'name': 'Nepean Wildcats', 'pool': 'B'},
+            },
+            'tiebreakers': {
+                'rules': ['wins', 'head_to_head_two_way_only', 'goal_diff', 'fewest_goals_against', 'fewest_pim'],
+                'allow_reversion': False
+            },
+            'pool_games': [
+                {
+                    'home': 'NEP', 'away': 'KAN', 'home_score': 1, 'away_score': 3,
+                    'status': 'final', 'completed': True, 'pool': 'B'
+                },
+                {
+                    'home': 'WIL', 'away': 'BEL', 'home_score': 1, 'away_score': 2,
+                    'status': 'final', 'completed': True, 'pool': 'B'
+                }
+            ]
+        }
+        rows = build_standings('B', data, None)
+        self.assertEqual(len(rows), 4)
+
+        # Kanata and Belmont tied on 2 PTS (1W each). Should cite goal differential, NOT wins.
+        kan_row = [r for r in rows if r['id'] == 'KAN'][0]
+        bel_row = [r for r in rows if r['id'] == 'BEL'][0]
+        self.assertIn('goal differential', kan_row['tie_note'].lower())
+        self.assertNotIn('all tied', kan_row['tie_note'].lower())
+        self.assertEqual(kan_row['tie_note'], bel_row['tie_note'])
+
+        # Wilmot and Nepean tied on 0 PTS (0W, 1L each). Must also have tiebreaker note explaining 3rd vs 4th.
+        wil_row = [r for r in rows if r['id'] == 'WIL'][0]
+        nep_row = [r for r in rows if r['id'] == 'NEP'][0]
+        self.assertIsNotNone(wil_row['tie_note'])
+        self.assertIn('goal differential', wil_row['tie_note'].lower())
+        self.assertNotIn('all tied', wil_row['tie_note'].lower())
+        self.assertEqual(wil_row['tie_note'], nep_row['tie_note'])
+
 
 if __name__ == '__main__':
     unittest.main()
+
