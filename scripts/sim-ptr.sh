@@ -34,19 +34,30 @@ shift
 
 WITH_LLM=false
 USE_S3=false
+IS_DEV=false
 
 while [ $# -gt 0 ]; do
     case "$1" in
         --with-llm) WITH_LLM=true ;;
         --s3) USE_S3=true ;;
+        --dev) USE_S3=true; IS_DEV=true ;;
         *) echo "Unknown option: $1"; usage ;;
     esac
     shift
 done
 
 STORAGE_ARG="local"
+DEV_FLAG=""
+REMOTE_PREFIX="data"
+LOCAL_TARGET_DIR="docs/data"
+
 if [ "$USE_S3" = true ]; then
     STORAGE_ARG="s3"
+    if [ "$IS_DEV" = true ]; then
+        DEV_FLAG="--dev"
+        REMOTE_PREFIX="data/dev"
+        LOCAL_TARGET_DIR="docs/data/dev"
+    fi
 fi
 
 NARRATIVE_ARG="--skip-narrative"
@@ -134,7 +145,11 @@ if [[ "$CMD" =~ ^[0-8]$ ]]; then
     echo "==> Simulating Pink the Rink Step $STEP_NUM (mock step $STEP_NUM, LLM=$WITH_LLM, Storage=$STORAGE_ARG)..."
     
     if [ "$USE_S3" = true ]; then
-        echo "==> Executing Step $STEP_NUM directly on Oracle Cloud VM (S3 storage)..."
+        if [ "$IS_DEV" = true ]; then
+            echo "==> Executing Step $STEP_NUM in ISOLATED DEV MODE (data/dev/ in S3, Prod is untouched)..."
+        else
+            echo "==> Executing Step $STEP_NUM on LIVE PRODUCTION (data/ in S3)..."
+        fi
         ssh -i "$HOME/.ssh/oracle_rinkside.key" -o StrictHostKeyChecking=no ubuntu@132.145.100.44 \
             "docker exec rinkside-tracker-1 python3 src/daemon.py \
                 --tournament data/tournaments/pink_the_rink_2026.json \
@@ -142,12 +157,13 @@ if [[ "$CMD" =~ ^[0-8]$ ]]; then
                 --mock-step $STEP_NUM \
                 --once \
                 $NARRATIVE_ARG \
-                --storage s3"
+                --storage s3 \
+                $DEV_FLAG"
 
-        echo "==> Syncing generated state to local docs/data/..."
-        mkdir -p docs/data
-        curl -s -f "https://objectstorage.ca-toronto-1.oraclecloud.com/n/yzjspjx2rhjg/b/rinkside/o/data/state.json" -o docs/data/state.json || true
-        curl -s -f "https://objectstorage.ca-toronto-1.oraclecloud.com/n/yzjspjx2rhjg/b/rinkside/o/data/scenarios.json" -o docs/data/scenarios.json || true
+        echo "==> Syncing generated state to local $LOCAL_TARGET_DIR/..."
+        mkdir -p "$LOCAL_TARGET_DIR"
+        curl -s -f "https://objectstorage.ca-toronto-1.oraclecloud.com/n/yzjspjx2rhjg/b/rinkside/o/${REMOTE_PREFIX}/state.json" -o "${LOCAL_TARGET_DIR}/state.json" || true
+        curl -s -f "https://objectstorage.ca-toronto-1.oraclecloud.com/n/yzjspjx2rhjg/b/rinkside/o/${REMOTE_PREFIX}/scenarios.json" -o "${LOCAL_TARGET_DIR}/scenarios.json" || true
     else
         # Reset to clean data if step 0, otherwise ensure shadow file exists
         if [ "$STEP_NUM" -eq 0 ]; then
@@ -165,9 +181,13 @@ if [[ "$CMD" =~ ^[0-8]$ ]]; then
     fi
 
     echo "==> Step $STEP_NUM executed successfully!"
-    echo "    Local state: docs/data/state.json"
-    if [ "$USE_S3" = true ]; then
-        echo "    Live OCI: https://objectstorage.ca-toronto-1.oraclecloud.com/n/yzjspjx2rhjg/b/rinkside/o/data/state.json"
+    if [ "$IS_DEV" = true ]; then
+        echo "    🛠️  Dev Preview URL: https://rangers-live.pages.dev/?env=dev"
+        echo "    🔒 Production remains 100% UNTOUCHED at: https://rangers-live.pages.dev"
+    elif [ "$USE_S3" = true ]; then
+        echo "    🔴 Production URL: https://rangers-live.pages.dev"
+    else
+        echo "    💻 Local Preview: http://localhost:8000 (docs/data/state.json)"
     fi
     exit 0
 fi

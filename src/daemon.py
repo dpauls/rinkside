@@ -845,8 +845,8 @@ def run_cycle(tournament_data, mock_source=None, skip_narrative=False, skip_push
     if storage_backend:
         storage_backend.save_state(state)
 
-    # Broadcast Web Push notifications to sleeping phones, smart watches, and desktops
-    if events:
+    # Broadcast Web Push notifications to sleeping phones, smart watches, and desktops (skipped in dev mode)
+    if events and getattr(storage_backend, 'prefix', '') != 'data/dev':
         try:
             from push import WebPushManager
             s3_client = getattr(storage_backend, '_s3_client', None)
@@ -880,6 +880,8 @@ def main():
                         help='Path to tournament.json')
     parser.add_argument('--storage', default='local', choices=['local', 's3'],
                         help='Storage backend: local or s3')
+    parser.add_argument('--dev', action='store_true',
+                        help='Use isolated development prefix (data/dev/) in S3 storage')
     args = parser.parse_args()
 
     # Default to skipping git push unless --push is explicitly specified
@@ -896,7 +898,8 @@ def main():
     tourn_path = Path(args.tournament) if args.tournament else (ptr_default if ptr_default.exists() else DATA_PATH)
     _set_data_path(tourn_path)
     tournament_data = load_team_map()
-    storage = build_storage(args.storage)
+    storage_prefix = 'data/dev' if args.dev else 'data'
+    storage = build_storage(args.storage, prefix=storage_prefix)
 
     if args.reset_narrative:
         tournament_data['event_log'] = []

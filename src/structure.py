@@ -156,6 +156,51 @@ class TwoPoolTop2AdvanceStructure(TournamentStructure):
             'is_official': False
         }
 
+        # Dynamically resolve Championship Final from official playoff games
+        if official_games:
+            for g in official_games:
+                gid = g.get('game_id') or g.get('GID')
+                hs = g.get('home_score')
+                as_ = g.get('away_score')
+                is_final = (g.get('status') == 'final') or g.get('completed', False)
+
+                # Semi 1: 2074858
+                if gid == 2074858 or ('Semi 1' in str(g.get('notes', ''))):
+                    if is_final and hs is not None and as_ is not None and hs != as_:
+                        win_id = g['home'] if hs > as_ else g['away']
+                        team_obj = teams_data.get(win_id, {})
+                        final['home'] = {
+                            'id': win_id,
+                            'name': team_obj.get('name', win_id),
+                            'placeholder': 'Winner Semi 1',
+                            'resolved': True,
+                            'status': 'final'
+                        }
+                # Semi 2: 2074861
+                elif gid == 2074861 or ('Semi 2' in str(g.get('notes', ''))):
+                    if is_final and hs is not None and as_ is not None and hs != as_:
+                        win_id = g['home'] if hs > as_ else g['away']
+                        team_obj = teams_data.get(win_id, {})
+                        final['away'] = {
+                            'id': win_id,
+                            'name': team_obj.get('name', win_id),
+                            'placeholder': 'Winner Semi 2',
+                            'resolved': True,
+                            'status': 'final'
+                        }
+                # Championship Final: 2074871
+                elif gid == 2074871 or ('Final' in str(g.get('notes', '')) and 'Semi' not in str(g.get('notes', ''))):
+                    if is_final and hs is not None and as_ is not None and hs != as_:
+                        win_id = g['home'] if hs > as_ else g['away']
+                        team_obj = teams_data.get(win_id, {})
+                        final['status'] = 'final'
+                        final['winner'] = {'id': win_id, 'name': team_obj.get('name', win_id)}
+                    elif g.get('status') in ('in_progress', 'live'):
+                        final['status'] = 'in_progress'
+
+            if final['home']['resolved'] and final['away']['resolved'] and final['status'] == 'tbd':
+                final['status'] = 'clinched'
+
         return {
             'type': 'two_pool_top2_advance',
             'semis': semis,

@@ -402,7 +402,9 @@ def generate(data_path='data/tournaments/pink_the_rink_2026.json', skip_narrativ
         clinch_data[other_pool] = other_clinches
         clinch_alerts.extend(other_clinches.get('alerts', []))
 
-    playoff_bracket = struct.resolve_playoff_bracket(clinch_data, data['teams'])
+    playoff_bracket = struct.resolve_playoff_bracket(
+        clinch_data, data['teams'], official_games=data.get('pool_games', [])
+    )
     rooting_guide = generate_rooting_guide(our_pool, data, our_team)
     bench_data = compute_bench_analysis(data, our_team, our_pool)
 

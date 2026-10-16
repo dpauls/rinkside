@@ -259,8 +259,10 @@
         }
     </style>
 </head>
-<body>
 <main class="container">
+    <div id="dev-banner" style="display:none;background:#fef08a;color:#854d0e;padding:0.4rem 1rem;text-align:center;font-weight:bold;font-size:0.82rem;border-bottom:2px solid #eab308;margin:0 -1.25rem 0.75rem">
+        🛠️ DEV / SIMULATION ENVIRONMENT &middot; Production is 100% untouched. <a href="./" style="margin-left:0.75rem;color:#854d0e;text-decoration:underline">Exit to Live Prod</a>
+    </div>
     <div class="site-header">
         <div class="site-header-inner">
             <img class="site-header-logo-kgha" src="https://cloud.rampinteractive.com/kanatagirlshockeyassociation/css/img/assocLogo.svg" alt="KGHA">
@@ -363,9 +365,19 @@
 
 <script>
 const OCI_DATA_URL = 'https://objectstorage.ca-toronto-1.oraclecloud.com/n/yzjspjx2rhjg/b/rinkside/o/data/state.json';
+const OCI_DEV_DATA_URL = 'https://objectstorage.ca-toronto-1.oraclecloud.com/n/yzjspjx2rhjg/b/rinkside/o/data/dev/state.json';
 const LOCAL_DATA_URL = 'data/state.json';
+const urlParams = new URLSearchParams(window.location.search);
+const isDevMode = urlParams.get('env') === 'dev' || urlParams.get('dev') === '1';
 const isLocalDev = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
-let activeDataUrl = window.RUSTIC_S3_DATA_URL || (isLocalDev ? LOCAL_DATA_URL : OCI_DATA_URL);
+let activeDataUrl = isLocalDev ? LOCAL_DATA_URL : (isDevMode ? OCI_DEV_DATA_URL : (window.RUSTIC_S3_DATA_URL || OCI_DATA_URL));
+
+if (isDevMode) {
+    window.addEventListener('DOMContentLoaded', () => {
+        const db = document.getElementById('dev-banner');
+        if (db) db.style.display = 'block';
+    });
+}
 
 async function fetchTournamentState() {
     if (activeDataUrl && activeDataUrl !== LOCAL_DATA_URL) {
@@ -1170,7 +1182,9 @@ function findPlayoffGame(label) {
 
 function renderPlayoffMatchup(g) {
     let badge = '';
-    if (g.is_official || g.status === 'official') {
+    if (g.winner && g.winner.name) {
+        badge = `<span style="background:#eab308;color:#000;font-size:0.75rem;font-weight:bold;padding:0.15rem 0.5rem;border-radius:4px;margin-left:0.5rem">🏆 ${esc(g.winner.name)} Champions</span>`;
+    } else if (g.is_official || g.status === 'official') {
         badge = '<span style="background:#16a34a;color:#fff;font-size:0.7rem;font-weight:bold;padding:0.1rem 0.4rem;border-radius:4px;margin-left:0.5rem">Official</span>';
     } else if (g.status === 'clinched' || g.status === 'final') {
         badge = '<span style="background:#0284c7;color:#fff;font-size:0.7rem;font-weight:bold;padding:0.1rem 0.4rem;border-radius:4px;margin-left:0.5rem">Projected (Clinched)</span>';
