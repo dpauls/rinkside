@@ -38,11 +38,19 @@ class TestBenchMatrix(unittest.TestCase):
         self.assertEqual(len(matrix), 7)
         margins = [m['margin'] for m in matrix]
         self.assertEqual(margins, [-3, -2, -1, 0, 1, 2, 3])
+
+        # Assert every row's sim_score matches the exact mathematical margin
+        for row in matrix:
+            our_s, opp_s = map(int, row['sim_score'].split('-'))
+            self.assertEqual(our_s - opp_s, row['margin'])
+            self.assertGreaterEqual(our_s, 0)
+            self.assertGreaterEqual(opp_s, 0)
+
         # Win by 3 should have highest or equal adv_pct compared to loss by 3
         self.assertGreaterEqual(matrix[-1]['adv_pct'], matrix[0]['adv_pct'])
 
-    def test_evaluate_goalie_pull_zero_downside(self):
-        # Synthetic matrix where loss by 1 and loss by 2 both yield 0% advance
+    def test_evaluate_goalie_pull_zero_downside_on_elimination(self):
+        # Synthetic matrix where loss by 1 and loss by 2 both yield 0% advance (eliminated either way)
         matrix = [
             {'margin': -3, 'adv_pct': 0.0},
             {'margin': -2, 'adv_pct': 0.0},
@@ -58,10 +66,10 @@ class TestBenchMatrix(unittest.TestCase):
         self.assertEqual(result['indicator'], 'red')  # Down by 1, need the tie, zero downside
 
     def test_evaluate_goalie_pull_high_downside(self):
-        # Synthetic matrix where loss by 1 gives 40% (via GD), but loss by 2 gives 0%
+        # Synthetic matrix where loss by 1 gives 40% (via GD), but loss by 2 gives 20%
         matrix = [
-            {'margin': -3, 'adv_pct': 0.0},
-            {'margin': -2, 'adv_pct': 0.0},
+            {'margin': -3, 'adv_pct': 10.0},
+            {'margin': -2, 'adv_pct': 20.0},
             {'margin': -1, 'adv_pct': 40.0},
             {'margin': 0, 'adv_pct': 80.0},
             {'margin': 1, 'adv_pct': 100.0},
@@ -72,6 +80,39 @@ class TestBenchMatrix(unittest.TestCase):
         self.assertTrue(result['empty_net_downside'])
         self.assertIn("HIGH DOWNSIDE", result['empty_net_warning'])
         self.assertEqual(result['indicator'], 'yellow')
+
+    def test_evaluate_goalie_pull_gd_caution_when_odds_equal_but_alive(self):
+        # Synthetic matrix where loss by 1 and loss by 2 have equal odds (e.g. 30.7%), but team is alive
+        matrix = [
+            {'margin': -3, 'adv_pct': 30.7},
+            {'margin': -2, 'adv_pct': 30.7},
+            {'margin': -1, 'adv_pct': 30.7},
+            {'margin': 0, 'adv_pct': 50.0},
+            {'margin': 1, 'adv_pct': 77.8},
+            {'margin': 2, 'adv_pct': 78.4},
+            {'margin': 3, 'adv_pct': 78.4},
+        ]
+        result = evaluate_goalie_pull(matrix, our_score=1, their_score=2, our_team_name="Kanata Rangers", opp_name="Wilmot Wolverine")
+        self.assertTrue(result['empty_net_downside'])
+        self.assertIn("GD CAUTION", result['empty_net_warning'])
+        self.assertEqual(result['indicator'], 'yellow')
+
+    def test_evaluate_goalie_pull_leading_protection(self):
+        # When leading 1-0, empty_net_warning must be None and advice must be Protect 1-Goal Lead
+        matrix = [
+            {'margin': -3, 'adv_pct': 27.0},
+            {'margin': -2, 'adv_pct': 27.0},
+            {'margin': -1, 'adv_pct': 27.8},
+            {'margin': 0, 'adv_pct': 50.0},
+            {'margin': 1, 'adv_pct': 78.7},
+            {'margin': 2, 'adv_pct': 78.4},
+            {'margin': 3, 'adv_pct': 78.4},
+        ]
+        result = evaluate_goalie_pull(matrix, our_score=1, their_score=0, our_team_name="Kanata Rangers", opp_name="Nepean Wildcats")
+        self.assertIsNone(result['empty_net_warning'])
+        self.assertEqual(result['indicator'], 'green')
+        self.assertEqual(result['recommendation'], 'Protect 1-Goal Lead')
+        self.assertNotIn("unless opponent ties", result['reason'])
 
     def test_compute_bench_analysis_live(self):
         bench = compute_bench_analysis(self.tournament_data, 'KAN', 'B')

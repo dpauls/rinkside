@@ -37,22 +37,19 @@ def compute_margin_payoff_matrix(
     our_cur = (our_game.get('home_score') or 0) if we_are_home else (our_game.get('away_score') or 0)
     their_cur = (our_game.get('away_score') or 0) if we_are_home else (our_game.get('home_score') or 0)
 
-    # Base reference score for opposing team
-    base_opp = max(their_cur, 1)
-
     matrix = []
     for margin in range(-3, 4):
+        # Calculate realistic simulated scores respecting current goals:
+        # our_sim - opp_sim == margin
+        # our_sim >= our_cur, opp_sim >= their_cur
+        opp_sim = max(their_cur, our_cur - margin)
+        our_sim = opp_sim + margin
+
         if margin > 0:
-            our_sim = base_opp + margin
-            opp_sim = base_opp
             label = f"Win by {margin} (+{margin})"
         elif margin == 0:
-            our_sim = base_opp
-            opp_sim = base_opp
             label = "Tie (0)"
         else:
-            our_sim = max(0, base_opp + margin)
-            opp_sim = base_opp
             label = f"Lose by {-margin} ({margin})"
 
         hs = our_sim if we_are_home else opp_sim
@@ -151,32 +148,33 @@ def evaluate_goalie_pull(
             reason = f"A tie offers {p_zero}% advancement chance vs {p_plus_1}% on a win. Conceding drops odds to {p_minus_1}%. Play smart regulation hockey."
     elif diff == -1:
         # Down by 1 -- evaluate empty net downside risk
-        if p_minus_1 > 0 and p_minus_2 < p_minus_1:
+        if p_minus_1 == 0.0:
+            empty_net_downside = False
+            empty_net_warning = (
+                "ZERO DOWNSIDE: Any regulation loss eliminates our team (0%). "
+                "Push aggressively for the tying goal—an empty-net goal carries no advancement penalty."
+            )
+            recommendation = "Pull Goalie Late"
+            reason = f"Need the tie! Tie gives {p_zero}% vs 0.0% on a loss. Zero downside if empty net goal conceded."
+            indicator = "red"
+        elif p_minus_2 < p_minus_1:
             empty_net_downside = True
             empty_net_warning = (
                 f"HIGH DOWNSIDE: Conceding an empty-net goal (-2 margin) drops advancement odds "
                 f"from {p_minus_1}% to {p_minus_2}%. Protect GD unless tie is mandatory."
             )
-        else:
-            empty_net_downside = False
-            empty_net_warning = (
-                f"ZERO DOWNSIDE: Losing by 2 has the same advancement odds as losing by 1 ({p_minus_1}%). "
-                f"No GD penalty for pulling the goalie."
-            )
-
-        if p_zero > p_minus_1:
-            if not empty_net_downside:
-                indicator = "red"
-                recommendation = "Pull Goalie Late"
-                reason = f"Need the tie! Tie gives {p_zero}% vs {p_minus_1}% on a loss. Zero GD downside if empty net goal conceded."
-            else:
-                indicator = "yellow"
-                recommendation = "Caution on Goalie Pull"
-                reason = f"Tie gives {p_zero}%, but an empty-net goal drops odds to {p_minus_2}%. Pull only in final 45-60 seconds."
-        else:
+            recommendation = "Caution on Goalie Pull"
+            reason = f"Tie gives {p_zero}%, but an empty-net goal drops odds to {p_minus_2}%. Pull only in final 45-60 seconds."
             indicator = "yellow"
-            recommendation = "Play It Out"
-            reason = f"Neither a tie nor 1-goal loss significantly changes advancement. Evaluate other game."
+        else:
+            empty_net_downside = True
+            empty_net_warning = (
+                f"GD CAUTION: Losing by 2 has similar base scenario odds as losing by 1 ({p_minus_1}%), "
+                f"but permanently damages tournament Goal Differential for later tiebreakers."
+            )
+            recommendation = "Caution on Goalie Pull"
+            reason = f"Tie gives {p_zero}%, but protecting Goal Differential matters on a loss ({p_minus_1}% life). Pull only in final 45-60 seconds."
+            indicator = "yellow"
     elif diff == -2:
         # Down by 2
         indicator = "red"

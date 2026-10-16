@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-15T21:04:12.101662-04:00",
+  "generated_at": "2026-10-15T21:16:17.793137-04:00",
   "tournament": {
     "id": "ptr_2026_u18c",
     "name": "Pink the Rink XV - U18C",
@@ -1276,28 +1276,28 @@
       {
         "margin": -3,
         "label": "Lose by 3 (-3)",
-        "sim_score": "0-1",
-        "adv_count": 23,
-        "total": 75,
-        "adv_pct": 30.7,
+        "sim_score": "1-4",
+        "adv_count": 20,
+        "total": 74,
+        "adv_pct": 27.0,
         "status": "POSSIBLE"
       },
       {
         "margin": -2,
         "label": "Lose by 2 (-2)",
-        "sim_score": "0-1",
-        "adv_count": 23,
-        "total": 75,
-        "adv_pct": 30.7,
+        "sim_score": "1-3",
+        "adv_count": 20,
+        "total": 74,
+        "adv_pct": 27.0,
         "status": "POSSIBLE"
       },
       {
         "margin": -1,
         "label": "Lose by 1 (-1)",
-        "sim_score": "0-1",
-        "adv_count": 23,
-        "total": 75,
-        "adv_pct": 30.7,
+        "sim_score": "1-2",
+        "adv_count": 20,
+        "total": 72,
+        "adv_pct": 27.8,
         "status": "POSSIBLE"
       },
       {
@@ -1312,16 +1312,16 @@
       {
         "margin": 1,
         "label": "Win by 1 (+1)",
-        "sim_score": "2-1",
-        "adv_count": 56,
-        "total": 72,
-        "adv_pct": 77.8,
+        "sim_score": "1-0",
+        "adv_count": 59,
+        "total": 75,
+        "adv_pct": 78.7,
         "status": "HIGH"
       },
       {
         "margin": 2,
         "label": "Win by 2 (+2)",
-        "sim_score": "3-1",
+        "sim_score": "2-0",
         "adv_count": 58,
         "total": 74,
         "adv_pct": 78.4,
@@ -1330,7 +1330,7 @@
       {
         "margin": 3,
         "label": "Win by 3 (+3)",
-        "sim_score": "4-1",
+        "sim_score": "3-0",
         "adv_count": 58,
         "total": 74,
         "adv_pct": 78.4,
@@ -1339,47 +1339,47 @@
     ],
     "indicator": "green",
     "recommendation": "Protect 1-Goal Lead",
-    "reason": "Up by 1. Keep defensive structure. Do not pull unless opponent ties.",
+    "reason": "Up by 1. Keep strong defensive structure, manage the puck, and protect the lead.",
     "empty_net_downside": false,
-    "empty_net_warning": "ZERO DOWNSIDE: Losing by 2 has the same advancement odds as losing by 1 (30.7%). No GD penalty for pulling the goalie."
+    "empty_net_warning": null
   },
   "event_log": [
     {
-      "time": "Thu Oct 15, 09:04 PM",
+      "time": "Thu Oct 15, 09:16 PM",
       "type": "final",
       "headline": "FINAL: Ottawa Ice 2 - 1 East Ottawa Stars (Game #2074766)",
       "detail": null,
       "game_id": 2074766
     },
     {
-      "time": "Thu Oct 15, 09:04 PM",
+      "time": "Thu Oct 15, 09:16 PM",
       "type": "final",
       "headline": "FINAL: Woodstock Wildcats 3 - 0 Mitchell Meteors (Game #2074771)",
       "detail": null,
       "game_id": 2074771
     },
     {
-      "time": "Thu Oct 15, 09:04 PM",
+      "time": "Thu Oct 15, 09:16 PM",
       "type": "info",
       "headline": "GAME STARTED: Wilmot Wolverine vs Belmont Blazers (Game #2074770)",
       "detail": null,
       "game_id": 2074770
     },
     {
-      "time": "Thu Oct 15, 09:04 PM",
+      "time": "Thu Oct 15, 09:16 PM",
       "type": "info",
       "headline": "GAME STARTED: Nepean Wildcats vs Kanata Rangers (Game #2074775)",
       "detail": null,
       "game_id": 2074775
     },
     {
-      "time": "Thu Oct 15, 09:04 PM",
+      "time": "Thu Oct 15, 09:16 PM",
       "type": "info",
       "headline": "Pool A: Ottawa Ice 2 - 1 East Ottawa Stars (Final)",
       "detail": "Cross-pool matchup update."
     },
     {
-      "time": "Thu Oct 15, 09:04 PM",
+      "time": "Thu Oct 15, 09:16 PM",
       "type": "info",
       "headline": "Pool A: Woodstock Wildcats 3 - 0 Mitchell Meteors (Final)",
       "detail": "Cross-pool matchup update."
@@ -1424,7 +1424,7 @@
   "s3_public_url": "https://objectstorage.ca-toronto-1.oraclecloud.com/n/yzjspjx2rhjg/b/rinkside/o/data/state.json",
   "s3_scenarios_url": "https://objectstorage.ca-toronto-1.oraclecloud.com/n/yzjspjx2rhjg/b/rinkside/o/data/scenarios.json",
   "trigger_event": {
-    "time": "Thu Oct 15, 09:04 PM",
+    "time": "Thu Oct 15, 09:16 PM",
     "type": "info",
     "headline": "Pool A: Woodstock Wildcats 3 - 0 Mitchell Meteors (Final)",
     "detail": "Cross-pool matchup update."
