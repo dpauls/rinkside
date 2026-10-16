@@ -137,13 +137,14 @@ class WebPushManager:
         if not subs:
             return 0
 
+        import time
         sent_count = 0
         for evt in match_events:
             game_id = str(evt.get('game_id') or '')
             payload = {
                 'title': evt.get('headline', '🏒 Rinkside Alert'),
                 'body': evt.get('detail') or 'Live tournament game update.',
-                'tag': f"rinkside-evt-{game_id or 'all'}-{abs(hash(evt.get('headline', '')))}",
+                'tag': f"rinkside-game-{game_id or 'all'}",
                 'url': './'
             }
 
@@ -158,6 +159,7 @@ class WebPushManager:
 
                 if self.send_push(sub, payload):
                     sent_count += 1
+                    time.sleep(0.2)  # Pacing to avoid mobile OS burst spam suppression
 
         log.info(f"Dispatched {sent_count} Web Push notification(s) across {len(subs)} device(s).")
         return sent_count
