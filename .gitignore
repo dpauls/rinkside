@@ -10,3 +10,5 @@ docs/data/.state_live.json
 test/mock_responses/.mock_step
 test/mock_responses_ptr/.mock_step
 logs/
+*.pem
+data/vapid_private.pem

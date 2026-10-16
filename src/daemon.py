@@ -846,6 +846,18 @@ def run_cycle(tournament_data, mock_source=None, skip_narrative=False, skip_push
     if storage_backend:
         storage_backend.save_state(state)
 
+    # Broadcast Web Push notifications to sleeping phones, smart watches, and desktops
+    if events:
+        try:
+            from push import WebPushManager
+            s3_client = getattr(storage_backend, '_s3_client', None)
+            s3_bucket = getattr(storage_backend, 'bucket', None)
+            push_mgr = WebPushManager(s3_client=s3_client, s3_bucket=s3_bucket)
+            if push_mgr.is_configured():
+                push_mgr.broadcast_events(events)
+        except Exception as e:
+            log.warning(f"Web Push broadcast error: {e}")
+
     # Push to GitHub (if explicitly requested)
     if not skip_push:
         git_push()

@@ -690,6 +690,7 @@ function toggleGameSubInternal(gid) {
     }
     setGameSubs(subs);
     loadAndRender();
+    registerWebPushSubscription();
     if (!wasSubbed) {
         dispatchNotification('🔔 Subscribed to Game', `You will receive live goal, game start, and final alerts for Game #${sGid}.`, `sub-${sGid}`);
     }
@@ -980,6 +981,70 @@ function dispatchNotification(title, body, tag) {
     }
 }
 
+function urlBase64ToUint8Array(base64String) {
+    const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+    for (let i = 0; i < rawData.length; ++i) {
+        outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+}
+
+async function registerWebPushSubscription() {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+        return;
+    }
+    if (Notification.permission !== 'granted') return;
+
+    const vapidKey = (currentState && (currentState.vapid_public_key || (currentState.auth && currentState.auth.vapid_public_key))) || 'BMHZQb_FrawdIMHMPgbeJ80lwbKy92tshW_QC8ba5_tP-sK7yArf7N9AufQpM53Iyad5Y8i5C8v2yHL_Pm-wlkI';
+    const parUrl = (currentState && (currentState.subscriptions_par_url || (currentState.auth && currentState.auth.subscriptions_par_url)));
+
+    try {
+        const reg = await navigator.serviceWorker.ready;
+        let sub = await reg.pushManager.getSubscription();
+        if (!sub) {
+            sub = await reg.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: urlBase64ToUint8Array(vapidKey)
+            });
+        }
+
+        if (!parUrl) {
+            console.log('Subscriptions PAR URL not yet configured in OCI; subscription active locally.');
+            return;
+        }
+
+        let deviceId = localStorage.getItem('rinkside_device_id');
+        if (!deviceId) {
+            deviceId = 'dev_' + Math.random().toString(36).substring(2, 12);
+            localStorage.setItem('rinkside_device_id', deviceId);
+        }
+
+        const payload = {
+            subscription: sub.toJSON(),
+            games: getGameSubs(),
+            alerts_enabled: alertsEnabled,
+            device_id: deviceId,
+            updated_at: new Date().toISOString()
+        };
+
+        let uploadUrl = parUrl;
+        if (!uploadUrl.endsWith('/')) uploadUrl += '/';
+        uploadUrl += `subscriptions/${deviceId}.json`;
+
+        await fetch(uploadUrl, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        console.log('Successfully registered Web Push device with OCI backend');
+    } catch (err) {
+        console.warn('Web Push registration error:', err);
+    }
+}
+
 function toggleAlerts() {
     if (!('Notification' in window)) {
         if (/iPhone|iPad|iPod/.test(navigator.userAgent)) {
@@ -993,6 +1058,7 @@ function toggleAlerts() {
         alertsEnabled = !alertsEnabled;
         localStorage.setItem('rinkside_alerts_enabled', alertsEnabled ? 'true' : 'false');
         updateAlertBtn();
+        registerWebPushSubscription();
         if (alertsEnabled) {
             dispatchNotification('🔔 Watch Alerts: ON', 'You will receive live goal, game start, and final notifications.', 'alert-test');
         }
@@ -1002,6 +1068,7 @@ function toggleAlerts() {
             localStorage.setItem('rinkside_alerts_enabled', alertsEnabled ? 'true' : 'false');
             updateAlertBtn();
             if (alertsEnabled) {
+                registerWebPushSubscription();
                 dispatchNotification('🔔 Watch Alerts: ON', 'You will receive live goal, game start, and final notifications.', 'alert-test');
             }
         });
@@ -1380,6 +1447,7 @@ async function loadAndRender() {
 
         currentVenues = d.venues || {};
         handleEventAlerts(d.event_log, d.our_team);
+        if (alertsEnabled && Notification.permission === 'granted') registerWebPushSubscription();
 
         document.title = `${d.our_team_name} - ${d.tournament.name}`;
         document.getElementById('team-name').textContent = d.our_team_name;

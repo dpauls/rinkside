@@ -495,9 +495,13 @@ def generate(data_path='data/tournaments/pink_the_rink_2026.json', skip_narrativ
             'coach_pin_hash': hashlib.sha256(f"{data.get('tournament', {}).get('id', 'rinkside')}:{os.environ.get('COACH_PIN') or str(data.get('security', {}).get('bench_pin', '1777'))}".encode('utf-8')).hexdigest(),
             'admin_pin_hash': hashlib.sha256(f"{data.get('tournament', {}).get('id', 'rinkside')}:{os.environ.get('ADMIN_PIN') or '9876'}".encode('utf-8')).hexdigest(),
             'streams_par_url': os.environ.get('STREAMS_PAR_URL', ''),
+            'subscriptions_par_url': os.environ.get('SUBSCRIPTIONS_PAR_URL', ''),
+            'vapid_public_key': os.environ.get('VAPID_PUBLIC_KEY', 'BMHZQb_FrawdIMHMPgbeJ80lwbKy92tshW_QC8ba5_tP-sK7yArf7N9AufQpM53Iyad5Y8i5C8v2yHL_Pm-wlkI'),
         },
         's3_public_url': s3_state_url,
         's3_scenarios_url': s3_scenarios_url,
+        'subscriptions_par_url': os.environ.get('SUBSCRIPTIONS_PAR_URL', ''),
+        'vapid_public_key': os.environ.get('VAPID_PUBLIC_KEY', 'BMHZQb_FrawdIMHMPgbeJ80lwbKy92tshW_QC8ba5_tP-sK7yArf7N9AufQpM53Iyad5Y8i5C8v2yHL_Pm-wlkI'),
         'trigger_event': data.get('_last_event') or (data.get('event_log', [])[-1] if data.get('event_log') else {'type': 'initial', 'headline': 'Baseline tournament initialization'}),
     }
 

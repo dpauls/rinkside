@@ -15,6 +15,10 @@ services:
       - COACH_PIN=${COACH_PIN:-1777}
       - ADMIN_PIN=${ADMIN_PIN:-9876}
       - STREAMS_PAR_URL=${STREAMS_PAR_URL:-}
+      - VAPID_PUBLIC_KEY=${VAPID_PUBLIC_KEY:-BMHZQb_FrawdIMHMPgbeJ80lwbKy92tshW_QC8ba5_tP-sK7yArf7N9AufQpM53Iyad5Y8i5C8v2yHL_Pm-wlkI}
+      - VAPID_PRIVATE_KEY_PATH=${VAPID_PRIVATE_KEY_PATH:-data/vapid_private.pem}
+      - VAPID_CLAIM_EMAIL=${VAPID_CLAIM_EMAIL:-mailto:tracker@rinkside.ca}
+      - SUBSCRIPTIONS_PAR_URL=${SUBSCRIPTIONS_PAR_URL:-}
     volumes:
       - ./data:/app/data
       - ./docs:/app/docs
