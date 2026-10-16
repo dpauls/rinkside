@@ -62,16 +62,8 @@ if [ "$CMD" = "restore" ]; then
     rm -f "$SHADOW_DATA"
     rm -f "docs/data/.state_pink_the_rink_2026_live.json"
     
-    python3 src/daemon.py \
-        --tournament "$PTR_DATA" \
-        --mock-dir "$MOCK_DIR" \
-        --mock-reset \
-        --once \
-        $NARRATIVE_ARG \
-        --storage "local"
-    
     if [ "$USE_S3" = true ]; then
-        echo "==> Restoring pre-tournament baseline on Oracle Cloud VM..."
+        echo "==> Restoring pre-tournament baseline on Oracle Cloud VM (S3 storage)..."
         ssh -i "$HOME/.ssh/oracle_rinkside.key" -o StrictHostKeyChecking=no ubuntu@132.145.100.44 \
             "docker exec rinkside-tracker-1 python3 src/daemon.py \
                 --tournament data/tournaments/pink_the_rink_2026.json \
@@ -80,6 +72,19 @@ if [ "$CMD" = "restore" ]; then
                 --once \
                 $NARRATIVE_ARG \
                 --storage s3"
+        
+        echo "==> Syncing baseline state to local docs/data/..."
+        mkdir -p docs/data
+        curl -s -f "https://objectstorage.ca-toronto-1.oraclecloud.com/n/yzjspjx2rhjg/b/rinkside/o/data/state.json" -o docs/data/state.json || true
+        curl -s -f "https://objectstorage.ca-toronto-1.oraclecloud.com/n/yzjspjx2rhjg/b/rinkside/o/data/scenarios.json" -o docs/data/scenarios.json || true
+    else
+        python3 src/daemon.py \
+            --tournament "$PTR_DATA" \
+            --mock-dir "$MOCK_DIR" \
+            --mock-reset \
+            --once \
+            $NARRATIVE_ARG \
+            --storage "local"
     fi
 
     echo "==> Clean baseline restored successfully!"
@@ -90,22 +95,8 @@ if [[ "$CMD" =~ ^[0-8]$ ]]; then
     STEP_NUM="$CMD"
     echo "==> Simulating Pink the Rink Step $STEP_NUM (mock step $STEP_NUM, LLM=$WITH_LLM, Storage=$STORAGE_ARG)..."
     
-    # Reset to clean data if step 0, otherwise ensure shadow file exists
-    if [ "$STEP_NUM" -eq 0 ]; then
-        rm -f "$SHADOW_DATA"
-        rm -f "docs/data/.state_pink_the_rink_2026_live.json"
-    fi
-
-    python3 src/daemon.py \
-        --tournament "$PTR_DATA" \
-        --mock-dir "$MOCK_DIR" \
-        --mock-step "$STEP_NUM" \
-        --once \
-        $NARRATIVE_ARG \
-        --storage "local"
-
     if [ "$USE_S3" = true ]; then
-        echo "==> Publishing Step $STEP_NUM to Oracle Cloud Object Storage via VM..."
+        echo "==> Executing Step $STEP_NUM directly on Oracle Cloud VM (S3 storage)..."
         ssh -i "$HOME/.ssh/oracle_rinkside.key" -o StrictHostKeyChecking=no ubuntu@132.145.100.44 \
             "docker exec rinkside-tracker-1 python3 src/daemon.py \
                 --tournament data/tournaments/pink_the_rink_2026.json \
@@ -114,6 +105,25 @@ if [[ "$CMD" =~ ^[0-8]$ ]]; then
                 --once \
                 $NARRATIVE_ARG \
                 --storage s3"
+
+        echo "==> Syncing generated state to local docs/data/..."
+        mkdir -p docs/data
+        curl -s -f "https://objectstorage.ca-toronto-1.oraclecloud.com/n/yzjspjx2rhjg/b/rinkside/o/data/state.json" -o docs/data/state.json || true
+        curl -s -f "https://objectstorage.ca-toronto-1.oraclecloud.com/n/yzjspjx2rhjg/b/rinkside/o/data/scenarios.json" -o docs/data/scenarios.json || true
+    else
+        # Reset to clean data if step 0, otherwise ensure shadow file exists
+        if [ "$STEP_NUM" -eq 0 ]; then
+            rm -f "$SHADOW_DATA"
+            rm -f "docs/data/.state_pink_the_rink_2026_live.json"
+        fi
+
+        python3 src/daemon.py \
+            --tournament "$PTR_DATA" \
+            --mock-dir "$MOCK_DIR" \
+            --mock-step "$STEP_NUM" \
+            --once \
+            $NARRATIVE_ARG \
+            --storage "local"
     fi
 
     echo "==> Step $STEP_NUM executed successfully!"
