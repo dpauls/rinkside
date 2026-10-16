@@ -449,12 +449,16 @@ function renderLiveBanner(liveGames, ourTeam, d) {
             ? `<a href="${esc(g.stream_url)}" target="_blank" rel="noopener" class="stream-badge stream-badge-live">🔴 Watch Live on YouTube</a>`
             : '';
 
+        const gid = g.game_id || g.gid || '';
+        const subBadge = renderSubButton(gid, false);
+
         return `<div class="live-banner">
             <span class="live-dot"></span> <strong>LIVE</strong>:
             <span${cls(g.home, ourTeam)}>${esc(g.home_name)}</span>
             <strong>${hs}</strong> - <strong>${as_}</strong>
             <span${cls(g.away, ourTeam)}>${esc(g.away_name)}</span>
             <span style="font-size:0.85rem;margin-left:0.5rem">${commentary}</span>
+            ${subBadge}
             ${streamBtn}
             ${detailHtml}
         </div>`;
@@ -691,6 +695,12 @@ function toggleGameSubInternal(gid) {
     }
 }
 
+function renderSubButton(gid, isFinal) {
+    if (!gid || isFinal) return '';
+    const isSub = isGameSubscribed(gid);
+    return `<button onclick="toggleGameSub('${gid}', event)" style="background:${isSub ? '#0284c7' : '#475569'};border:none;padding:0.12rem 0.4rem;font-size:0.65rem;border-radius:4px;cursor:pointer;color:#fff;margin-left:0.3rem;display:inline-block;width:auto" title="${isSub ? 'Subscribed to game alerts' : 'Get notifications for this game'}">${isSub ? '🔔 Subscribed' : '🔕 Alert me'}</button>`;
+}
+
 function renderGames(games, label, ourTeam, isFinal) {
     if (!games || games.length === 0) return '';
     const items = games.map(g => {
@@ -700,13 +710,12 @@ function renderGames(games, label, ourTeam, isFinal) {
             : `<span style="font-size:0.75rem;color:var(--pico-muted-color);margin-left:0.3rem">(${esc(g.arena)})</span>`) : '';
         const gid = g.game_id || g.gid || '';
         const isOur = (g.home === ourTeam || g.away === ourTeam);
-        const isSub = isGameSubscribed(gid);
-        const subBadge = (isFinal || !gid) ? '' : ` <button onclick="toggleGameSub('${gid}', event)" style="background:${isSub ? '#0284c7' : '#475569'};border:none;padding:0.12rem 0.4rem;font-size:0.65rem;border-radius:4px;cursor:pointer;color:#fff;margin-left:0.3rem;display:inline-block;width:auto">${isSub ? '🔔 Subscribed' : '🔕 Alert me'}</button>`;
+        const subBadge = renderSubButton(gid, isFinal || g.status === 'final');
         const streamBtn = g.stream_url
             ? `<a href="${esc(g.stream_url)}" target="_blank" rel="noopener" class="stream-badge${g.status === 'in_progress' ? ' stream-badge-live' : ''}">▶ Stream</a>`
             : '';
 
-        if (isFinal) {
+        if (isFinal || g.status === 'final') {
             return `<div class="game-card"><div>
                 <span${cls(g.home, ourTeam)}>${esc(g.home_name)}</span>
                 <span class="score">${g.home_score}</span> -
@@ -714,6 +723,17 @@ function renderGames(games, label, ourTeam, isFinal) {
                 <span${cls(g.away, ourTeam)}>${esc(g.away_name)}</span>
                 ${streamBtn}
             </div><div style="font-size:0.8rem;color:var(--pico-muted-color)">Final ${arenaBadge}</div></div>`;
+        } else if (g.status === 'in_progress') {
+            return `<div class="game-card" style="border-left:3px solid #d32f2f;padding-left:0.5rem"><div>
+                <span class="live-dot" style="margin-right:0.3rem"></span>
+                <span${cls(g.home, ourTeam)}>${esc(g.home_name)}</span>
+                <span class="score" style="color:#d32f2f;font-weight:bold">${g.home_score || 0}</span> -
+                <span class="score" style="color:#d32f2f;font-weight:bold">${g.away_score || 0}</span>
+                <span${cls(g.away, ourTeam)}>${esc(g.away_name)}</span>
+                <span style="color:#d32f2f;font-weight:bold;font-size:0.75rem;margin-left:0.3rem">(LIVE)</span>
+                ${subBadge}
+                ${streamBtn}
+            </div><div style="text-align:right;font-size:0.8rem;color:var(--pico-muted-color)">#${gid}<br>${fmtDate(g.date)} ${arenaBadge}</div></div>`;
         }
         return `<div class="game-card"><div>
             <span${cls(g.home, ourTeam)}>${esc(g.home_name)}</span> vs
@@ -1052,6 +1072,18 @@ function renderClinchWatch(alerts) {
     </div>`;
 }
 
+function findPlayoffGame(label) {
+    if (!currentState || !currentState.all_division_games) return null;
+    const playoffGames = currentState.all_division_games.filter(g => !g.pool);
+    const l = (label || '').toLowerCase();
+    if (l.includes('semi 1')) return playoffGames.find(g => g.game_id === 2074858) || playoffGames[2];
+    if (l.includes('semi 2')) return playoffGames.find(g => g.game_id === 2074861) || playoffGames[3];
+    if (l.includes('consolation 1')) return playoffGames.find(g => g.game_id === 2074842) || playoffGames[1];
+    if (l.includes('consolation 2')) return playoffGames.find(g => g.game_id === 2074839) || playoffGames[0];
+    if (l.includes('final')) return playoffGames.find(g => g.game_id === 2074871) || playoffGames[4];
+    return null;
+}
+
 function renderPlayoffMatchup(g) {
     let badge = '';
     if (g.is_official || g.status === 'official') {
@@ -1067,6 +1099,21 @@ function renderPlayoffMatchup(g) {
     const homeStr = g.home.resolved ? `<strong>${esc(g.home.name)}</strong>` : `<span style="color:var(--pico-muted-color);font-style:italic">${esc(g.home.name)}</span>`;
     const awayStr = g.away.resolved ? `<strong>${esc(g.away.name)}</strong>` : `<span style="color:var(--pico-muted-color);font-style:italic">${esc(g.away.name)}</span>`;
 
+    const matchedGame = findPlayoffGame(g.game || '');
+    const gid = matchedGame ? (matchedGame.game_id || matchedGame.gid) : (g.game_id || g.gid || '');
+    const isGameFinal = matchedGame ? (matchedGame.status === 'final') : (g.status === 'final');
+    const subBtn = renderSubButton(gid, isGameFinal);
+
+    let metaStr = '';
+    if (matchedGame) {
+        const venueObj = currentVenues[matchedGame.arena];
+        const arenaBadge = matchedGame.arena ? (venueObj && venueObj.maps_url 
+            ? `<a href="${esc(venueObj.maps_url)}" target="_blank" rel="noopener" style="font-size:0.75rem;margin-left:0.3rem;color:#0284c7;text-decoration:none">📍 ${esc(matchedGame.arena)}</a>`
+            : `<span style="font-size:0.75rem;color:var(--pico-muted-color);margin-left:0.3rem">(${esc(matchedGame.arena)})</span>`) : '';
+        const gidLabel = gid ? `#${gid} &middot; ` : '';
+        metaStr = `<div style="font-size:0.78rem;color:var(--pico-muted-color);margin-top:0.25rem">${gidLabel}${fmtDate(matchedGame.date)} ${arenaBadge}</div>`;
+    }
+
     let note = '';
     if (g.status === 'clinched') {
         note = '<div style="font-size:0.75rem;color:#0284c7;margin-top:0.25rem">Mathematically locked seeds &middot; Official schedule & arena pending from organizers</div>';
@@ -1075,8 +1122,12 @@ function renderPlayoffMatchup(g) {
     }
 
     return `<div class="bracket-game">
-        <div class="round-label">${esc(g.game)} ${badge}</div>
-        <div>${homeStr} vs ${awayStr}</div>
+        <div class="round-label" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap">
+            <div>${esc(g.game)} ${badge}</div>
+            <div>${subBtn}</div>
+        </div>
+        <div style="margin-top:0.2rem">${homeStr} vs ${awayStr}</div>
+        ${metaStr}
         ${note}
     </div>`;
 }
@@ -1213,7 +1264,9 @@ function renderAllDivisionGames(games, ourTeam) {
         const arenaBadge = g.arena ? (venueObj && venueObj.maps_url 
             ? `<a href="${esc(venueObj.maps_url)}" target="_blank" rel="noopener" style="font-size:0.75rem;margin-left:0.3rem;color:#0284c7;text-decoration:none">📍 ${esc(g.arena)}</a>`
             : `<span style="font-size:0.75rem;color:var(--pico-muted-color);margin-left:0.3rem">(${esc(g.arena)})</span>`) : '';
-        const poolBadge = g.pool ? `<span style="background:var(--pico-card-background-color);border:1px solid var(--pico-muted-border-color);font-size:0.7rem;font-weight:bold;padding:0.1rem 0.35rem;border-radius:4px;margin-right:0.4rem">Pool ${esc(g.pool)}</span>` : '';
+        const poolBadge = g.pool ? `<span style="background:var(--pico-card-background-color);border:1px solid var(--pico-muted-border-color);font-size:0.7rem;font-weight:bold;padding:0.1rem 0.35rem;border-radius:4px;margin-right:0.4rem">Pool ${esc(g.pool)}</span>` : '<span style="background:#0284c7;color:#fff;font-size:0.7rem;font-weight:bold;padding:0.1rem 0.35rem;border-radius:4px;margin-right:0.4rem">Playoff</span>';
+        const gid = g.game_id || g.gid || '';
+        const subBadge = renderSubButton(gid, g.status === 'final');
         const streamBtn = g.stream_url
             ? `<a href="${esc(g.stream_url)}" target="_blank" rel="noopener" class="stream-badge${g.status === 'in_progress' ? ' stream-badge-live' : ''}">▶ Stream</a>`
             : '';
@@ -1231,19 +1284,21 @@ function renderAllDivisionGames(games, ourTeam) {
             return `<div class="game-card" style="border-left:3px solid #d32f2f;padding-left:0.5rem"><div>
                 ${poolBadge}
                 <span${cls(g.home, ourTeam)}>${esc(g.home_name)}</span>
-                <span class="score" style="color:#d32f2f">${g.home_score || 0}</span> -
-                <span class="score" style="color:#d32f2f">${g.away_score || 0}</span>
+                <span class="score" style="color:#d32f2f;font-weight:bold">${g.home_score || 0}</span> -
+                <span class="score" style="color:#d32f2f;font-weight:bold">${g.away_score || 0}</span>
                 <span${cls(g.away, ourTeam)}>${esc(g.away_name)}</span>
                 <span style="color:#d32f2f;font-weight:bold;font-size:0.75rem;margin-left:0.3rem">(LIVE)</span>
+                ${subBadge}
                 ${streamBtn}
-            </div><div style="font-size:0.8rem;color:var(--pico-muted-color)">${fmtDate(g.date)} ${arenaBadge}</div></div>`;
+            </div><div style="font-size:0.8rem;color:var(--pico-muted-color)">#${gid} &middot; ${fmtDate(g.date)} ${arenaBadge}</div></div>`;
         }
         return `<div class="game-card"><div>
             ${poolBadge}
             <span${cls(g.home, ourTeam)}>${esc(g.home_name)}</span> vs
             <span${cls(g.away, ourTeam)}>${esc(g.away_name)}</span>
+            ${subBadge}
             ${streamBtn}
-        </div><div style="text-align:right;font-size:0.8rem;color:var(--pico-muted-color)">#${g.game_id}<br>${fmtDate(g.date)} ${arenaBadge}</div></div>`;
+        </div><div style="text-align:right;font-size:0.8rem;color:var(--pico-muted-color)">#${gid}<br>${fmtDate(g.date)} ${arenaBadge}</div></div>`;
     }).join('');
 }
 
@@ -1302,12 +1357,14 @@ function renderPoolView() {
         document.getElementById('scenarios-area').innerHTML = '';
     }
 
-    const upcomingGames = poolData ? poolData.upcoming : (isOur ? d.upcoming : []);
-    const completedGames = poolData ? poolData.completed : (isOur ? d.completed : []);
+    const liveGames = poolData ? (poolData.live_games || []) : (isOur ? (d.live_games || []) : []);
+    const upcomingScheduled = poolData ? (poolData.upcoming || []) : (isOur ? (d.upcoming || []) : []);
+    const upcomingGames = [...liveGames, ...upcomingScheduled];
+    const completedGames = poolData ? (poolData.completed || []) : (isOur ? (d.completed || []) : []);
 
     document.getElementById('upcoming-area').innerHTML =
         upcomingGames && upcomingGames.length > 0
-            ? `<h2>Pool ${selectedPool} Upcoming</h2>` + renderGames(upcomingGames, `Upcoming Games`, d.our_team, false)
+            ? `<h2>Pool ${selectedPool} Games</h2>` + renderGames(upcomingGames, `Upcoming & Live Games`, d.our_team, false)
             : '';
 
     document.getElementById('completed-area').innerHTML =
