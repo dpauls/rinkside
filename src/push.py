@@ -11,6 +11,7 @@ the 'subscriptions/' bucket prefix via Pre-Authenticated Requests (PAR).
 import json
 import logging
 import os
+import sys
 from pathlib import Path
 from typing import List, Dict, Any, Optional
 
@@ -158,3 +159,63 @@ class WebPushManager:
 
         log.info(f"Dispatched {sent_count} Web Push notification(s) across {len(subs)} device(s).")
         return sent_count
+
+
+if __name__ == '__main__':
+    import argparse
+    from dotenv import load_dotenv
+    load_dotenv()
+
+    parser = argparse.ArgumentParser(description='Web Push Notification Debugger & Dispatcher')
+    parser.add_argument('--list', action='store_true', help='List all registered subscribers in OCI Object Storage')
+    parser.add_argument('--test', action='store_true', help='Send an immediate test push to all registered devices')
+    parser.add_argument('--title', default='🏒 Rinkside Test Alert', help='Notification title')
+    parser.add_argument('--body', default='Test alert from Rinkside tournament tracker.', help='Notification body')
+    args = parser.parse_args()
+
+    # Initialize S3 storage backend
+    sys.path.append(str(Path(__file__).parent))
+    from storage import S3Storage
+
+    try:
+        s3 = S3Storage()
+        mgr = WebPushManager(s3_client=s3._s3_client, s3_bucket=s3.bucket)
+    except Exception as e:
+        print(f"Error initializing S3 storage: {e}")
+        sys.exit(1)
+
+    if not mgr.is_configured():
+        print("WebPushManager is NOT configured. Ensure data/vapid_private.pem exists and S3 creds are set.")
+        sys.exit(1)
+
+    subs = mgr.get_subscriptions()
+
+    if args.list:
+        print(f"\n==> Registered Web Push Devices in OCI: {len(subs)}")
+        if not subs:
+            print("    (No devices registered yet. Open the site and enable alerts to register)")
+        for i, s in enumerate(subs, 1):
+            ep = s.get('subscription', {}).get('endpoint', '')
+            domain = ep.split('/')[2] if '/' in ep else ep[:30]
+            print(f" {i}. Device ID: {s.get('device_id', 'unknown')}")
+            print(f"    Push Service: {domain}")
+            print(f"    Alerts: {'ON' if s.get('alerts_enabled') else 'OFF'}")
+            print(f"    Subscribed Games: {s.get('games', [])}")
+            print(f"    Last Updated: {s.get('updated_at', 'unknown')}")
+            print()
+    elif args.test:
+        print(f"\n==> Broadcasting test alert to {len(subs)} registered device(s)...")
+        if not subs:
+            print("    [!] Cannot send: No devices are registered in OCI Object Storage.")
+            print("        Make sure SUBSCRIPTIONS_PAR_URL is set in .env and the user has clicked 'Watch Alerts' or 'Alert me'.")
+            sys.exit(1)
+        test_event = {
+            'type': 'goal',
+            'headline': args.title,
+            'detail': args.body,
+            'game_id': 'test'
+        }
+        sent = mgr.broadcast_events([test_event])
+        print(f"==> Result: Successfully delivered to {sent} of {len(subs)} device(s)!\n")
+    else:
+        parser.print_help()

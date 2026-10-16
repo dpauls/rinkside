@@ -364,7 +364,8 @@
 <script>
 const OCI_DATA_URL = 'https://objectstorage.ca-toronto-1.oraclecloud.com/n/yzjspjx2rhjg/b/rinkside/o/data/state.json';
 const LOCAL_DATA_URL = 'data/state.json';
-let activeDataUrl = window.RUSTIC_S3_DATA_URL || OCI_DATA_URL;
+const isLocalDev = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+let activeDataUrl = window.RUSTIC_S3_DATA_URL || (isLocalDev ? LOCAL_DATA_URL : OCI_DATA_URL);
 
 async function fetchTournamentState() {
     if (activeDataUrl && activeDataUrl !== LOCAL_DATA_URL) {
@@ -372,7 +373,7 @@ async function fetchTournamentState() {
             const resp = await fetch(activeDataUrl + '?t=' + Date.now());
             if (resp.ok) {
                 const d = await resp.json();
-                if (d.s3_public_url) activeDataUrl = d.s3_public_url;
+                if (d.s3_public_url && !isLocalDev) activeDataUrl = d.s3_public_url;
                 return d;
             }
         } catch (e) {
@@ -382,7 +383,6 @@ async function fetchTournamentState() {
     const resp = await fetch(LOCAL_DATA_URL + '?t=' + Date.now());
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
     const d = await resp.json();
-    if (d.s3_public_url) activeDataUrl = d.s3_public_url;
     return d;
 }
 
@@ -1012,7 +1012,7 @@ async function registerWebPushSubscription() {
         }
 
         if (!parUrl) {
-            console.log('Subscriptions PAR URL not yet configured in OCI; subscription active locally.');
+            console.warn('Web Push: SUBSCRIPTIONS_PAR_URL not yet configured in OCI state. Device registration skipped.');
             return;
         }
 
@@ -1030,16 +1030,25 @@ async function registerWebPushSubscription() {
             updated_at: new Date().toISOString()
         };
 
-        let uploadUrl = parUrl;
+        let uploadUrl = parUrl.trim();
         if (!uploadUrl.endsWith('/')) uploadUrl += '/';
-        uploadUrl += `subscriptions/${deviceId}.json`;
+        if (uploadUrl.endsWith('/subscriptions/')) {
+            uploadUrl += `${deviceId}.json`;
+        } else {
+            uploadUrl += `subscriptions/${deviceId}.json`;
+        }
 
-        await fetch(uploadUrl, {
+        console.log(`Web Push: Registering device ${deviceId} with OCI via PAR...`);
+        const resp = await fetch(uploadUrl, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         });
-        console.log('Successfully registered Web Push device with OCI backend');
+        if (resp.ok) {
+            console.log(`Web Push: Successfully registered device ${deviceId} with OCI Object Storage.`);
+        } else {
+            console.warn(`Web Push: OCI returned HTTP ${resp.status} on registration:`, await resp.text());
+        }
     } catch (err) {
         console.warn('Web Push registration error:', err);
     }
