@@ -10,12 +10,14 @@ usage() {
     echo "Usage:"
     echo "  ./scripts/sim-ptr.sh <0-8> [--with-llm] [--s3]"
     echo "  ./scripts/sim-ptr.sh restore [--s3]"
+    echo "  ./scripts/sim-ptr.sh live [--s3]"
     echo ""
     echo "Commands:"
     echo "  0-8        Jump directly to simulation step (0=Pre-tourney, 1=Game 1 live, 2=Game 1 final,"
     echo "             3=Game 2 live tie, 4=Game 2 final/yellow GD, 5=Game 3 live trailing, 6=Pool play tiebreaker clinch,"
     echo "             7=Semifinals final, 8=Championship final 🏆)"
-    echo "  restore    Reset all live scores, event log, and narrative back to pre-tournament baseline"
+    echo "  restore    Reset all live scores, event log, and narrative back to pre-tournament baseline (mock mode)"
+    echo "  live       Kick tracker out of test/mock mode and resume 100% LIVE OWHA/RAMP REST API polling"
     echo ""
     echo "Options:"
     echo "  --with-llm  Enable live Gemini API narrative & Coach's Corner commentary (default: skipped for speed)"
@@ -90,6 +92,40 @@ if [ "$CMD" = "restore" ]; then
     fi
 
     echo "==> Clean baseline restored successfully!"
+    exit 0
+fi
+
+if [ "$CMD" = "live" ]; then
+    echo "==> Switching Pink the Rink tracker to 100% LIVE REST API tracking mode..."
+    rm -f "$MOCK_DIR/.mock_step"
+    rm -f "$SHADOW_DATA"
+    rm -f "docs/data/.state_pink_the_rink_2026_live.json"
+
+    if [ "$USE_S3" = true ]; then
+        echo "==> Activating live REST tracker on Oracle Cloud VM..."
+        ssh -i "$HOME/.ssh/oracle_rinkside.key" -o StrictHostKeyChecking=no ubuntu@132.145.100.44 \
+            "rm -f ~/rinkside/data/tournaments/.*_live.json ~/rinkside/data/.*_live.json ~/rinkside/docs/data/.*_live.json ~/rinkside/test/mock_responses_ptr/.mock_step && \
+             cd ~/rinkside && git checkout -- data/tournaments/pink_the_rink_2026.json && \
+             docker compose restart tracker && \
+             docker exec rinkside-tracker-1 python3 src/daemon.py \
+                --tournament data/tournaments/pink_the_rink_2026.json \
+                --once \
+                $NARRATIVE_ARG \
+                --storage s3"
+
+        echo "==> Syncing live state to local docs/data/..."
+        mkdir -p docs/data
+        curl -s -f "https://objectstorage.ca-toronto-1.oraclecloud.com/n/yzjspjx2rhjg/b/rinkside/o/data/state.json" -o docs/data/state.json || true
+        curl -s -f "https://objectstorage.ca-toronto-1.oraclecloud.com/n/yzjspjx2rhjg/b/rinkside/o/data/scenarios.json" -o docs/data/scenarios.json || true
+        echo "==> Live REST mode activated! The tracker is actively polling OWHA/RAMP every 60s."
+    else
+        python3 src/daemon.py \
+            --tournament "$PTR_DATA" \
+            --once \
+            $NARRATIVE_ARG \
+            --storage "local"
+        echo "==> Live REST mode executed locally!"
+    fi
     exit 0
 fi
 
