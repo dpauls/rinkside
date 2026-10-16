@@ -96,7 +96,9 @@ class WebPushManager:
                 subscription_info=sub_info,
                 data=json.dumps(payload),
                 vapid_private_key=str(Path(self.private_key_path).resolve()),
-                vapid_claims={"sub": self.claim_email}
+                vapid_claims={"sub": self.claim_email},
+                ttl=86400,
+                headers={"Urgency": "high"}
             )
             return True
         except pywebpush.WebPushException as ex:

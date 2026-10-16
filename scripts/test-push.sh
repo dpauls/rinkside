@@ -27,8 +27,7 @@ if [ $# -lt 1 ]; then
     usage
 fi
 
-CMD_ARGS="$*"
-
+CMD_STR=$(printf '%q ' "$@")
 echo "==> Running Web Push Manager on Oracle Cloud VM..."
 ssh -i "$KEY" -o StrictHostKeyChecking=no "$HOST" \
-    "docker exec rinkside-tracker-1 python3 src/push.py $CMD_ARGS"
+    "docker exec rinkside-tracker-1 python3 src/push.py $CMD_STR"
