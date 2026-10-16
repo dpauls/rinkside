@@ -117,22 +117,11 @@ def evaluate_goalie_pull(
     p_plus_1 = by_margin.get(1, {}).get('adv_pct', 0.0)
 
     # Empty-net downside check:
-    # Does dropping from -1 to -2 margin cost us advancement?
-    if p_minus_1 > 0 and p_minus_2 < p_minus_1:
-        empty_net_downside = True
-        empty_net_warning = (
-            f"HIGH DOWNSIDE: Conceding an empty-net goal (-2 margin) drops advancement odds "
-            f"from {p_minus_1}% to {p_minus_2}%. Protect GD unless tie is mandatory."
-        )
-    else:
-        empty_net_downside = False
-        empty_net_warning = (
-            f"ZERO DOWNSIDE: Losing by 2 has the same advancement odds as losing by 1 ({p_minus_1}%). "
-            f"No GD penalty for pulling the goalie."
-        )
-
     # Situational recommendation based on current score
     diff = our_score - their_score
+
+    empty_net_downside = False
+    empty_net_warning = None
 
     if diff >= 2:
         indicator = "green"
@@ -141,27 +130,40 @@ def evaluate_goalie_pull(
     elif diff == 1:
         indicator = "green"
         recommendation = "Protect 1-Goal Lead"
-        reason = "Up by 1. Keep defensive structure. Do not pull unless opponent ties."
+        reason = "Up by 1. Keep strong defensive structure, manage the puck, and protect the lead."
     elif diff == 0:
         # Tied
         if p_zero == 100.0:
             indicator = "green"
             recommendation = "Hold the Tie"
             reason = "A tie guarantees advancement (100%). Do not take unnecessary risks."
-        elif p_zero >= 66.0:
+        elif p_zero >= 33.4:
             indicator = "green"
-            recommendation = "Play for the Tie"
-            reason = f"A tie advances {our_team_name} in {p_zero}% of scenarios. Safe to play out regulation."
+            recommendation = "Hold the Tie"
+            reason = f"A tie gives {our_team_name} a {p_zero}% advancement chance. Conceding a goal drops odds to {p_minus_1}%. Do not pull goalie."
         elif p_zero == 0.0:
             indicator = "red"
             recommendation = "Must Win — Pull Late"
             reason = f"A tie eliminates {our_team_name} (0%). You MUST win in regulation. Consider pulling goalie if tied in final 90 seconds."
         else:
             indicator = "yellow"
-            recommendation = "Tough Call"
-            reason = f"A tie offers {p_zero}% advancement chance vs {p_plus_1}% on a win. Watch other games closely."
+            recommendation = "Play It Out"
+            reason = f"A tie offers {p_zero}% advancement chance vs {p_plus_1}% on a win. Conceding drops odds to {p_minus_1}%. Play smart regulation hockey."
     elif diff == -1:
-        # Down by 1
+        # Down by 1 -- evaluate empty net downside risk
+        if p_minus_1 > 0 and p_minus_2 < p_minus_1:
+            empty_net_downside = True
+            empty_net_warning = (
+                f"HIGH DOWNSIDE: Conceding an empty-net goal (-2 margin) drops advancement odds "
+                f"from {p_minus_1}% to {p_minus_2}%. Protect GD unless tie is mandatory."
+            )
+        else:
+            empty_net_downside = False
+            empty_net_warning = (
+                f"ZERO DOWNSIDE: Losing by 2 has the same advancement odds as losing by 1 ({p_minus_1}%). "
+                f"No GD penalty for pulling the goalie."
+            )
+
         if p_zero > p_minus_1:
             if not empty_net_downside:
                 indicator = "red"
