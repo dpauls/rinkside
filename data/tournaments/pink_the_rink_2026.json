@@ -19,6 +19,11 @@
     "division_id": 25410,
     "game_type": 0
   },
+  "rankings": {
+    "source_name": "MyHockeyRankings (Ontario Girls U18C)",
+    "url": "https://myhockeyrankings.com/rank.php?y=2026&v=2025",
+    "confidence": 10
+  },
   "teams": {
     "KAN": {
       "name": "Kanata Rangers",
@@ -166,7 +171,7 @@
   "tiebreakers": {
     "source_name": "Pink the Rink XV Tournament Rules (Rule 16)",
     "source_url": "https://etobicokedolphins.ca/Public/Documents/Pink_the_Rink_XV_Tournament_RULES_2026.pdf",
-    "description": "1. Number of Wins \u2192 2. Head-to-Head (if exactly 2 teams tied; skipped if >2 teams) \u2192 3. Goal Differential (GF - GA) \u2192 4. Fewest Goals Allowed (GA) \u2192 5. Fewest Penalty Minutes (PIM) \u2192 6. Coin Toss. Rules applied in order; no reversion once used.",
+    "description": "1. Number of Wins → 2. Head-to-Head (if exactly 2 teams tied; skipped if >2 teams) → 3. Goal Differential (GF - GA) → 4. Fewest Goals Allowed (GA) → 5. Fewest Penalty Minutes (PIM) → 6. Coin Toss. Rules applied in order; no reversion once used.",
     "rules": [
       "wins",
       "head_to_head_two_way_only",
@@ -175,6 +180,32 @@
       "fewest_pim"
     ],
     "allow_reversion": false
+  },
+  "game_rules": {
+    "source_name": "Pink the Rink XV Official Tournament Rules",
+    "source_url": "https://etobicokedolphins.ca/Public/Documents/Pink_the_Rink_XV_Tournament_RULES_2026.pdf",
+    "round_robin": {
+      "title": "Round Robin Format",
+      "periods": "3 periods (10 - 10 - 12 min) stop time",
+      "warmup": "3-minute warm-up on the clock prior to game",
+      "overtime": "No overtime — games end in a tie (2 pts win, 1 pt tie, 0 pts loss)",
+      "timeouts": "No timeouts allowed during round robin play",
+      "mercy_rule": "5-goal spread in 3rd period initiates run-time clock (resumes stop-time if lead drops < 5)",
+      "jerseys": "Home team wears dark colored jerseys"
+    },
+    "elimination": {
+      "title": "Playoff / Elimination Format (Semis & Final)",
+      "periods": "3 periods (10 - 10 - 12 min) stop time",
+      "timeouts": "One 30-second timeout per team (regulation or OT)",
+      "overtime": "5-minute sudden-victory 4-on-4 (teams do not change ends; penalties carry over as 4-on-3 / 5-on-3)",
+      "shootout": "Best-of-3 simultaneous shootout from centre ice. If tied, 1-shooter sudden death. All roster skaters must shoot before any player shoots twice."
+    },
+    "consolation": {
+      "title": "Consolation Games",
+      "matchups": "Pool A 3rd vs Pool B 3rd (Consolation 1) \u00b7 Pool A 4th vs Pool B 4th (Consolation 2)",
+      "periods": "3 periods (10 - 10 - 12 min) stop time",
+      "timeouts": "One 30-second timeout per team"
+    }
   },
   "security": {
     "bench_pin": "1777"
@@ -191,11 +222,11 @@
       "away": "EOS",
       "home_name": "Ottawa Ice #2043",
       "away_name": "East Ottawa Stars #2488",
-      "home_score": 2,
-      "away_score": 1,
+      "home_score": null,
+      "away_score": null,
       "home_pim": null,
       "away_pim": null,
-      "status": "final",
+      "status": "scheduled",
       "completed": false,
       "live_scores": false
     },
@@ -210,11 +241,11 @@
       "away": "BEL",
       "home_name": "Wilmot Wolverine #4617",
       "away_name": "Belmont Blazers #5132",
-      "home_score": 1,
-      "away_score": 2,
+      "home_score": null,
+      "away_score": null,
       "home_pim": null,
       "away_pim": null,
-      "status": "final",
+      "status": "scheduled",
       "completed": false,
       "live_scores": false
     },
@@ -229,11 +260,11 @@
       "away": "MIT",
       "home_name": "Woodstock Wildcats #6893",
       "away_name": "Mitchell Meteors 7205",
-      "home_score": 3,
-      "away_score": 0,
+      "home_score": null,
+      "away_score": null,
       "home_pim": null,
       "away_pim": null,
-      "status": "final",
+      "status": "scheduled",
       "completed": false,
       "live_scores": false
     },
@@ -248,11 +279,11 @@
       "away": "KAN",
       "home_name": "Nepean Wildcats #2866",
       "away_name": "Kanata Rangers #1777",
-      "home_score": 1,
-      "away_score": 3,
+      "home_score": null,
+      "away_score": null,
       "home_pim": null,
       "away_pim": null,
-      "status": "final",
+      "status": "scheduled",
       "completed": false,
       "live_scores": false
     },
@@ -415,10 +446,10 @@
       "date": "2026-10-17T17:15:00",
       "date_str": "Sat, Oct. 17, 2026 5:15 PM",
       "arena": "Ford Performance Centre - Pad 2",
-      "home": "MIT",
-      "away": "NEP",
-      "home_name": "Mitchell Meteors 7205",
-      "away_name": "Nepean Wildcats #2866",
+      "home": "TBA",
+      "away": "TBA",
+      "home_name": "TBA",
+      "away_name": "TBA",
       "home_score": null,
       "away_score": null,
       "home_pim": null,
@@ -434,10 +465,10 @@
       "date": "2026-10-17T18:30:00",
       "date_str": "Sat, Oct. 17, 2026 6:30 PM",
       "arena": "Ford Performance Centre - Pad 2",
-      "home": "EOS",
-      "away": "WIL",
-      "home_name": "East Ottawa Stars #2488",
-      "away_name": "Wilmot Wolverine #4617",
+      "home": "TBA",
+      "away": "TBA",
+      "home_name": "TBA",
+      "away_name": "TBA",
       "home_score": null,
       "away_score": null,
       "home_pim": null,
@@ -453,10 +484,10 @@
       "date": "2026-10-17T21:00:00",
       "date_str": "Sat, Oct. 17, 2026 9:00 PM",
       "arena": "Centennial Park Arena - East",
-      "home": "WOO",
-      "away": "BEL",
-      "home_name": "Woodstock Wildcats #6893",
-      "away_name": "Belmont Blazers #5132",
+      "home": "TBA",
+      "away": "TBA",
+      "home_name": "TBA",
+      "away_name": "TBA",
       "home_score": null,
       "away_score": null,
       "home_pim": null,
@@ -472,10 +503,10 @@
       "date": "2026-10-17T21:15:00",
       "date_str": "Sat, Oct. 17, 2026 9:15 PM",
       "arena": "Centennial Park Arena - West",
-      "home": "KAN",
-      "away": "OTT",
-      "home_name": "Kanata Rangers #1777",
-      "away_name": "Ottawa Ice #2043",
+      "home": "TBA",
+      "away": "TBA",
+      "home_name": "TBA",
+      "away_name": "TBA",
       "home_score": null,
       "away_score": null,
       "home_pim": null,
@@ -504,79 +535,10 @@
       "live_scores": false
     }
   ],
-  "event_log": [
-    {
-      "time": "Thu Oct 15, 09:35 PM",
-      "type": "final",
-      "headline": "FINAL: Ottawa Ice 2 - 1 East Ottawa Stars (Game #2074766)",
-      "detail": "Following Ottawa Ice's 2-1 victory over the East Ottawa Stars, we remain atop the standings with 2 points and a +2 goal differential. This out-of-town result significantly boosted our playoff outlook, leaving us in position to advance in 65 of the 81 remaining scenarios.",
-      "game_id": 2074766
-    },
-    {
-      "time": "Thu Oct 15, 09:35 PM",
-      "type": "final",
-      "headline": "FINAL: Woodstock Wildcats 3 - 0 Mitchell Meteors (Game #2074771)",
-      "detail": "Woodstock's 3-0 victory over Mitchell worked strongly in our favor, significantly sharpening our path to the postseason. Sitting atop the standings with two points, we now advance to the playoffs in 65 of the remaining 81 tournament scenarios.",
-      "game_id": 2074771
-    },
-    {
-      "time": "Thu Oct 15, 09:35 PM",
-      "type": "final",
-      "headline": "FINAL: Wilmot Wolverine 1 - 2 Belmont Blazers (Game #2074770)",
-      "detail": "Belmont\u2019s 2-1 victory over Wilmot keeps us sitting atop Pool B and significantly boosts our postseason outlook. Following the result, we now advance to the playoffs in 65 of the 81 remaining scenarios.",
-      "game_id": 2074770
-    },
-    {
-      "time": "Thu Oct 15, 09:35 PM",
-      "type": "final",
-      "headline": "FINAL: Nepean Wildcats 1 - 3 Kanata Rangers (Game #2074775)",
-      "detail": "We secured a decisive 3\u20131 victory over the Nepean Wildcats, jumping to the top of Pool B with a +2 goal differential. This crucial win dramatically strengthens our playoff outlook, putting us in position to advance in 65 of the remaining 81 tournament scenarios.",
-      "game_id": 2074775
-    },
-    {
-      "time": "Thu Oct 15, 09:35 PM",
-      "type": "info",
-      "headline": "Pool A: Ottawa Ice 2 - 1 East Ottawa Stars (Final)",
-      "detail": "Cross-pool matchup update."
-    },
-    {
-      "time": "Thu Oct 15, 09:35 PM",
-      "type": "info",
-      "headline": "Pool A: Woodstock Wildcats 3 - 0 Mitchell Meteors (Final)",
-      "detail": "Cross-pool matchup update."
-    }
-  ],
-  "game_rules": {
-    "source_name": "Pink the Rink XV Official Tournament Rules",
-    "source_url": "https://etobicokedolphins.ca/Public/Documents/Pink_the_Rink_XV_Tournament_RULES_2026.pdf",
-    "round_robin": {
-      "title": "Round Robin Format",
-      "periods": "3 periods (10 - 10 - 12 min) stop time",
-      "warmup": "3-minute warm-up on the clock prior to game",
-      "overtime": "No overtime \u2014 games end in a tie (2 pts win, 1 pt tie, 0 pts loss)",
-      "timeouts": "No timeouts allowed during round robin play",
-      "mercy_rule": "5-goal spread in 3rd period initiates run-time clock (resumes stop-time if lead drops < 5)",
-      "jerseys": "Home team wears dark colored jerseys"
-    },
-    "elimination": {
-      "title": "Playoff / Elimination Format (Semis & Final)",
-      "periods": "3 periods (10 - 10 - 12 min) stop time",
-      "timeouts": "One 30-second timeout per team (regulation or OT)",
-      "overtime": "5-minute sudden-victory 4-on-4 (teams do not change ends; penalties carry over as 4-on-3 / 5-on-3)",
-      "shootout": "Best-of-3 simultaneous shootout from centre ice. If tied, 1-shooter sudden death. All roster skaters must shoot before any player shoots twice."
-    },
-    "consolation": {
-      "title": "Consolation Games",
-      "matchups": "Pool A 3rd vs Pool B 3rd (Consolation 1) \u00b7 Pool A 4th vs Pool B 4th (Consolation 2)",
-      "periods": "3 periods (10 - 10 - 12 min) stop time",
-      "timeouts": "One 30-second timeout per team"
-    }
-  },
-  "_narrative": "**Where We Stand**\nWe opened tournament play with a strong 3-1 victory over the Nepean Wildcats, putting us tied at the top of Pool B with two points and advancing in 65 of the 81 remaining scenarios.\n\n**Our Next Game**\nWe are back on the ice tonight, Friday, October 16 at 9:15 PM, when we face off against the Belmont Blazers.\n\n**Around the Pool**\nBelmont also claimed two points today by edging out the Wilmot Wolverine 2-1, setting up a battle for first place in our matchup tonight while Wilmot and Nepean clash later at 9:45 PM.",
+  "event_log": [],
+  "_narrative": "**Where We Stand**\nWe are at the starting line in Pool B with a clean slate of 0 points. Our path forward is clear: out of 729 possible combinations of outcomes in the pool, we advance in 309 of them.\n\n**Our Next Game**\nWe take the ice for our tournament opener against the Nepean Wildcats today, Friday, Oct 16, at 2:15 PM. Every shift matters as we look to secure our first points of the weekend.\n\n**Around the Pool**\nPool B action begins at 12:30 PM with Wilmot Wolverine facing the Belmont Blazers. We will follow that result closely as we prepare for our own debut this afternoon.",
   "_coaches_corner": {
-    "don_cherry": "I tell ya right now, I told those Kanata Rangers girls to work their socks off, and DID THEY EVER\u2014knocking off Nepean 3 to 1! Shot blocking, backchecking, protecting their tender\u2014THAT is how you play real Canadian hockey, absolute BEAUTIES! Now bring on the Belmont Blazers and keep rolling, double thumbs up!",
-    "for_game": "Belmont Blazers",
-    "talking_points": "**Mindset**  \nThat big 3-1 victory over Nepean proved what happens when we play our game, so let's carry that momentum straight onto the ice. We set a high standard in our opener\u2014now it\u2019s about keeping our foot on the gas and staying relentless from the opening draw.\n\n**The Opponent**  \nBelmont is coming off a disciplined 2-1 win against Wilmot, proving they can protect a tight lead and play solid defense. They won't give us much room to breathe, so we need to fight for inner-slot ice and crash"
-  },
-  "_tb_health": "In the 15 score-dependent scenarios, we hold a key tiebreaker advantage with our pool-leading +2 goal differential (GD) and 1 goal against (GA). Belmont is our primary rival at +1 GD and 1 GA, giving us a narrow +1 GD cushion. To guarantee advancement when tied on points, we must protect this margin by minimizing goals allowed and maximizing our scoring differential in our final game."
+    "don_cherry": "Now look at this right here\u2014those Kanata Rangers girls are ready to go! Ranked eighteen? Forget that, it\u2019s all about HEART and working your socks off! You backcheck, you protect your tender, and you play for the girl beside you\u2014BEAUTIES! Double thumbs up, let\u2019s go!",
+    "talking_points": "**Mindset**\nWe are starting this tournament with a completely clean slate, which gives us the perfect opportunity to establish our identity right from the opening whistle. Let\u2019s channel our pre-game energy into a fast start and set a high standard for how the Kanata Rangers play hockey.\n\n**The Opponent**\nThe Nepean Wildcats are a disciplined, hardworking team that will capitalize if we lose our focus or take shifts off. We need to respect their speed through the neutral zone and ensure we are winning the individual battles along the boards to take away their time and space.\n\n**What We Need**\nWith only the top seed in the pool advancing, these first two points are critical for our path to the quarterfinals. We need to play a complete team game and remain mindful of our defensive zone, as goal differential can often be the deciding factor in such a tight tournament format."
+  }
 }
