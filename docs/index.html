@@ -691,9 +691,6 @@ function toggleGameSubInternal(gid) {
     setGameSubs(subs);
     loadAndRender();
     registerWebPushSubscription();
-    if (!wasSubbed) {
-        dispatchNotification('🔔 Subscribed to Game', `You will receive live goal, game start, and final alerts for Game #${sGid}.`, `sub-${sGid}`);
-    }
 }
 
 function renderSubButton(gid, isFinal) {
@@ -1011,8 +1008,8 @@ async function registerWebPushSubscription() {
             });
         }
 
-        if (!parUrl) {
-            console.warn('Web Push: SUBSCRIPTIONS_PAR_URL not yet configured in OCI state. Device registration skipped.');
+        if (!parUrl || parUrl.includes('...')) {
+            console.warn('Web Push: SUBSCRIPTIONS_PAR_URL not configured (or contains placeholder "..."). Device registration skipped.');
             return;
         }
 
@@ -1068,9 +1065,6 @@ function toggleAlerts() {
         localStorage.setItem('rinkside_alerts_enabled', alertsEnabled ? 'true' : 'false');
         updateAlertBtn();
         registerWebPushSubscription();
-        if (alertsEnabled) {
-            dispatchNotification('🔔 Watch Alerts: ON', 'You will receive live goal, game start, and final notifications.', 'alert-test');
-        }
     } else if (Notification.permission !== 'denied') {
         Notification.requestPermission().then(permission => {
             alertsEnabled = (permission === 'granted');
@@ -1078,7 +1072,6 @@ function toggleAlerts() {
             updateAlertBtn();
             if (alertsEnabled) {
                 registerWebPushSubscription();
-                dispatchNotification('🔔 Watch Alerts: ON', 'You will receive live goal, game start, and final notifications.', 'alert-test');
             }
         });
     } else {
