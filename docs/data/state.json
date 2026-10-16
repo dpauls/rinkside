@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-15T21:51:31.282404-04:00",
+  "generated_at": "2026-10-15T22:52:10.235152-04:00",
   "tournament": {
     "id": "ptr_2026_u18c",
     "name": "Pink the Rink XV - U18C",
@@ -259,6 +259,32 @@
   ],
   "upcoming": [
     {
+      "game_id": 2074806,
+      "date": "2026-10-16T21:15:00",
+      "arena": "Cwench Centre by Canlan Sports 4",
+      "home": "KAN",
+      "away": "BEL",
+      "home_name": "Kanata Rangers",
+      "away_name": "Belmont Blazers",
+      "home_score": null,
+      "away_score": null,
+      "status": "scheduled",
+      "stream_url": null
+    },
+    {
+      "game_id": 2074808,
+      "date": "2026-10-16T21:45:00",
+      "arena": "Cwench Centre by Canlan Sports - 1",
+      "home": "WIL",
+      "away": "NEP",
+      "home_name": "Wilmot Wolverine",
+      "away_name": "Nepean Wildcats",
+      "home_score": null,
+      "away_score": null,
+      "status": "scheduled",
+      "stream_url": null
+    },
+    {
       "game_id": 2074831,
       "date": "2026-10-17T13:30:00",
       "arena": "Cwench Centre by Canlan Sports 4",
@@ -313,51 +339,24 @@
       "stream_url": null
     }
   ],
-  "live_games": [
-    {
-      "game_id": 2074806,
-      "date": "2026-10-16T21:15:00",
-      "arena": "Cwench Centre by Canlan Sports 4",
-      "home": "KAN",
-      "away": "BEL",
-      "home_name": "Kanata Rangers",
-      "away_name": "Belmont Blazers",
-      "home_score": 2,
-      "away_score": 2,
-      "status": "in_progress",
-      "stream_url": null
-    },
-    {
-      "game_id": 2074808,
-      "date": "2026-10-16T21:45:00",
-      "arena": "Cwench Centre by Canlan Sports - 1",
-      "home": "WIL",
-      "away": "NEP",
-      "home_name": "Wilmot Wolverine",
-      "away_name": "Nepean Wildcats",
-      "home_score": 2,
-      "away_score": 0,
-      "status": "in_progress",
-      "stream_url": null
-    }
-  ],
+  "live_games": [],
   "other_pool_standings": [
     {
       "id": "WOO",
       "name": "Woodstock Wildcats",
       "ranking": null,
       "is_us": false,
-      "gp": 2,
+      "gp": 1,
       "w": 1,
       "l": 0,
-      "t": 1,
-      "pts": 3,
-      "gf": 5,
-      "ga": 2,
+      "t": 0,
+      "pts": 2,
+      "gf": 3,
+      "ga": 0,
       "gd": 3,
       "status": "ALIVE",
-      "adv_count": 7,
-      "adv_pct": 77.8,
+      "adv_count": 65,
+      "adv_pct": 83.3,
       "tie_note": "Rule (goal differential): Woodstock Wildcats (+3) > Ottawa Ice (+1)"
     },
     {
@@ -365,17 +364,17 @@
       "name": "Ottawa Ice",
       "ranking": null,
       "is_us": false,
-      "gp": 2,
+      "gp": 1,
       "w": 1,
       "l": 0,
-      "t": 1,
-      "pts": 3,
-      "gf": 4,
-      "ga": 3,
+      "t": 0,
+      "pts": 2,
+      "gf": 2,
+      "ga": 1,
       "gd": 1,
       "status": "ALIVE",
-      "adv_count": 8,
-      "adv_pct": 88.9,
+      "adv_count": 63,
+      "adv_pct": 80.8,
       "tie_note": "Rule (goal differential): Woodstock Wildcats (+3) > Ottawa Ice (+1)"
     },
     {
@@ -383,39 +382,65 @@
       "name": "East Ottawa Stars",
       "ranking": null,
       "is_us": false,
-      "gp": 2,
-      "w": 1,
+      "gp": 1,
+      "w": 0,
       "l": 1,
       "t": 0,
-      "pts": 2,
-      "gf": 5,
-      "ga": 3,
-      "gd": 2,
+      "pts": 0,
+      "gf": 1,
+      "ga": 2,
+      "gd": -1,
       "status": "ALIVE",
-      "adv_count": 3,
-      "adv_pct": 33.3,
-      "tie_note": null
+      "adv_count": 15,
+      "adv_pct": 19.2,
+      "tie_note": "Rule (goal differential): East Ottawa Stars (-1) > Mitchell Meteors (-3)"
     },
     {
       "id": "MIT",
       "name": "Mitchell Meteors",
       "ranking": null,
       "is_us": false,
-      "gp": 2,
+      "gp": 1,
       "w": 0,
-      "l": 2,
+      "l": 1,
       "t": 0,
       "pts": 0,
-      "gf": 1,
-      "ga": 7,
-      "gd": -6,
-      "status": "ELIMINATED",
-      "adv_count": 0,
-      "adv_pct": 0.0,
-      "tie_note": null
+      "gf": 0,
+      "ga": 3,
+      "gd": -3,
+      "status": "ALIVE",
+      "adv_count": 13,
+      "adv_pct": 16.7,
+      "tie_note": "Rule (goal differential): East Ottawa Stars (-1) > Mitchell Meteors (-3)"
     }
   ],
   "other_pool_upcoming": [
+    {
+      "game_id": 2074798,
+      "date": "2026-10-16T20:45:00",
+      "arena": "Cwench Centre by Canlan Sports - 1",
+      "home": "WOO",
+      "away": "OTT",
+      "home_name": "Woodstock Wildcats",
+      "away_name": "Ottawa Ice",
+      "home_score": null,
+      "away_score": null,
+      "status": "scheduled",
+      "stream_url": null
+    },
+    {
+      "game_id": 2074802,
+      "date": "2026-10-16T21:00:00",
+      "arena": "Cwench Centre by Canlan Sports 2",
+      "home": "EOS",
+      "away": "MIT",
+      "home_name": "East Ottawa Stars",
+      "away_name": "Mitchell Meteors",
+      "home_score": null,
+      "away_score": null,
+      "status": "scheduled",
+      "stream_url": null
+    },
     {
       "game_id": 2074830,
       "date": "2026-10-17T13:30:00",
@@ -456,17 +481,17 @@
           "name": "Woodstock Wildcats",
           "ranking": null,
           "is_us": false,
-          "gp": 2,
+          "gp": 1,
           "w": 1,
           "l": 0,
-          "t": 1,
-          "pts": 3,
-          "gf": 5,
-          "ga": 2,
+          "t": 0,
+          "pts": 2,
+          "gf": 3,
+          "ga": 0,
           "gd": 3,
           "status": "ALIVE",
-          "adv_count": 7,
-          "adv_pct": 77.8,
+          "adv_count": 65,
+          "adv_pct": 83.3,
           "tie_note": "Rule (goal differential): Woodstock Wildcats (+3) > Ottawa Ice (+1)"
         },
         {
@@ -474,17 +499,17 @@
           "name": "Ottawa Ice",
           "ranking": null,
           "is_us": false,
-          "gp": 2,
+          "gp": 1,
           "w": 1,
           "l": 0,
-          "t": 1,
-          "pts": 3,
-          "gf": 4,
-          "ga": 3,
+          "t": 0,
+          "pts": 2,
+          "gf": 2,
+          "ga": 1,
           "gd": 1,
           "status": "ALIVE",
-          "adv_count": 8,
-          "adv_pct": 88.9,
+          "adv_count": 63,
+          "adv_pct": 80.8,
           "tie_note": "Rule (goal differential): Woodstock Wildcats (+3) > Ottawa Ice (+1)"
         },
         {
@@ -492,39 +517,65 @@
           "name": "East Ottawa Stars",
           "ranking": null,
           "is_us": false,
-          "gp": 2,
-          "w": 1,
+          "gp": 1,
+          "w": 0,
           "l": 1,
           "t": 0,
-          "pts": 2,
-          "gf": 5,
-          "ga": 3,
-          "gd": 2,
+          "pts": 0,
+          "gf": 1,
+          "ga": 2,
+          "gd": -1,
           "status": "ALIVE",
-          "adv_count": 3,
-          "adv_pct": 33.3,
-          "tie_note": null
+          "adv_count": 15,
+          "adv_pct": 19.2,
+          "tie_note": "Rule (goal differential): East Ottawa Stars (-1) > Mitchell Meteors (-3)"
         },
         {
           "id": "MIT",
           "name": "Mitchell Meteors",
           "ranking": null,
           "is_us": false,
-          "gp": 2,
+          "gp": 1,
           "w": 0,
-          "l": 2,
+          "l": 1,
           "t": 0,
           "pts": 0,
-          "gf": 1,
-          "ga": 7,
-          "gd": -6,
-          "status": "ELIMINATED",
-          "adv_count": 0,
-          "adv_pct": 0.0,
-          "tie_note": null
+          "gf": 0,
+          "ga": 3,
+          "gd": -3,
+          "status": "ALIVE",
+          "adv_count": 13,
+          "adv_pct": 16.7,
+          "tie_note": "Rule (goal differential): East Ottawa Stars (-1) > Mitchell Meteors (-3)"
         }
       ],
       "upcoming": [
+        {
+          "game_id": 2074798,
+          "date": "2026-10-16T20:45:00",
+          "arena": "Cwench Centre by Canlan Sports - 1",
+          "home": "WOO",
+          "away": "OTT",
+          "home_name": "Woodstock Wildcats",
+          "away_name": "Ottawa Ice",
+          "home_score": null,
+          "away_score": null,
+          "status": "scheduled",
+          "stream_url": null
+        },
+        {
+          "game_id": 2074802,
+          "date": "2026-10-16T21:00:00",
+          "arena": "Cwench Centre by Canlan Sports 2",
+          "home": "EOS",
+          "away": "MIT",
+          "home_name": "East Ottawa Stars",
+          "away_name": "Mitchell Meteors",
+          "home_score": null,
+          "away_score": null,
+          "status": "scheduled",
+          "stream_url": null
+        },
         {
           "game_id": 2074830,
           "date": "2026-10-17T13:30:00",
@@ -553,32 +604,6 @@
         }
       ],
       "completed": [
-        {
-          "game_id": 2074802,
-          "date": "2026-10-16T21:00:00",
-          "arena": "Cwench Centre by Canlan Sports 2",
-          "home": "EOS",
-          "away": "MIT",
-          "home_name": "East Ottawa Stars",
-          "away_name": "Mitchell Meteors",
-          "home_score": 4,
-          "away_score": 1,
-          "status": "final",
-          "stream_url": null
-        },
-        {
-          "game_id": 2074798,
-          "date": "2026-10-16T20:45:00",
-          "arena": "Cwench Centre by Canlan Sports - 1",
-          "home": "WOO",
-          "away": "OTT",
-          "home_name": "Woodstock Wildcats",
-          "away_name": "Ottawa Ice",
-          "home_score": 2,
-          "away_score": 2,
-          "status": "final",
-          "stream_url": null
-        },
         {
           "game_id": 2074771,
           "date": "2026-10-16T13:00:00",
@@ -690,6 +715,32 @@
       ],
       "upcoming": [
         {
+          "game_id": 2074806,
+          "date": "2026-10-16T21:15:00",
+          "arena": "Cwench Centre by Canlan Sports 4",
+          "home": "KAN",
+          "away": "BEL",
+          "home_name": "Kanata Rangers",
+          "away_name": "Belmont Blazers",
+          "home_score": null,
+          "away_score": null,
+          "status": "scheduled",
+          "stream_url": null
+        },
+        {
+          "game_id": 2074808,
+          "date": "2026-10-16T21:45:00",
+          "arena": "Cwench Centre by Canlan Sports - 1",
+          "home": "WIL",
+          "away": "NEP",
+          "home_name": "Wilmot Wolverine",
+          "away_name": "Nepean Wildcats",
+          "home_score": null,
+          "away_score": null,
+          "status": "scheduled",
+          "stream_url": null
+        },
+        {
           "game_id": 2074831,
           "date": "2026-10-17T13:30:00",
           "arena": "Cwench Centre by Canlan Sports 4",
@@ -744,34 +795,7 @@
           "stream_url": null
         }
       ],
-      "live_games": [
-        {
-          "game_id": 2074806,
-          "date": "2026-10-16T21:15:00",
-          "arena": "Cwench Centre by Canlan Sports 4",
-          "home": "KAN",
-          "away": "BEL",
-          "home_name": "Kanata Rangers",
-          "away_name": "Belmont Blazers",
-          "home_score": 2,
-          "away_score": 2,
-          "status": "in_progress",
-          "stream_url": null
-        },
-        {
-          "game_id": 2074808,
-          "date": "2026-10-16T21:45:00",
-          "arena": "Cwench Centre by Canlan Sports - 1",
-          "home": "WIL",
-          "away": "NEP",
-          "home_name": "Wilmot Wolverine",
-          "away_name": "Nepean Wildcats",
-          "home_score": 2,
-          "away_score": 0,
-          "status": "in_progress",
-          "stream_url": null
-        }
-      ]
+      "live_games": []
     }
   },
   "all_division_games": [
@@ -840,9 +864,9 @@
       "away": "OTT",
       "home_name": "Woodstock Wildcats",
       "away_name": "Ottawa Ice",
-      "home_score": 2,
-      "away_score": 2,
-      "status": "final",
+      "home_score": null,
+      "away_score": null,
+      "status": "scheduled",
       "stream_url": null
     },
     {
@@ -854,9 +878,9 @@
       "away": "MIT",
       "home_name": "East Ottawa Stars",
       "away_name": "Mitchell Meteors",
-      "home_score": 4,
-      "away_score": 1,
-      "status": "final",
+      "home_score": null,
+      "away_score": null,
+      "status": "scheduled",
       "stream_url": null
     },
     {
@@ -868,9 +892,9 @@
       "away": "BEL",
       "home_name": "Kanata Rangers",
       "away_name": "Belmont Blazers",
-      "home_score": 2,
-      "away_score": 2,
-      "status": "in_progress",
+      "home_score": null,
+      "away_score": null,
+      "status": "scheduled",
       "stream_url": null
     },
     {
@@ -882,9 +906,9 @@
       "away": "NEP",
       "home_name": "Wilmot Wolverine",
       "away_name": "Nepean Wildcats",
-      "home_score": 2,
-      "away_score": 0,
-      "status": "in_progress",
+      "home_score": null,
+      "away_score": null,
+      "status": "scheduled",
       "stream_url": null
     },
     {
@@ -1080,11 +1104,11 @@
       {
         "game": "Consolation 2",
         "home": {
-          "id": "MIT",
-          "name": "Mitchell Meteors",
+          "id": null,
+          "name": "4 in Pool A",
           "placeholder": "4 in Pool A",
-          "resolved": true,
-          "status": "clinched"
+          "resolved": false,
+          "status": "tbd"
         },
         "away": {
           "id": null,
@@ -1093,7 +1117,7 @@
           "resolved": false,
           "status": "tbd"
         },
-        "status": "partial",
+        "status": "tbd",
         "is_official": false
       }
     ],
@@ -1131,9 +1155,7 @@
     ],
     "allow_reversion": false
   },
-  "clinch_watch": [
-    "Mitchell Meteors is mathematically eliminated from Semifinal contention."
-  ],
+  "clinch_watch": [],
   "clinches": {
     "B": {
       "is_final": false,
@@ -1172,218 +1194,90 @@
     },
     "A": {
       "is_final": false,
-      "clinched_positions": {
-        "3": "MIT"
-      },
+      "clinched_positions": {},
       "team_status": {
         "EOS": {
           "clinched_first": false,
           "clinched_playoff": false,
           "eliminated": false,
-          "adv_pct": 33.3,
-          "first_pct": 22.2
+          "adv_pct": 21.0,
+          "first_pct": 4.9
         },
         "WOO": {
           "clinched_first": false,
           "clinched_playoff": false,
           "eliminated": false,
-          "adv_pct": 77.8,
-          "first_pct": 55.6
+          "adv_pct": 84.0,
+          "first_pct": 50.6
         },
         "OTT": {
           "clinched_first": false,
           "clinched_playoff": false,
           "eliminated": false,
-          "adv_pct": 88.9,
-          "first_pct": 22.2
+          "adv_pct": 77.8,
+          "first_pct": 39.5
         },
         "MIT": {
           "clinched_first": false,
           "clinched_playoff": false,
-          "eliminated": true,
-          "adv_pct": 0.0,
-          "first_pct": 0.0
+          "eliminated": false,
+          "adv_pct": 17.3,
+          "first_pct": 4.9
         }
       },
-      "alerts": [
-        "Mitchell Meteors is mathematically eliminated from Semifinal contention."
-      ]
+      "alerts": []
     }
   },
-  "bench": {
-    "our_game": {
-      "home": "KAN",
-      "away": "BEL",
-      "home_name": "Kanata Rangers",
-      "away_name": "Belmont Blazers",
-      "home_score": 2,
-      "away_score": 2,
-      "our_score": 2,
-      "their_score": 2
-    },
-    "other_game": {
-      "home": "Wilmot Wolverine",
-      "away": "Nepean Wildcats",
-      "home_score": 2,
-      "away_score": 0,
-      "margin": 2
-    },
-    "matrix": [
-      {
-        "margin": -3,
-        "label": "Lose by 3 (-3)",
-        "sim_score": "2-5",
-        "adv_count": 3,
-        "total": 9,
-        "adv_pct": 33.3,
-        "status": "POSSIBLE"
-      },
-      {
-        "margin": -2,
-        "label": "Lose by 2 (-2)",
-        "sim_score": "2-4",
-        "adv_count": 3,
-        "total": 9,
-        "adv_pct": 33.3,
-        "status": "POSSIBLE"
-      },
-      {
-        "margin": -1,
-        "label": "Lose by 1 (-1)",
-        "sim_score": "2-3",
-        "adv_count": 3,
-        "total": 9,
-        "adv_pct": 33.3,
-        "status": "POSSIBLE"
-      },
-      {
-        "margin": 0,
-        "label": "Tie (0)",
-        "sim_score": "2-2",
-        "adv_count": 7,
-        "total": 9,
-        "adv_pct": 77.8,
-        "status": "HIGH"
-      },
-      {
-        "margin": 1,
-        "label": "Win by 1 (+1)",
-        "sim_score": "3-2",
-        "adv_count": 9,
-        "total": 9,
-        "adv_pct": 100.0,
-        "status": "CLINCH"
-      },
-      {
-        "margin": 2,
-        "label": "Win by 2 (+2)",
-        "sim_score": "4-2",
-        "adv_count": 9,
-        "total": 9,
-        "adv_pct": 100.0,
-        "status": "CLINCH"
-      },
-      {
-        "margin": 3,
-        "label": "Win by 3 (+3)",
-        "sim_score": "5-2",
-        "adv_count": 9,
-        "total": 9,
-        "adv_pct": 100.0,
-        "status": "CLINCH"
-      }
-    ],
-    "indicator": "green",
-    "recommendation": "Hold the Tie",
-    "reason": "A tie gives Kanata Rangers a 77.8% advancement chance. Conceding a goal drops odds to 33.3%. Do not pull goalie.",
-    "empty_net_downside": false,
-    "empty_net_warning": null
-  },
+  "bench": null,
   "event_log": [
     {
-      "time": "Thu Oct 15, 09:51 PM",
+      "time": "Thu Oct 15, 09:35 PM",
       "type": "final",
       "headline": "FINAL: Ottawa Ice 2 - 1 East Ottawa Stars (Game #2074766)",
-      "detail": null,
+      "detail": "Following Ottawa Ice's 2-1 victory over the East Ottawa Stars, we remain atop the standings with 2 points and a +2 goal differential. This out-of-town result significantly boosted our playoff outlook, leaving us in position to advance in 65 of the 81 remaining scenarios.",
       "game_id": 2074766
     },
     {
-      "time": "Thu Oct 15, 09:51 PM",
+      "time": "Thu Oct 15, 09:35 PM",
       "type": "final",
       "headline": "FINAL: Woodstock Wildcats 3 - 0 Mitchell Meteors (Game #2074771)",
-      "detail": null,
+      "detail": "Woodstock's 3-0 victory over Mitchell worked strongly in our favor, significantly sharpening our path to the postseason. Sitting atop the standings with two points, we now advance to the playoffs in 65 of the remaining 81 tournament scenarios.",
       "game_id": 2074771
     },
     {
-      "time": "Thu Oct 15, 09:51 PM",
-      "type": "final",
-      "headline": "FINAL: Woodstock Wildcats 2 - 2 Ottawa Ice (Game #2074798)",
-      "detail": null,
-      "game_id": 2074798
-    },
-    {
-      "time": "Thu Oct 15, 09:51 PM",
-      "type": "final",
-      "headline": "FINAL: East Ottawa Stars 4 - 1 Mitchell Meteors (Game #2074802)",
-      "detail": null,
-      "game_id": 2074802
-    },
-    {
-      "time": "Thu Oct 15, 09:51 PM",
+      "time": "Thu Oct 15, 09:35 PM",
       "type": "final",
       "headline": "FINAL: Wilmot Wolverine 1 - 2 Belmont Blazers (Game #2074770)",
-      "detail": null,
+      "detail": "Belmont\u2019s 2-1 victory over Wilmot keeps us sitting atop Pool B and significantly boosts our postseason outlook. Following the result, we now advance to the playoffs in 65 of the 81 remaining scenarios.",
       "game_id": 2074770
     },
     {
-      "time": "Thu Oct 15, 09:51 PM",
+      "time": "Thu Oct 15, 09:35 PM",
       "type": "final",
       "headline": "FINAL: Nepean Wildcats 1 - 3 Kanata Rangers (Game #2074775)",
-      "detail": null,
+      "detail": "We secured a decisive 3\u20131 victory over the Nepean Wildcats, jumping to the top of Pool B with a +2 goal differential. This crucial win dramatically strengthens our playoff outlook, putting us in position to advance in 65 of the remaining 81 tournament scenarios.",
       "game_id": 2074775
     },
     {
-      "time": "Thu Oct 15, 09:51 PM",
-      "type": "info",
-      "headline": "GAME STARTED: Kanata Rangers vs Belmont Blazers (Game #2074806)",
-      "detail": null,
-      "game_id": 2074806
-    },
-    {
-      "time": "Thu Oct 15, 09:51 PM",
-      "type": "info",
-      "headline": "GAME STARTED: Wilmot Wolverine vs Nepean Wildcats (Game #2074808)",
-      "detail": null,
-      "game_id": 2074808
-    },
-    {
-      "time": "Thu Oct 15, 09:51 PM",
+      "time": "Thu Oct 15, 09:35 PM",
       "type": "info",
       "headline": "Pool A: Ottawa Ice 2 - 1 East Ottawa Stars (Final)",
       "detail": "Cross-pool matchup update."
     },
     {
-      "time": "Thu Oct 15, 09:51 PM",
+      "time": "Thu Oct 15, 09:35 PM",
       "type": "info",
       "headline": "Pool A: Woodstock Wildcats 3 - 0 Mitchell Meteors (Final)",
       "detail": "Cross-pool matchup update."
-    },
-    {
-      "time": "Thu Oct 15, 09:51 PM",
-      "type": "info",
-      "headline": "Pool A: Woodstock Wildcats 2 - 2 Ottawa Ice (Final)",
-      "detail": "Cross-pool matchup update."
-    },
-    {
-      "time": "Thu Oct 15, 09:51 PM",
-      "type": "info",
-      "headline": "Pool A: East Ottawa Stars 4 - 1 Mitchell Meteors (Final)",
-      "detail": "Cross-pool matchup update."
     }
   ],
-  "narrative": null,
-  "coaches_corner": null,
-  "tiebreaker_health": null,
+  "narrative": "**Where We Stand**\nWe opened tournament play with a strong 3-1 victory over the Nepean Wildcats, putting us tied at the top of Pool B with two points and advancing in 65 of the 81 remaining scenarios.\n\n**Our Next Game**\nWe are back on the ice tonight, Friday, October 16 at 9:15 PM, when we face off against the Belmont Blazers.\n\n**Around the Pool**\nBelmont also claimed two points today by edging out the Wilmot Wolverine 2-1, setting up a battle for first place in our matchup tonight while Wilmot and Nepean clash later at 9:45 PM.",
+  "coaches_corner": {
+    "don_cherry": "I tell ya right now, I told those Kanata Rangers girls to work their socks off, and DID THEY EVER\u2014knocking off Nepean 3 to 1! Shot blocking, backchecking, protecting their tender\u2014THAT is how you play real Canadian hockey, absolute BEAUTIES! Now bring on the Belmont Blazers and keep rolling, double thumbs up!",
+    "for_game": "Belmont Blazers",
+    "talking_points": "**Mindset**  \nThat big 3-1 victory over Nepean proved what happens when we play our game, so let's carry that momentum straight onto the ice. We set a high standard in our opener\u2014now it\u2019s about keeping our foot on the gas and staying relentless from the opening draw.\n\n**The Opponent**  \nBelmont is coming off a disciplined 2-1 win against Wilmot, proving they can protect a tight lead and play solid defense. They won't give us much room to breathe, so we need to fight for inner-slot ice and crash"
+  },
+  "tiebreaker_health": "In the 15 score-dependent scenarios, we hold a key tiebreaker advantage with our pool-leading +2 goal differential (GD) and 1 goal against (GA). Belmont is our primary rival at +1 GD and 1 GA, giving us a narrow +1 GD cushion. To guarantee advancement when tied on points, we must protect this margin by minimizing goals allowed and maximizing our scoring differential in our final game.",
   "scouting": null,
   "game_rules": {
     "source_name": "Pink the Rink XV Official Tournament Rules",
@@ -1415,14 +1309,18 @@
     "salt": "ptr_2026_u18c",
     "coach_pin_hash": "1f6210e77cd6c32039fbdef926d3511b3646141cd3fefa8cbadc94df39bc030d",
     "admin_pin_hash": "fcf6cb247c782bdb229320af84e0db1996d85efd8d400ceee04368a2c133b365",
-    "streams_par_url": "https://objectstorage.ca-toronto-1.oraclecloud.com/p/qXR-UESPT4L7mMtgW1iKUVHnuKFNr4YDSlW1zdHDe403ZInr6PUnLny2nm8vYuO3/n/yzjspjx2rhjg/b/rinkside/o/data/streams.json"
+    "streams_par_url": "https://objectstorage.ca-toronto-1.oraclecloud.com/p/qXR-UESPT4L7mMtgW1iKUVHnuKFNr4YDSlW1zdHDe403ZInr6PUnLny2nm8vYuO3/n/yzjspjx2rhjg/b/rinkside/o/data/streams.json",
+    "subscriptions_par_url": "https://objectstorage.ca-toronto-1.oraclecloud.com/p/.../n/yzjspjx2rhjg/b/rinkside/o/",
+    "vapid_public_key": "BMHZQb_FrawdIMHMPgbeJ80lwbKy92tshW_QC8ba5_tP-sK7yArf7N9AufQpM53Iyad5Y8i5C8v2yHL_Pm-wlkI"
   },
   "s3_public_url": "https://objectstorage.ca-toronto-1.oraclecloud.com/n/yzjspjx2rhjg/b/rinkside/o/data/state.json",
   "s3_scenarios_url": "https://objectstorage.ca-toronto-1.oraclecloud.com/n/yzjspjx2rhjg/b/rinkside/o/data/scenarios.json",
+  "subscriptions_par_url": "https://objectstorage.ca-toronto-1.oraclecloud.com/p/.../n/yzjspjx2rhjg/b/rinkside/o/",
+  "vapid_public_key": "BMHZQb_FrawdIMHMPgbeJ80lwbKy92tshW_QC8ba5_tP-sK7yArf7N9AufQpM53Iyad5Y8i5C8v2yHL_Pm-wlkI",
   "trigger_event": {
-    "time": "Thu Oct 15, 09:51 PM",
+    "time": "Thu Oct 15, 09:35 PM",
     "type": "info",
-    "headline": "Pool A: East Ottawa Stars 4 - 1 Mitchell Meteors (Final)",
+    "headline": "Pool A: Woodstock Wildcats 3 - 0 Mitchell Meteors (Final)",
     "detail": "Cross-pool matchup update."
   }
 }
