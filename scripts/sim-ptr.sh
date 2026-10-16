@@ -107,10 +107,12 @@ if [ "$CMD" = "restore" ]; then
 fi
 
 if [ "$CMD" = "live" ]; then
-    echo "==> Switching Pink the Rink tracker to 100% LIVE REST API tracking mode..."
+    echo "==> Switching Pink the Rink tracker to 100% LIVE REST API tracking mode (with Gemini AI & Coach's Corner)..."
     rm -f "$MOCK_DIR/.mock_step"
     rm -f "$SHADOW_DATA"
     rm -f "docs/data/.state_pink_the_rink_2026_live.json"
+    # Live production mode implies live AI narrative & Coach's Corner
+    NARRATIVE_ARG=""
 
     if [ "$USE_S3" = true ]; then
         echo "==> Activating live REST tracker on Oracle Cloud VM..."
