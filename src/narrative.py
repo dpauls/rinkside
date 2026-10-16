@@ -585,7 +585,7 @@ def generate_don_cherry(context, our_team_name='Kanata Rangers', tournament_name
 === YOUR PREVIOUS COACH'S CORNER SEGMENT ===
 {prev_don_cherry}
 === END PREVIOUS SEGMENT ===
-CONTINUITY RULE: Build on your ongoing tournament storyline where natural (e.g., following up on what you told the kids before the game), and MUST use a DIFFERENT opening phrase than your previous segment above!
+CONTINUITY RULE: Build on the ongoing tournament narrative where natural, but respect whether the game is upcoming, in-progress, or completed. MUST use a DIFFERENT opening phrase than your previous segment above!
 """
 
     prompt = f"""You are Don Cherry from Coach's Corner on Hockey Night in Canada, commenting on the {our_team_name} girls minor hockey team (Under-18 C division) competing at {tournament_name}.

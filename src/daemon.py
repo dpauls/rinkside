@@ -744,10 +744,11 @@ def run_cycle(tournament_data, mock_source=None, skip_narrative=False, skip_push
                 current_for_game = None
 
         prev_for_game = coaches_corner.get('for_game')
+        has_corner_content = bool(coaches_corner.get('don_cherry') and coaches_corner.get('talking_points'))
         should_regen_corner = (
             current_for_game is not None and
             current_for_game != prev_for_game and
-            (has_any_final or not prev_for_game)  # regen on finals or if no content yet
+            (has_any_final or not has_corner_content)  # only regen on finals or if content missing
         )
 
         if should_regen_corner:
@@ -779,7 +780,24 @@ def run_cycle(tournament_data, mock_source=None, skip_narrative=False, skip_push
                 cherry_context = (f"Playoff hockey at {t_name}! Next up: {current_for_game}. "
                                   f"Recent results: {', '.join(recent_results[-3:])}.")
             else:
-                cherry_context = f"Tournament state: {', '.join(recent_results[-3:])}. Next: {current_for_game}. ({adv_desc})"
+                our_completed = [
+                    g for g in tournament_data.get('pool_games', [])
+                    if g.get('status') == 'final' and (g.get('home') == our_team or g.get('away') == our_team)
+                ]
+                if our_live:
+                    cherry_context = (
+                        f"LIVE GAME IN PROGRESS: We ({our_team_name}) are currently playing against the {current_for_game}! "
+                        f"Deliver high-energy commentary on this live battle!"
+                    )
+                elif not our_completed:
+                    cherry_context = (
+                        f"PRE-TOURNAMENT OPENER: We ({our_team_name}) have NOT played any games yet. "
+                        f"We are gearing up for our tournament opener (Game 1 of 3 in Pool B) against our rivals, the {current_for_game}! "
+                        f"The game has not started yet (puck drops at 2:15 PM). "
+                        f"Get the kids pumped up for the opening game, emphasize work ethic, and wish them luck! ({adv_desc})"
+                    )
+                else:
+                    cherry_context = f"Tournament state: {', '.join(recent_results[-3:])}. Next: {current_for_game}. ({adv_desc})"
             don_cherry = generate_don_cherry(
                 cherry_context, our_team_name,
                 tournament_name=t_name, prev_don_cherry=prev_cherry)
