@@ -552,18 +552,6 @@ def run_cycle(tournament_data, mock_source=None, skip_narrative=False, skip_push
     events, curr_scenarios = process_changes(
         all_changes, tournament_data, prev_scenarios, skip_narrative)
 
-    # Add external pool final results to event log (finals only, no in-game updates)
-    teams = tournament_data['teams']
-    for change in all_changes:
-        if change['type'] == 'game_final':
-            g = change['curr']
-            g_pool = tournament_data['teams'].get(g['home'], {}).get('pool')
-            if g_pool and g_pool != our_pool:
-                home_name = teams.get(g['home'], {}).get('name', g['home'])
-                away_name = teams.get(g['away'], {}).get('name', g['away'])
-                headline = f"Pool {g_pool}: {home_name} {g['home_score']} - {g['away_score']} {away_name} (Final)"
-                events.append(create_event('final', headline, 'Cross-pool matchup update.', game_id=g.get('game_id')))
-
     # Add events to log
     tournament_data.setdefault('event_log', []).extend(events)
 
