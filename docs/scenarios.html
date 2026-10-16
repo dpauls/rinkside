@@ -275,7 +275,7 @@ function renderTable(sc, ourTeam) {
     games.forEach(g => {
         thead += `<th>${esc(g.home)}<br>v<br>${esc(g.away)}</th>`;
     });
-    thead += '<th>Pool Winner</th><th>How</th></tr>';
+    thead += '<th>Advancing (Top 2)</th><th>How</th></tr>';
 
     let tbody = '';
     let visibleCount = 0;

@@ -256,7 +256,7 @@ def detect_changes(prev_games, curr_games):
             continue
 
         # Game started
-        if prev['status'] == 'scheduled' and g['status'] in ('in_progress', 'final'):
+        if prev['status'] == 'scheduled' and g['status'] == 'in_progress':
             changes.append({
                 'type': 'game_started',
                 'game_id': gid,
@@ -272,7 +272,7 @@ def detect_changes(prev_games, curr_games):
                     'prev': prev,
                     'curr': g,
                 })
-        # Game completed
+        # Game completed (either from in_progress or directly from scheduled)
         elif prev['status'] != 'final' and g['status'] == 'final':
             changes.append({
                 'type': 'game_final',

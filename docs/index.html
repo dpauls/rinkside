@@ -919,14 +919,14 @@ function handleEventAlerts(events, ourTeam) {
 
         newEvents.forEach(e => {
             if (e.type === 'goal' || e.type === 'final') {
-                const isSubbed = subs.some(gid => e.headline && e.headline.includes(String(gid)));
+                const isSubbed = subs.some(gid => (e.game_id && String(e.game_id) === String(gid)) || (e.headline && e.headline.includes(String(gid))));
 
                 if (isSubbed || alertsEnabled) {
                     if ('vibrate' in navigator) navigator.vibrate([200, 100, 200]);
                     if ('Notification' in window && Notification.permission === 'granted') {
                         new Notification(e.headline, {
                             body: e.detail || 'Tournament tracker update',
-                            icon: 'https://cloud.rampinteractive.com/kanatagirlshockeyassociation/css/img/assocLogo.svg',
+                            icon: 'images/icon-192.png',
                             silent: true
                         });
                     }

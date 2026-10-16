@@ -163,171 +163,26 @@ def mark_game_final():
     _last_final_time = datetime.now()
 
 
-def compute_bench_analysis(tournament_data, our_team, our_pool):
-    """Compute goalie-pull analysis for bench.html.
-
-    Runs what-if projections for our current game's three outcomes
-    (win/tie/loss), factoring in concurrent game state.
-    Returns data for bench.html to render.
-    """
-    from analyze import what_if_projection, get_remaining_games
-    teams = tournament_data['teams']
-    games = tournament_data['pool_games']
-
-    # Find our in-progress game
-    our_game = None
-    other_live = None
-    for g in games:
-        if g.get('pool') != our_pool or g.get('status') != 'in_progress':
-            continue
-        if g['home'] == our_team or g['away'] == our_team:
-            our_game = g
-        else:
-            other_live = g
-
-    if not our_game:
-        return None
-
-    we_are_home = our_game['home'] == our_team
-    our_score = (our_game.get('home_score') or 0) if we_are_home else (our_game.get('away_score') or 0)
-    their_score = (our_game.get('away_score') or 0) if we_are_home else (our_game.get('home_score') or 0)
-    opp_id = our_game['away'] if we_are_home else our_game['home']
-    opp_name = teams.get(opp_id, {}).get('name', opp_id)
-
-    # What-if: assume our game ends as win, tie, or loss
-    # Use current score +1 for winner to simulate a realistic final
-    results = {}
-    for outcome, label in [(0, 'win'), (1, 'tie'), (2, 'loss')]:
-        if outcome == 0:  # we win
-            hs = max(our_score, their_score) + 1 if we_are_home else their_score
-            as_ = their_score if we_are_home else max(our_score, their_score) + 1
-            if we_are_home:
-                hs = max(our_score + 1, their_score + 1)
-                as_ = their_score
-            else:
-                hs = their_score
-                as_ = max(our_score + 1, their_score + 1)
-        elif outcome == 1:  # tie
-            tied = max(our_score, their_score)
-            hs = tied
-            as_ = tied
-        else:  # we lose
-            if we_are_home:
-                hs = our_score
-                as_ = max(our_score + 1, their_score + 1)
-            else:
-                hs = max(our_score + 1, their_score + 1)
-                as_ = our_score
-
-        assumed = [{'game_id': our_game['game_id'], 'home_score': hs, 'away_score': as_}]
-
-        # Also assume concurrent game holds at current score if in progress
-        if other_live and other_live.get('home_score') is not None:
-            assumed.append({
-                'game_id': other_live['game_id'],
-                'home_score': other_live.get('home_score', 0),
-                'away_score': other_live.get('away_score', 0),
-            })
-
-        try:
-            proj = what_if_projection(our_pool, tournament_data, assumed)
-            adv_count = proj['counts'].get(our_team, 0)
-            det = proj['total'] - proj.get('unresolved_count', 0)
-            results[label] = {
-                'advance': adv_count,
-                'total': det,
-                'advance_any': adv_count > 0,  # can we advance at all?
-            }
-        except Exception as e:
-            log.error(f'Bench projection error ({label}): {e}')
-            results[label] = {'advance': 0, 'total': 0, 'advance_any': False}
-
-    # Determine the indicator color
-    tie_advances = results['tie']['advance_any']
-    tie_count = results['tie']['advance']
-    tie_total = results['tie']['total']
-    win_count = results['win']['advance']
-
-    # Factor in concurrent game
-    other_info = None
-    if other_live:
-        oh = other_live.get('home_score', 0) or 0
-        oa = other_live.get('away_score', 0) or 0
-        other_home_name = teams.get(other_live['home'], {}).get('name', other_live['home'])
-        other_away_name = teams.get(other_live['away'], {}).get('name', other_live['away'])
-        margin = abs(oh - oa)
-        other_info = {
-            'home': other_home_name, 'away': other_away_name,
-            'home_score': oh, 'away_score': oa,
-            'margin': margin,
-        }
-
-    if not tie_advances:
-        indicator = 'red'
-        reason = 'A tie eliminates us regardless of other results. We must win.'
-    elif tie_total > 0 and tie_count == tie_total:
-        indicator = 'green'
-        reason = 'A tie guarantees we advance. No need to take risks.'
-    elif tie_total > 0 and tie_count / tie_total > 0.7:
-        indicator = 'green'
-        reason = f'A tie advances us in {tie_count} of {tie_total} remaining scenarios. Safe to play it out.'
-    else:
-        # Yellow: this is the nuanced case. Get LLM commentary.
-        indicator = 'yellow'
-
-        # Build rich context for LLM
-        from generate import build_standings
-        our_analysis = enumerate_scenarios(our_pool, tournament_data)
-        standings = build_standings(our_pool, tournament_data, our_analysis)
-        standings_summary = ', '.join(
-            f"{s['name'].split('#')[0].strip()} {s['pts']}pts ({s['w']}W-{s['l']}L-{s['t']}T, GD{'+' if s['gd']>0 else ''}{s['gd']})"
-            for s in standings
-        )
-
-        # Tiebreaker state: current GD, GA for teams near us
-        tb_lines = []
-        for s in standings:
-            tb_lines.append(f"  {s['name'].split('#')[0].strip()}: GD={'+' if s['gd']>0 else ''}{s['gd']}, GA={s['ga']}")
-        tiebreaker_state = '\n'.join(tb_lines)
-
-        from narrative import generate_bench_commentary
-        llm_reason = generate_bench_commentary(
-            teams[our_team]['name'], our_score, their_score, opp_name,
-            results, other_info, standings_summary, tiebreaker_state)
-
-        if llm_reason:
-            reason = llm_reason
-        elif tie_total > 0 and tie_count / tie_total > 0.3:
-            reason = f'A tie advances us in {tie_count} of {tie_total} scenarios. It depends on other results.'
-        else:
-            reason = (f'A tie only advances us in {tie_count} of {tie_total} scenarios. '
-                     f'A win is much better ({win_count} of {results["win"]["total"]}). Consider pulling late.')
-
-    return {
-        'our_game': {
-            'home': our_game['home'], 'away': our_game['away'],
-            'home_name': teams.get(our_game['home'], {}).get('name', our_game['home']),
-            'away_name': teams.get(our_game['away'], {}).get('name', our_game['away']),
-            'home_score': our_game.get('home_score', 0),
-            'away_score': our_game.get('away_score', 0),
-        },
-        'other_game': other_info,
-        'projections': results,
-        'indicator': indicator,
-        'reason': reason,
-    }
-
-
-def update_tournament_data(tournament_data, api_games, pool_id):
+def update_tournament_data(tournament_data, api_games, pool_id=None):
     """Update tournament.json pool_games with data from API response.
 
+    If pool_id is specified (e.g. 'A', 'B'), updates games matching that pool.
+    If pool_id is None, updates playoff / consolation bracket games (pool is None).
     Returns list of detected changes.
     """
-    # Convert API games to our format, filtering to tracked teams
-    new_games = games_to_tournament_format(api_games, TEAM_MAP)
+    # Build team number -> short ID map from tournament_data teams
+    team_id_map = {str(meta['number']): tid for tid, meta in tournament_data.get('teams', {}).items() if 'number' in meta}
+    if not team_id_map and TEAM_MAP:
+        team_id_map = TEAM_MAP
 
-    # Build lookup of current games
-    current_games = [g for g in tournament_data['pool_games'] if g.get('pool') == pool_id]
+    # Convert API games to our format, passing teams dict so team metadata matches
+    new_games = games_to_tournament_format(api_games, team_id_map, tournament_data.get('teams'))
+
+    # Build lookup of current games for the specified pool / playoff category
+    if pool_id is not None:
+        current_games = [g for g in tournament_data['pool_games'] if g.get('pool') == pool_id]
+    else:
+        current_games = [g for g in tournament_data['pool_games'] if g.get('pool') is None]
 
     # Detect changes
     changes = detect_changes(current_games, new_games)
@@ -335,23 +190,34 @@ def update_tournament_data(tournament_data, api_games, pool_id):
     # Apply updates to tournament_data
     game_map = {g['game_id']: g for g in new_games}
     for i, g in enumerate(tournament_data['pool_games']):
-        if g.get('pool') == pool_id and g['game_id'] in game_map:
+        matches_pool = (g.get('pool') == pool_id) if pool_id is not None else (g.get('pool') is None)
+        if matches_pool and g['game_id'] in game_map:
             updated = game_map[g['game_id']]
             tournament_data['pool_games'][i]['home_score'] = updated['home_score']
             tournament_data['pool_games'][i]['away_score'] = updated['away_score']
             tournament_data['pool_games'][i]['status'] = updated['status']
+            # If teams were previously TBA (playoffs), update them now
+            if updated.get('home') and updated['home'] != 'TBA':
+                tournament_data['pool_games'][i]['home'] = updated['home']
+                tournament_data['pool_games'][i]['home_name'] = updated['home_name']
+            if updated.get('away') and updated['away'] != 'TBA':
+                tournament_data['pool_games'][i]['away'] = updated['away']
+                tournament_data['pool_games'][i]['away_name'] = updated['away_name']
 
     return changes
 
 
-def create_event(event_type, headline, detail=None):
+def create_event(event_type, headline, detail=None, game_id=None):
     """Create an event log entry."""
-    return {
+    evt = {
         'time': datetime.now().strftime('%a %b %d, %I:%M %p'),
         'type': event_type,
         'headline': headline,
         'detail': detail,
     }
+    if game_id is not None:
+        evt['game_id'] = game_id
+    return evt
 
 
 def _get_advancement_desc(tournament_data, our_pool):
@@ -495,13 +361,13 @@ def process_changes(changes, tournament_data, prev_scenarios, skip_narrative=Fal
                     round_robin_phase=rr_phase,
                     tournament_name=tournament_name,
                     recent_events=rolling_log[-5:])
-            events.append(create_event('info', headline, detail))
+            events.append(create_event('info', headline, detail, game_id=g.get('game_id')))
 
         elif change['type'] == 'score_change':
             hs = g.get('home_score', 0)
             as_ = g.get('away_score', 0)
             is_our_game = (g['home'] == our_team or g['away'] == our_team)
-            headline = f"Score update: {home_name} {hs} - {as_} {away_name} (in progress)"
+            headline = f"Score update: {home_name} {hs} - {as_} {away_name} (Game #{g['game_id']}, in progress)"
 
             # Run what-if projection for scenario impact
             from analyze import what_if_projection
@@ -526,12 +392,12 @@ def process_changes(changes, tournament_data, prev_scenarios, skip_narrative=Fal
                     tournament_name=tournament_name,
                     recent_events=rolling_log[-5:])
 
-            events.append(create_event('goal', headline, detail))
+            events.append(create_event('goal', headline, detail, game_id=g.get('game_id')))
 
         elif change['type'] == 'game_final':
             mark_game_final()
             headline = (f"FINAL: {home_name} {g['home_score']} - "
-                       f"{g['away_score']} {away_name}")
+                       f"{g['away_score']} {away_name} (Game #{g['game_id']})")
 
             detail = None
             if not skip_narrative:
@@ -544,14 +410,14 @@ def process_changes(changes, tournament_data, prev_scenarios, skip_narrative=Fal
                     our_team, our_team_name, our_pool, teams,
                     game_events=game_events)
 
-            events.append(create_event('final', headline, detail))
+            events.append(create_event('final', headline, detail, game_id=g.get('game_id')))
 
         elif change['type'] == 'correction':
             prev_g = change['prev']
             old_score = (prev_g['home_score'], prev_g['away_score'])
             new_score = (g['home_score'], g['away_score'])
             headline = generate_correction_comment(game_info, old_score, new_score, our_team_name)
-            events.append(create_event('info', headline, 'Standings and scenarios have been recalculated.'))
+            events.append(create_event('info', headline, 'Standings and scenarios have been recalculated.', game_id=g.get('game_id')))
 
     return events, curr_scenarios
 
@@ -637,6 +503,10 @@ def run_cycle(tournament_data, mock_source=None, skip_narrative=False, skip_push
     for p in pools:
         p_changes = update_tournament_data(tournament_data, api_games, p)
         all_changes.extend(p_changes)
+
+    # Also detect and apply changes across playoff / consolation games (pool is None)
+    playoff_changes = update_tournament_data(tournament_data, api_games, None)
+    all_changes.extend(playoff_changes)
 
     # Check for stream updates from storage backend
     streams_changed = False
