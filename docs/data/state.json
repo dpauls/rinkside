@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-15T20:42:15.849390-04:00",
+  "generated_at": "2026-10-15T21:04:12.101662-04:00",
   "tournament": {
     "id": "ptr_2026_u18c",
     "name": "Pink the Rink XV - U18C",
@@ -285,32 +285,6 @@
   ],
   "upcoming": [
     {
-      "game_id": 2074770,
-      "date": "2026-10-16T12:30:00",
-      "arena": "Centennial Park Arena - West",
-      "home": "WIL",
-      "away": "BEL",
-      "home_name": "Wilmot Wolverine",
-      "away_name": "Belmont Blazers",
-      "home_score": null,
-      "away_score": null,
-      "status": "scheduled",
-      "stream_url": null
-    },
-    {
-      "game_id": 2074775,
-      "date": "2026-10-16T14:15:00",
-      "arena": "Cwench Centre by Canlan Sports 2",
-      "home": "NEP",
-      "away": "KAN",
-      "home_name": "Nepean Wildcats",
-      "away_name": "Kanata Rangers",
-      "home_score": null,
-      "away_score": null,
-      "status": "scheduled",
-      "stream_url": null
-    },
-    {
       "game_id": 2074806,
       "date": "2026-10-16T21:15:00",
       "arena": "Cwench Centre by Canlan Sports 4",
@@ -364,60 +338,87 @@
     }
   ],
   "completed": [],
-  "live_games": [],
-  "other_pool_standings": [
+  "live_games": [
     {
-      "id": "EOS",
-      "name": "East Ottawa Stars",
-      "ranking": null,
-      "is_us": false,
-      "gp": 0,
-      "w": 0,
-      "l": 0,
-      "t": 0,
-      "pts": 0,
-      "gf": 0,
-      "ga": 0,
-      "gd": 0,
-      "status": "ALIVE",
-      "adv_count": 309,
-      "adv_pct": 50.0,
-      "tie_note": null
+      "game_id": 2074770,
+      "date": "2026-10-16T12:30:00",
+      "arena": "Centennial Park Arena - West",
+      "home": "WIL",
+      "away": "BEL",
+      "home_name": "Wilmot Wolverine",
+      "away_name": "Belmont Blazers",
+      "home_score": 1,
+      "away_score": 1,
+      "status": "in_progress",
+      "stream_url": null
     },
+    {
+      "game_id": 2074775,
+      "date": "2026-10-16T14:15:00",
+      "arena": "Cwench Centre by Canlan Sports 2",
+      "home": "NEP",
+      "away": "KAN",
+      "home_name": "Nepean Wildcats",
+      "away_name": "Kanata Rangers",
+      "home_score": 0,
+      "away_score": 1,
+      "status": "in_progress",
+      "stream_url": null
+    }
+  ],
+  "other_pool_standings": [
     {
       "id": "WOO",
       "name": "Woodstock Wildcats",
       "ranking": null,
       "is_us": false,
-      "gp": 0,
-      "w": 0,
+      "gp": 1,
+      "w": 1,
       "l": 0,
       "t": 0,
-      "pts": 0,
-      "gf": 0,
+      "pts": 2,
+      "gf": 3,
       "ga": 0,
-      "gd": 0,
+      "gd": 3,
       "status": "ALIVE",
-      "adv_count": 309,
-      "adv_pct": 50.0,
-      "tie_note": null
+      "adv_count": 65,
+      "adv_pct": 83.3,
+      "tie_note": "Rule (wins): all tied at 1W"
     },
     {
       "id": "OTT",
       "name": "Ottawa Ice",
       "ranking": null,
       "is_us": false,
-      "gp": 0,
-      "w": 0,
+      "gp": 1,
+      "w": 1,
       "l": 0,
       "t": 0,
-      "pts": 0,
-      "gf": 0,
-      "ga": 0,
-      "gd": 0,
+      "pts": 2,
+      "gf": 2,
+      "ga": 1,
+      "gd": 1,
       "status": "ALIVE",
-      "adv_count": 309,
-      "adv_pct": 50.0,
+      "adv_count": 63,
+      "adv_pct": 80.8,
+      "tie_note": "Rule (wins): all tied at 1W"
+    },
+    {
+      "id": "EOS",
+      "name": "East Ottawa Stars",
+      "ranking": null,
+      "is_us": false,
+      "gp": 1,
+      "w": 0,
+      "l": 1,
+      "t": 0,
+      "pts": 0,
+      "gf": 1,
+      "ga": 2,
+      "gd": -1,
+      "status": "ALIVE",
+      "adv_count": 15,
+      "adv_pct": 19.2,
       "tie_note": null
     },
     {
@@ -425,47 +426,21 @@
       "name": "Mitchell Meteors",
       "ranking": null,
       "is_us": false,
-      "gp": 0,
+      "gp": 1,
       "w": 0,
-      "l": 0,
+      "l": 1,
       "t": 0,
       "pts": 0,
       "gf": 0,
-      "ga": 0,
-      "gd": 0,
+      "ga": 3,
+      "gd": -3,
       "status": "ALIVE",
-      "adv_count": 309,
-      "adv_pct": 50.0,
+      "adv_count": 13,
+      "adv_pct": 16.7,
       "tie_note": null
     }
   ],
   "other_pool_upcoming": [
-    {
-      "game_id": 2074766,
-      "date": "2026-10-16T11:30:00",
-      "arena": "Centennial Park Arena - West",
-      "home": "OTT",
-      "away": "EOS",
-      "home_name": "Ottawa Ice",
-      "away_name": "East Ottawa Stars",
-      "home_score": null,
-      "away_score": null,
-      "status": "scheduled",
-      "stream_url": null
-    },
-    {
-      "game_id": 2074771,
-      "date": "2026-10-16T13:00:00",
-      "arena": "Central Arena",
-      "home": "WOO",
-      "away": "MIT",
-      "home_name": "Woodstock Wildcats",
-      "away_name": "Mitchell Meteors",
-      "home_score": null,
-      "away_score": null,
-      "status": "scheduled",
-      "stream_url": null
-    },
     {
       "game_id": 2074798,
       "date": "2026-10-16T20:45:00",
@@ -528,57 +503,57 @@
       "advancement_round": "Semifinals",
       "standings": [
         {
-          "id": "EOS",
-          "name": "East Ottawa Stars",
-          "ranking": null,
-          "is_us": false,
-          "gp": 0,
-          "w": 0,
-          "l": 0,
-          "t": 0,
-          "pts": 0,
-          "gf": 0,
-          "ga": 0,
-          "gd": 0,
-          "status": "ALIVE",
-          "adv_count": 309,
-          "adv_pct": 50.0,
-          "tie_note": null
-        },
-        {
           "id": "WOO",
           "name": "Woodstock Wildcats",
           "ranking": null,
           "is_us": false,
-          "gp": 0,
-          "w": 0,
+          "gp": 1,
+          "w": 1,
           "l": 0,
           "t": 0,
-          "pts": 0,
-          "gf": 0,
+          "pts": 2,
+          "gf": 3,
           "ga": 0,
-          "gd": 0,
+          "gd": 3,
           "status": "ALIVE",
-          "adv_count": 309,
-          "adv_pct": 50.0,
-          "tie_note": null
+          "adv_count": 65,
+          "adv_pct": 83.3,
+          "tie_note": "Rule (wins): all tied at 1W"
         },
         {
           "id": "OTT",
           "name": "Ottawa Ice",
           "ranking": null,
           "is_us": false,
-          "gp": 0,
-          "w": 0,
+          "gp": 1,
+          "w": 1,
           "l": 0,
           "t": 0,
-          "pts": 0,
-          "gf": 0,
-          "ga": 0,
-          "gd": 0,
+          "pts": 2,
+          "gf": 2,
+          "ga": 1,
+          "gd": 1,
           "status": "ALIVE",
-          "adv_count": 309,
-          "adv_pct": 50.0,
+          "adv_count": 63,
+          "adv_pct": 80.8,
+          "tie_note": "Rule (wins): all tied at 1W"
+        },
+        {
+          "id": "EOS",
+          "name": "East Ottawa Stars",
+          "ranking": null,
+          "is_us": false,
+          "gp": 1,
+          "w": 0,
+          "l": 1,
+          "t": 0,
+          "pts": 0,
+          "gf": 1,
+          "ga": 2,
+          "gd": -1,
+          "status": "ALIVE",
+          "adv_count": 15,
+          "adv_pct": 19.2,
           "tie_note": null
         },
         {
@@ -586,47 +561,21 @@
           "name": "Mitchell Meteors",
           "ranking": null,
           "is_us": false,
-          "gp": 0,
+          "gp": 1,
           "w": 0,
-          "l": 0,
+          "l": 1,
           "t": 0,
           "pts": 0,
           "gf": 0,
-          "ga": 0,
-          "gd": 0,
+          "ga": 3,
+          "gd": -3,
           "status": "ALIVE",
-          "adv_count": 309,
-          "adv_pct": 50.0,
+          "adv_count": 13,
+          "adv_pct": 16.7,
           "tie_note": null
         }
       ],
       "upcoming": [
-        {
-          "game_id": 2074766,
-          "date": "2026-10-16T11:30:00",
-          "arena": "Centennial Park Arena - West",
-          "home": "OTT",
-          "away": "EOS",
-          "home_name": "Ottawa Ice",
-          "away_name": "East Ottawa Stars",
-          "home_score": null,
-          "away_score": null,
-          "status": "scheduled",
-          "stream_url": null
-        },
-        {
-          "game_id": 2074771,
-          "date": "2026-10-16T13:00:00",
-          "arena": "Central Arena",
-          "home": "WOO",
-          "away": "MIT",
-          "home_name": "Woodstock Wildcats",
-          "away_name": "Mitchell Meteors",
-          "home_score": null,
-          "away_score": null,
-          "status": "scheduled",
-          "stream_url": null
-        },
         {
           "game_id": 2074798,
           "date": "2026-10-16T20:45:00",
@@ -680,7 +629,34 @@
           "stream_url": null
         }
       ],
-      "completed": [],
+      "completed": [
+        {
+          "game_id": 2074771,
+          "date": "2026-10-16T13:00:00",
+          "arena": "Central Arena",
+          "home": "WOO",
+          "away": "MIT",
+          "home_name": "Woodstock Wildcats",
+          "away_name": "Mitchell Meteors",
+          "home_score": 3,
+          "away_score": 0,
+          "status": "final",
+          "stream_url": null
+        },
+        {
+          "game_id": 2074766,
+          "date": "2026-10-16T11:30:00",
+          "arena": "Centennial Park Arena - West",
+          "home": "OTT",
+          "away": "EOS",
+          "home_name": "Ottawa Ice",
+          "away_name": "East Ottawa Stars",
+          "home_score": 2,
+          "away_score": 1,
+          "status": "final",
+          "stream_url": null
+        }
+      ],
       "live_games": []
     },
     "B": {
@@ -765,32 +741,6 @@
       ],
       "upcoming": [
         {
-          "game_id": 2074770,
-          "date": "2026-10-16T12:30:00",
-          "arena": "Centennial Park Arena - West",
-          "home": "WIL",
-          "away": "BEL",
-          "home_name": "Wilmot Wolverine",
-          "away_name": "Belmont Blazers",
-          "home_score": null,
-          "away_score": null,
-          "status": "scheduled",
-          "stream_url": null
-        },
-        {
-          "game_id": 2074775,
-          "date": "2026-10-16T14:15:00",
-          "arena": "Cwench Centre by Canlan Sports 2",
-          "home": "NEP",
-          "away": "KAN",
-          "home_name": "Nepean Wildcats",
-          "away_name": "Kanata Rangers",
-          "home_score": null,
-          "away_score": null,
-          "status": "scheduled",
-          "stream_url": null
-        },
-        {
           "game_id": 2074806,
           "date": "2026-10-16T21:15:00",
           "arena": "Cwench Centre by Canlan Sports 4",
@@ -844,7 +794,34 @@
         }
       ],
       "completed": [],
-      "live_games": []
+      "live_games": [
+        {
+          "game_id": 2074770,
+          "date": "2026-10-16T12:30:00",
+          "arena": "Centennial Park Arena - West",
+          "home": "WIL",
+          "away": "BEL",
+          "home_name": "Wilmot Wolverine",
+          "away_name": "Belmont Blazers",
+          "home_score": 1,
+          "away_score": 1,
+          "status": "in_progress",
+          "stream_url": null
+        },
+        {
+          "game_id": 2074775,
+          "date": "2026-10-16T14:15:00",
+          "arena": "Cwench Centre by Canlan Sports 2",
+          "home": "NEP",
+          "away": "KAN",
+          "home_name": "Nepean Wildcats",
+          "away_name": "Kanata Rangers",
+          "home_score": 0,
+          "away_score": 1,
+          "status": "in_progress",
+          "stream_url": null
+        }
+      ]
     }
   },
   "all_division_games": [
@@ -857,9 +834,9 @@
       "away": "EOS",
       "home_name": "Ottawa Ice",
       "away_name": "East Ottawa Stars",
-      "home_score": null,
-      "away_score": null,
-      "status": "scheduled",
+      "home_score": 2,
+      "away_score": 1,
+      "status": "final",
       "stream_url": null
     },
     {
@@ -871,9 +848,9 @@
       "away": "BEL",
       "home_name": "Wilmot Wolverine",
       "away_name": "Belmont Blazers",
-      "home_score": null,
-      "away_score": null,
-      "status": "scheduled",
+      "home_score": 1,
+      "away_score": 1,
+      "status": "in_progress",
       "stream_url": null
     },
     {
@@ -885,9 +862,9 @@
       "away": "MIT",
       "home_name": "Woodstock Wildcats",
       "away_name": "Mitchell Meteors",
-      "home_score": null,
-      "away_score": null,
-      "status": "scheduled",
+      "home_score": 3,
+      "away_score": 0,
+      "status": "final",
       "stream_url": null
     },
     {
@@ -899,9 +876,9 @@
       "away": "KAN",
       "home_name": "Nepean Wildcats",
       "away_name": "Kanata Rangers",
-      "home_score": null,
-      "away_score": null,
-      "status": "scheduled",
+      "home_score": 0,
+      "away_score": 1,
+      "status": "in_progress",
       "stream_url": null
     },
     {
@@ -1249,36 +1226,165 @@
           "clinched_first": false,
           "clinched_playoff": false,
           "eliminated": false,
-          "adv_pct": 54.7,
-          "first_pct": 30.0
+          "adv_pct": 21.0,
+          "first_pct": 4.9
         },
         "WOO": {
           "clinched_first": false,
           "clinched_playoff": false,
           "eliminated": false,
-          "adv_pct": 52.3,
-          "first_pct": 25.4
+          "adv_pct": 84.0,
+          "first_pct": 50.6
         },
         "OTT": {
           "clinched_first": false,
           "clinched_playoff": false,
           "eliminated": false,
-          "adv_pct": 47.7,
-          "first_pct": 23.2
+          "adv_pct": 77.8,
+          "first_pct": 39.5
         },
         "MIT": {
           "clinched_first": false,
           "clinched_playoff": false,
           "eliminated": false,
-          "adv_pct": 45.3,
-          "first_pct": 21.4
+          "adv_pct": 17.3,
+          "first_pct": 4.9
         }
       },
       "alerts": []
     }
   },
-  "bench": null,
-  "event_log": [],
+  "bench": {
+    "our_game": {
+      "home": "NEP",
+      "away": "KAN",
+      "home_name": "Nepean Wildcats",
+      "away_name": "Kanata Rangers",
+      "home_score": 0,
+      "away_score": 1,
+      "our_score": 1,
+      "their_score": 0
+    },
+    "other_game": {
+      "home": "Wilmot Wolverine",
+      "away": "Belmont Blazers",
+      "home_score": 1,
+      "away_score": 1,
+      "margin": 0
+    },
+    "matrix": [
+      {
+        "margin": -3,
+        "label": "Lose by 3 (-3)",
+        "sim_score": "0-1",
+        "adv_count": 23,
+        "total": 75,
+        "adv_pct": 30.7,
+        "status": "POSSIBLE"
+      },
+      {
+        "margin": -2,
+        "label": "Lose by 2 (-2)",
+        "sim_score": "0-1",
+        "adv_count": 23,
+        "total": 75,
+        "adv_pct": 30.7,
+        "status": "POSSIBLE"
+      },
+      {
+        "margin": -1,
+        "label": "Lose by 1 (-1)",
+        "sim_score": "0-1",
+        "adv_count": 23,
+        "total": 75,
+        "adv_pct": 30.7,
+        "status": "POSSIBLE"
+      },
+      {
+        "margin": 0,
+        "label": "Tie (0)",
+        "sim_score": "1-1",
+        "adv_count": 33,
+        "total": 66,
+        "adv_pct": 50.0,
+        "status": "POSSIBLE"
+      },
+      {
+        "margin": 1,
+        "label": "Win by 1 (+1)",
+        "sim_score": "2-1",
+        "adv_count": 56,
+        "total": 72,
+        "adv_pct": 77.8,
+        "status": "HIGH"
+      },
+      {
+        "margin": 2,
+        "label": "Win by 2 (+2)",
+        "sim_score": "3-1",
+        "adv_count": 58,
+        "total": 74,
+        "adv_pct": 78.4,
+        "status": "HIGH"
+      },
+      {
+        "margin": 3,
+        "label": "Win by 3 (+3)",
+        "sim_score": "4-1",
+        "adv_count": 58,
+        "total": 74,
+        "adv_pct": 78.4,
+        "status": "HIGH"
+      }
+    ],
+    "indicator": "green",
+    "recommendation": "Protect 1-Goal Lead",
+    "reason": "Up by 1. Keep defensive structure. Do not pull unless opponent ties.",
+    "empty_net_downside": false,
+    "empty_net_warning": "ZERO DOWNSIDE: Losing by 2 has the same advancement odds as losing by 1 (30.7%). No GD penalty for pulling the goalie."
+  },
+  "event_log": [
+    {
+      "time": "Thu Oct 15, 09:04 PM",
+      "type": "final",
+      "headline": "FINAL: Ottawa Ice 2 - 1 East Ottawa Stars (Game #2074766)",
+      "detail": null,
+      "game_id": 2074766
+    },
+    {
+      "time": "Thu Oct 15, 09:04 PM",
+      "type": "final",
+      "headline": "FINAL: Woodstock Wildcats 3 - 0 Mitchell Meteors (Game #2074771)",
+      "detail": null,
+      "game_id": 2074771
+    },
+    {
+      "time": "Thu Oct 15, 09:04 PM",
+      "type": "info",
+      "headline": "GAME STARTED: Wilmot Wolverine vs Belmont Blazers (Game #2074770)",
+      "detail": null,
+      "game_id": 2074770
+    },
+    {
+      "time": "Thu Oct 15, 09:04 PM",
+      "type": "info",
+      "headline": "GAME STARTED: Nepean Wildcats vs Kanata Rangers (Game #2074775)",
+      "detail": null,
+      "game_id": 2074775
+    },
+    {
+      "time": "Thu Oct 15, 09:04 PM",
+      "type": "info",
+      "headline": "Pool A: Ottawa Ice 2 - 1 East Ottawa Stars (Final)",
+      "detail": "Cross-pool matchup update."
+    },
+    {
+      "time": "Thu Oct 15, 09:04 PM",
+      "type": "info",
+      "headline": "Pool A: Woodstock Wildcats 3 - 0 Mitchell Meteors (Final)",
+      "detail": "Cross-pool matchup update."
+    }
+  ],
   "narrative": null,
   "coaches_corner": null,
   "tiebreaker_health": null,
@@ -1318,7 +1424,9 @@
   "s3_public_url": "https://objectstorage.ca-toronto-1.oraclecloud.com/n/yzjspjx2rhjg/b/rinkside/o/data/state.json",
   "s3_scenarios_url": "https://objectstorage.ca-toronto-1.oraclecloud.com/n/yzjspjx2rhjg/b/rinkside/o/data/scenarios.json",
   "trigger_event": {
-    "type": "initial",
-    "headline": "Baseline tournament initialization"
+    "time": "Thu Oct 15, 09:04 PM",
+    "type": "info",
+    "headline": "Pool A: Woodstock Wildcats 3 - 0 Mitchell Meteors (Final)",
+    "detail": "Cross-pool matchup update."
   }
 }

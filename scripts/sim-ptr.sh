@@ -68,8 +68,20 @@ if [ "$CMD" = "restore" ]; then
         --mock-reset \
         --once \
         $NARRATIVE_ARG \
-        --storage "$STORAGE_ARG"
+        --storage "local"
     
+    if [ "$USE_S3" = true ]; then
+        echo "==> Restoring pre-tournament baseline on Oracle Cloud VM..."
+        ssh -i "$HOME/.ssh/oracle_rinkside.key" -o StrictHostKeyChecking=no ubuntu@132.145.100.44 \
+            "docker exec rinkside-tracker-1 python3 src/daemon.py \
+                --tournament data/tournaments/pink_the_rink_2026.json \
+                --mock-dir test/mock_responses_ptr \
+                --mock-reset \
+                --once \
+                $NARRATIVE_ARG \
+                --storage s3"
+    fi
+
     echo "==> Clean baseline restored successfully!"
     exit 0
 fi
@@ -90,7 +102,19 @@ if [[ "$CMD" =~ ^[0-8]$ ]]; then
         --mock-step "$STEP_NUM" \
         --once \
         $NARRATIVE_ARG \
-        --storage "$STORAGE_ARG"
+        --storage "local"
+
+    if [ "$USE_S3" = true ]; then
+        echo "==> Publishing Step $STEP_NUM to Oracle Cloud Object Storage via VM..."
+        ssh -i "$HOME/.ssh/oracle_rinkside.key" -o StrictHostKeyChecking=no ubuntu@132.145.100.44 \
+            "docker exec rinkside-tracker-1 python3 src/daemon.py \
+                --tournament data/tournaments/pink_the_rink_2026.json \
+                --mock-dir test/mock_responses_ptr \
+                --mock-step $STEP_NUM \
+                --once \
+                $NARRATIVE_ARG \
+                --storage s3"
+    fi
 
     echo "==> Step $STEP_NUM executed successfully!"
     echo "    Local state: docs/data/state.json"

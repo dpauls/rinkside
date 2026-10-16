@@ -191,11 +191,11 @@
       "away": "EOS",
       "home_name": "Ottawa Ice #2043",
       "away_name": "East Ottawa Stars #2488",
-      "home_score": null,
-      "away_score": null,
+      "home_score": 2,
+      "away_score": 1,
       "home_pim": null,
       "away_pim": null,
-      "status": "scheduled",
+      "status": "final",
       "completed": false,
       "live_scores": false
     },
@@ -210,11 +210,11 @@
       "away": "BEL",
       "home_name": "Wilmot Wolverine #4617",
       "away_name": "Belmont Blazers #5132",
-      "home_score": null,
-      "away_score": null,
+      "home_score": 1,
+      "away_score": 1,
       "home_pim": null,
       "away_pim": null,
-      "status": "scheduled",
+      "status": "in_progress",
       "completed": false,
       "live_scores": false
     },
@@ -229,11 +229,11 @@
       "away": "MIT",
       "home_name": "Woodstock Wildcats #6893",
       "away_name": "Mitchell Meteors 7205",
-      "home_score": null,
-      "away_score": null,
+      "home_score": 3,
+      "away_score": 0,
       "home_pim": null,
       "away_pim": null,
-      "status": "scheduled",
+      "status": "final",
       "completed": false,
       "live_scores": false
     },
@@ -248,11 +248,11 @@
       "away": "KAN",
       "home_name": "Nepean Wildcats #2866",
       "away_name": "Kanata Rangers #1777",
-      "home_score": null,
-      "away_score": null,
+      "home_score": 0,
+      "away_score": 1,
       "home_pim": null,
       "away_pim": null,
-      "status": "scheduled",
+      "status": "in_progress",
       "completed": false,
       "live_scores": false
     },
@@ -504,7 +504,48 @@
       "live_scores": false
     }
   ],
-  "event_log": [],
+  "event_log": [
+    {
+      "time": "Thu Oct 15, 09:04 PM",
+      "type": "final",
+      "headline": "FINAL: Ottawa Ice 2 - 1 East Ottawa Stars (Game #2074766)",
+      "detail": null,
+      "game_id": 2074766
+    },
+    {
+      "time": "Thu Oct 15, 09:04 PM",
+      "type": "final",
+      "headline": "FINAL: Woodstock Wildcats 3 - 0 Mitchell Meteors (Game #2074771)",
+      "detail": null,
+      "game_id": 2074771
+    },
+    {
+      "time": "Thu Oct 15, 09:04 PM",
+      "type": "info",
+      "headline": "GAME STARTED: Wilmot Wolverine vs Belmont Blazers (Game #2074770)",
+      "detail": null,
+      "game_id": 2074770
+    },
+    {
+      "time": "Thu Oct 15, 09:04 PM",
+      "type": "info",
+      "headline": "GAME STARTED: Nepean Wildcats vs Kanata Rangers (Game #2074775)",
+      "detail": null,
+      "game_id": 2074775
+    },
+    {
+      "time": "Thu Oct 15, 09:04 PM",
+      "type": "info",
+      "headline": "Pool A: Ottawa Ice 2 - 1 East Ottawa Stars (Final)",
+      "detail": "Cross-pool matchup update."
+    },
+    {
+      "time": "Thu Oct 15, 09:04 PM",
+      "type": "info",
+      "headline": "Pool A: Woodstock Wildcats 3 - 0 Mitchell Meteors (Final)",
+      "detail": "Cross-pool matchup update."
+    }
+  ],
   "game_rules": {
     "source_name": "Pink the Rink XV Official Tournament Rules",
     "source_url": "https://etobicokedolphins.ca/Public/Documents/Pink_the_Rink_XV_Tournament_RULES_2026.pdf",
