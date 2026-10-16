@@ -923,18 +923,28 @@ def main():
         mock_source = MockDataSource(args.mock_dir)
         if args.mock_reset or args.mock_step is not None:
             mock_source.reset()
-            # Clear event log and reset all game scores to clean state
+            # Clear event log, tb_health, and restore baseline pre-tournament commentary
             tournament_data['event_log'] = []
-            tournament_data.pop('_narrative', None)
-            tournament_data.pop('_coaches_corner', None)
             tournament_data.pop('_tb_health', None)
+
+            base_data = json.loads(DATA_PATH.read_text()) if DATA_PATH.exists() else {}
+            if base_data.get('_narrative'):
+                tournament_data['_narrative'] = base_data['_narrative']
+            else:
+                tournament_data.pop('_narrative', None)
+
+            if base_data.get('_coaches_corner'):
+                tournament_data['_coaches_corner'] = base_data['_coaches_corner']
+            else:
+                tournament_data.pop('_coaches_corner', None)
+
             for g in tournament_data.get('pool_games', []):
                 g['home_score'] = None
                 g['away_score'] = None
                 g['status'] = 'scheduled'
             _write_data(tournament_data)
             tournament_data = load_team_map()
-            log.info('Mock data reset to step 0 (scores cleared, events cleared)')
+            log.info('Mock data reset to step 0 (scores cleared, events cleared, baseline narrative restored)')
 
         if args.mock_step is not None and args.mock_step > 0:
             # Jump to the target step by setting the counter
