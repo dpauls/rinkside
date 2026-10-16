@@ -922,135 +922,137 @@ def main():
     prev_scenarios = None
     log.info(f'Daemon starting. Mock: {args.mock_dir or "OFF"}, Narrative: {not args.skip_narrative}, Push: {not args.skip_push}')
 
-    # Always generate and push current state on startup from live shadow data
-    log.info('Initial generate and push...')
-    live_data_path = SHADOW_DATA_PATH if SHADOW_DATA_PATH.exists() else tourn_path
-    state = generate(str(live_data_path), skip_narrative=True)
+    # When jumping to a mock step (>0), skip the initial generate & push of the reset baseline
+    # so we don't flash an unpopulated 0-0 state to storage before applying the target step.
+    if args.mock_step is None or args.mock_step == 0:
+        log.info('Initial generate and push...')
+        live_data_path = SHADOW_DATA_PATH if SHADOW_DATA_PATH.exists() else tourn_path
+        state = generate(str(live_data_path), skip_narrative=True)
 
-    # Generate narrative + Coach's Corner if missing (startup or after reroll)
-    if not args.skip_narrative and (not tournament_data.get('_narrative') or not tournament_data.get('_coaches_corner')):
-        our_team = tournament_data['tournament']['our_team']
-        our_team_name = tournament_data['teams'][our_team]['name']
-        our_ranking = tournament_data['teams'][our_team].get('ranking', '?')
-        rankings_conf = tournament_data.get('rankings', {}).get('confidence', 0)
-        our_pool = tournament_data['teams'][our_team]['pool']
-        our_analysis = enumerate_scenarios(our_pool, tournament_data)
-        from generate import build_standings, build_scenario_data, build_games_list
-        standings = build_standings(our_pool, tournament_data, our_analysis)
-        scenario_data = build_scenario_data(our_analysis, our_team)
-        struct_init = build_structure_from_config(tournament_data)
-        other_pools_init = [p for p in struct_init.get_pools().keys() if p != our_pool]
-        other_pool_init = other_pools_init[0] if other_pools_init else None
-        qf_standings = (
-            build_standings(other_pool_init, tournament_data, enumerate_scenarios(other_pool_init, tournament_data))
-            if other_pool_init else []
-        )
-        upcoming = build_games_list(our_pool, tournament_data, 'scheduled')
+        # Generate narrative + Coach's Corner if missing (startup or after reroll)
+        if not args.skip_narrative and (not tournament_data.get('_narrative') or not tournament_data.get('_coaches_corner')):
+            our_team = tournament_data['tournament']['our_team']
+            our_team_name = tournament_data['teams'][our_team]['name']
+            our_ranking = tournament_data['teams'][our_team].get('ranking', '?')
+            rankings_conf = tournament_data.get('rankings', {}).get('confidence', 0)
+            our_pool = tournament_data['teams'][our_team]['pool']
+            our_analysis = enumerate_scenarios(our_pool, tournament_data)
+            from generate import build_standings, build_scenario_data, build_games_list
+            standings = build_standings(our_pool, tournament_data, our_analysis)
+            scenario_data = build_scenario_data(our_analysis, our_team)
+            struct_init = build_structure_from_config(tournament_data)
+            other_pools_init = [p for p in struct_init.get_pools().keys() if p != our_pool]
+            other_pool_init = other_pools_init[0] if other_pools_init else None
+            qf_standings = (
+                build_standings(other_pool_init, tournament_data, enumerate_scenarios(other_pool_init, tournament_data))
+                if other_pool_init else []
+            )
+            upcoming = build_games_list(our_pool, tournament_data, 'scheduled')
 
-        # Welcome narrative
-        t_name = tournament_data.get('tournament', {}).get('name', 'Pink the Rink XV - U18C')
-        adv_desc = _get_advancement_desc(tournament_data, our_pool)
-        if not tournament_data.get('_narrative'):
-            log.info('Generating welcome narrative...')
-            welcome = generate_overall_narrative(
-                standings, scenario_data, our_team_name,
-                our_pool, qf_standings, [], upcoming, [],
-                tournament_name=t_name)
-            if welcome:
-                state['narrative'] = welcome
-                tournament_data['_narrative'] = welcome
-        else:
+            # Welcome narrative
+            t_name = tournament_data.get('tournament', {}).get('name', 'Pink the Rink XV - U18C')
+            adv_desc = _get_advancement_desc(tournament_data, our_pool)
+            if not tournament_data.get('_narrative'):
+                log.info('Generating welcome narrative...')
+                welcome = generate_overall_narrative(
+                    standings, scenario_data, our_team_name,
+                    our_pool, qf_standings, [], upcoming, [],
+                    tournament_name=t_name)
+                if welcome:
+                    state['narrative'] = welcome
+                    tournament_data['_narrative'] = welcome
+            else:
+                state['narrative'] = tournament_data['_narrative']
+
+            # Initial Coach's Corner
+            log.info('Generating Coach\'s Corner...')
+            coaches_corner = {}
+
+            # Build actual context from current state
+            completed_cc = build_games_list(our_pool, tournament_data, 'final')
+            upcoming_cc = build_games_list(our_pool, tournament_data, 'scheduled')
+            our_completed_cc = [g for g in completed_cc if g['home'] == our_team or g['away'] == our_team]
+            our_results_cc = []
+            for i, g in enumerate(our_completed_cc):
+                we_home = g['home'] == our_team
+                og = g['home_score'] if we_home else g['away_score']
+                tg = g['away_score'] if we_home else g['home_score']
+                tag = 'WIN' if og > tg else ('LOSS' if tg > og else 'TIE')
+                rec = '(MOST RECENT)' if i == 0 else ''
+                our_results_cc.append(f"{g['home_name']} {g['home_score']}-{g['away_score']} {g['away_name']} [{tag}] {rec}".strip())
+
+            # Context strings
+            recent_finals = [e['headline'] for e in tournament_data.get('event_log', []) if e['type'] == 'final']
+            if recent_finals:
+                cherry_ctx = f"Tournament state: {', '.join(recent_finals[-3:])}. ({adv_desc})"
+            else:
+                cherry_ctx = (f"Tournament ({t_name}) is about to start! {our_team_name} is in Pool {our_pool}. "
+                             f"{adv_desc}")
+
+            if completed_cc:
+                standings_ctx = f'{len(completed_cc)} pool games completed.'
+                our_count_cc = our_analysis['counts'].get(our_team, 0)
+                det_cc = our_analysis['total'] - our_analysis.get('unresolved_count', 0)
+                _struct_cc = build_structure_from_config(tournament_data)
+                _round_name_cc = _struct_cc.get_playoff_round_name(our_pool)
+                scenarios_ctx = f'We advance to the {_round_name_cc} in {our_count_cc} of {det_cc} deterministic scenarios.'
+            else:
+                standings_ctx = 'First game of the tournament.'
+                scenarios_ctx = 'No games played yet.'
+
+            # Don Cherry
+            cherry = generate_don_cherry(cherry_ctx, our_team_name, tournament_name=t_name)
+            if cherry:
+                coaches_corner['don_cherry'] = cherry
+
+            # Pre-game talking points
+            our_upcoming_cc = [g for g in upcoming_cc if g['home'] == our_team or g['away'] == our_team]
+            if our_upcoming_cc:
+                next_game = our_upcoming_cc[0]
+                opp_id = next_game['away'] if next_game['home'] == our_team else next_game['home']
+                opp_name = tournament_data['teams'].get(opp_id, {}).get('name', opp_id)
+                opp_ranking = tournament_data['teams'].get(opp_id, {}).get('ranking', '?')
+                coaches_corner['for_game'] = opp_name
+                opp_results_cc, common_opps_cc = _build_opponent_context(
+                    our_team, opp_id, completed_cc, tournament_data['teams'])
+                talking = generate_pregame_talking_points(
+                    our_team_name, opp_name, opp_ranking,
+                    our_results_cc, 0, standings_ctx,
+                    scenarios_ctx, adv_desc,
+                    tournament_name=t_name,
+                    opponent_results=opp_results_cc,
+                    common_opponents=common_opps_cc,
+                    our_ranking=our_ranking,
+                    rankings_confidence=rankings_conf)
+                if talking:
+                    coaches_corner['talking_points'] = talking
+
+            if coaches_corner:
+                state['coaches_corner'] = coaches_corner
+                tournament_data['_coaches_corner'] = coaches_corner
+
+            _write_data(tournament_data)
+
+        # Always ensure saved narrative / coaches_corner / tb_health are present in fresh state
+        if tournament_data.get('_narrative'):
             state['narrative'] = tournament_data['_narrative']
+        if tournament_data.get('_coaches_corner'):
+            state['coaches_corner'] = tournament_data['_coaches_corner']
+        if tournament_data.get('_tb_health'):
+            state['tiebreaker_health'] = tournament_data['_tb_health']
+        SHADOW_STATE_PATH.parent.mkdir(parents=True, exist_ok=True)
+        SHADOW_STATE_PATH.write_text(json.dumps(state, indent=2))
+        _publish_to_git()
 
-        # Initial Coach's Corner
-        log.info('Generating Coach\'s Corner...')
-        coaches_corner = {}
+        if storage:
+            try:
+                storage.save_state(state)
+                log.info(f"Initial state published to storage backend ({args.storage})")
+            except Exception as e:
+                log.warning(f"Could not publish initial state to storage: {e}")
 
-        # Build actual context from current state
-        completed_cc = build_games_list(our_pool, tournament_data, 'final')
-        upcoming_cc = build_games_list(our_pool, tournament_data, 'scheduled')
-        our_completed_cc = [g for g in completed_cc if g['home'] == our_team or g['away'] == our_team]
-        our_results_cc = []
-        for i, g in enumerate(our_completed_cc):
-            we_home = g['home'] == our_team
-            og = g['home_score'] if we_home else g['away_score']
-            tg = g['away_score'] if we_home else g['home_score']
-            tag = 'WIN' if og > tg else ('LOSS' if tg > og else 'TIE')
-            rec = '(MOST RECENT)' if i == 0 else ''
-            our_results_cc.append(f"{g['home_name']} {g['home_score']}-{g['away_score']} {g['away_name']} [{tag}] {rec}".strip())
-
-        # Context strings
-        recent_finals = [e['headline'] for e in tournament_data.get('event_log', []) if e['type'] == 'final']
-        if recent_finals:
-            cherry_ctx = f"Tournament state: {', '.join(recent_finals[-3:])}. ({adv_desc})"
-        else:
-            cherry_ctx = (f"Tournament ({t_name}) is about to start! {our_team_name} is in Pool {our_pool}. "
-                         f"{adv_desc}")
-
-        if completed_cc:
-            standings_ctx = f'{len(completed_cc)} pool games completed.'
-            our_count_cc = our_analysis['counts'].get(our_team, 0)
-            det_cc = our_analysis['total'] - our_analysis.get('unresolved_count', 0)
-            _struct_cc = build_structure_from_config(tournament_data)
-            _round_name_cc = _struct_cc.get_playoff_round_name(our_pool)
-            scenarios_ctx = f'We advance to the {_round_name_cc} in {our_count_cc} of {det_cc} deterministic scenarios.'
-        else:
-            standings_ctx = 'First game of the tournament.'
-            scenarios_ctx = 'No games played yet.'
-
-        # Don Cherry
-        cherry = generate_don_cherry(cherry_ctx, our_team_name, tournament_name=t_name)
-        if cherry:
-            coaches_corner['don_cherry'] = cherry
-
-        # Pre-game talking points
-        our_upcoming_cc = [g for g in upcoming_cc if g['home'] == our_team or g['away'] == our_team]
-        if our_upcoming_cc:
-            next_game = our_upcoming_cc[0]
-            opp_id = next_game['away'] if next_game['home'] == our_team else next_game['home']
-            opp_name = tournament_data['teams'].get(opp_id, {}).get('name', opp_id)
-            opp_ranking = tournament_data['teams'].get(opp_id, {}).get('ranking', '?')
-            coaches_corner['for_game'] = opp_name
-            opp_results_cc, common_opps_cc = _build_opponent_context(
-                our_team, opp_id, completed_cc, tournament_data['teams'])
-            talking = generate_pregame_talking_points(
-                our_team_name, opp_name, opp_ranking,
-                our_results_cc, 0, standings_ctx,
-                scenarios_ctx, adv_desc,
-                tournament_name=t_name,
-                opponent_results=opp_results_cc,
-                common_opponents=common_opps_cc,
-                our_ranking=our_ranking,
-                rankings_confidence=rankings_conf)
-            if talking:
-                coaches_corner['talking_points'] = talking
-
-        if coaches_corner:
-            state['coaches_corner'] = coaches_corner
-            tournament_data['_coaches_corner'] = coaches_corner
-
-        _write_data(tournament_data)
-
-    # Always ensure saved narrative / coaches_corner / tb_health are present in fresh state
-    if tournament_data.get('_narrative'):
-        state['narrative'] = tournament_data['_narrative']
-    if tournament_data.get('_coaches_corner'):
-        state['coaches_corner'] = tournament_data['_coaches_corner']
-    if tournament_data.get('_tb_health'):
-        state['tiebreaker_health'] = tournament_data['_tb_health']
-    SHADOW_STATE_PATH.parent.mkdir(parents=True, exist_ok=True)
-    SHADOW_STATE_PATH.write_text(json.dumps(state, indent=2))
-    _publish_to_git()
-
-    if storage:
-        try:
-            storage.save_state(state)
-            log.info(f"Initial state published to storage backend ({args.storage})")
-        except Exception as e:
-            log.warning(f"Could not publish initial state to storage: {e}")
-
-    if not args.skip_push:
-        git_push()
+        if not args.skip_push:
+            git_push()
 
     while True:
         try:

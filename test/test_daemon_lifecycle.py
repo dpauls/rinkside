@@ -80,6 +80,12 @@ class TestDaemonLifecycle(unittest.TestCase):
 
     def test_bench_analysis_live_game_schema(self):
         """Verifies that compute_bench_analysis returns the schema required by bench.html."""
+        # Ensure clean state for live game test
+        for g in self.test_data['pool_games']:
+            g['status'] = 'scheduled'
+            g['home_score'] = None
+            g['away_score'] = None
+
         # Set our game to in_progress (Kanata leading 1-0)
         for g in self.test_data['pool_games']:
             if g['game_id'] == 2074775:

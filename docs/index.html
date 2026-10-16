@@ -280,7 +280,7 @@
         <div style="display:flex;gap:0.4rem">
             <button id="install-btn" onclick="promptInstall()" style="background:#059669;border:none;padding:0.25rem 0.55rem;font-size:0.75rem;border-radius:4px;cursor:pointer;color:#fff;width:auto;display:none" title="Install Rinkside to your home screen for quick access and full-screen view">📲 Install App</button>
             <button id="wake-btn" onclick="toggleWakeLock()" style="background:#475569;border:none;padding:0.25rem 0.55rem;font-size:0.75rem;border-radius:4px;cursor:pointer;color:#fff;width:auto" title="Keeps your screen on at the rink so you receive continuous live smart watch alerts">⚡ Keep Awake (Rink Mode)</button>
-            <button id="alert-btn" onclick="toggleAlerts()" style="background:#0284c7;border:none;padding:0.25rem 0.55rem;font-size:0.75rem;border-radius:4px;cursor:pointer;color:#fff;width:auto">🔔 Watch Alerts</button>
+            <button id="alert-btn" onclick="toggleAlerts()" style="background:#475569;border:none;padding:0.25rem 0.55rem;font-size:0.75rem;border-radius:4px;cursor:pointer;color:#fff;width:auto" title="Click to enable live smart watch and browser goal notifications">🔔 Watch Alerts: OFF</button>
         </div>
     </div>
 
@@ -386,7 +386,8 @@ async function fetchTournamentState() {
 }
 
 const REFRESH_MS = 15000; // 15 seconds (responsive live polling)
-let alertsEnabled = false;
+let alertsEnabled = ('Notification' in window && Notification.permission === 'granted' && localStorage.getItem('rinkside_alerts_enabled') === 'true');
+setTimeout(() => { if (typeof updateAlertBtn === 'function') updateAlertBtn(); }, 0);
 let lastEventCount = -1;
 let currentVenues = {};
 
@@ -883,10 +884,12 @@ function toggleAlerts() {
     }
     if (Notification.permission === 'granted') {
         alertsEnabled = !alertsEnabled;
+        localStorage.setItem('rinkside_alerts_enabled', alertsEnabled ? 'true' : 'false');
         updateAlertBtn();
     } else if (Notification.permission !== 'denied') {
         Notification.requestPermission().then(permission => {
             alertsEnabled = (permission === 'granted');
+            localStorage.setItem('rinkside_alerts_enabled', alertsEnabled ? 'true' : 'false');
             updateAlertBtn();
         });
     } else {
@@ -901,8 +904,8 @@ function updateAlertBtn() {
         btn.textContent = '🔔 Watch Alerts: ON';
         btn.style.background = '#16a34a';
     } else {
-        btn.textContent = '🔔 Watch Alerts';
-        btn.style.background = '#0284c7';
+        btn.textContent = '🔔 Watch Alerts: OFF';
+        btn.style.background = '#475569';
     }
 }
 
