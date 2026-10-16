@@ -1019,9 +1019,23 @@ async function registerWebPushSubscription() {
             localStorage.setItem('rinkside_device_id', deviceId);
         }
 
+        const subJson = sub.toJSON();
+        const gamesList = (getGameSubs() || []).slice().sort();
+        const syncSignature = JSON.stringify({
+            endpoint: subJson.endpoint,
+            games: gamesList,
+            alerts_enabled: alertsEnabled
+        });
+
+        const lastSignature = localStorage.getItem('rinkside_last_synced_signature');
+        if (lastSignature === syncSignature) {
+            // Preferences haven't changed; avoid redundant S3 uploads
+            return;
+        }
+
         const payload = {
-            subscription: sub.toJSON(),
-            games: getGameSubs(),
+            subscription: subJson,
+            games: gamesList,
             alerts_enabled: alertsEnabled,
             device_id: deviceId,
             updated_at: new Date().toISOString()
@@ -1035,13 +1049,14 @@ async function registerWebPushSubscription() {
             uploadUrl += `subscriptions/${deviceId}.json`;
         }
 
-        console.log(`Web Push: Registering device ${deviceId} with OCI via PAR...`);
+        console.log(`Web Push: Syncing device ${deviceId} preferences with OCI via PAR...`);
         const resp = await fetch(uploadUrl, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         });
         if (resp.ok) {
+            localStorage.setItem('rinkside_last_synced_signature', syncSignature);
             console.log(`Web Push: Successfully registered device ${deviceId} with OCI Object Storage.`);
         } else {
             console.warn(`Web Push: OCI returned HTTP ${resp.status} on registration:`, await resp.text());
