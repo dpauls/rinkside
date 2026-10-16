@@ -175,6 +175,7 @@
         .event-time { color: var(--pico-muted-color); font-size: 0.8rem; }
         .evt-goal { border-left: 3px solid #2e7d32; padding-left: 0.75rem; }
         .evt-final { border-left: 3px solid var(--pico-primary); padding-left: 0.75rem; }
+        .evt-start { border-left: 3px solid #0284c7; padding-left: 0.75rem; }
         .evt-info { border-left: 3px solid var(--pico-muted-color); padding-left: 0.75rem; }
 
         .bracket-game {
@@ -489,7 +490,7 @@ function renderNarrative(narrative) {
 function renderEventLog(events) {
     if (!events || events.length === 0) return '';
     const items = [...events].reverse().map(e => {
-        const typeCls = e.type === 'goal' ? 'evt-goal' : e.type === 'final' ? 'evt-final' : 'evt-info';
+        const typeCls = e.type === 'goal' ? 'evt-goal' : e.type === 'final' ? 'evt-final' : e.type === 'start' ? 'evt-start' : 'evt-info';
         return `<li class="${typeCls}">
             <span class="event-time">${esc(e.time)}</span><br>
             <strong>${esc(e.headline)}</strong>
@@ -665,6 +666,8 @@ function toggleGameSub(gid, event) {
         Notification.requestPermission().then(p => {
             if (p === 'granted') {
                 toggleGameSubInternal(gid);
+            } else {
+                alert('Notification permissions are required in your browser settings to receive game alerts.');
             }
         });
         return;
@@ -675,13 +678,17 @@ function toggleGameSub(gid, event) {
 function toggleGameSubInternal(gid) {
     let subs = getGameSubs();
     const sGid = String(gid);
-    if (subs.includes(sGid)) {
+    const wasSubbed = subs.includes(sGid);
+    if (wasSubbed) {
         subs = subs.filter(x => x !== sGid);
     } else {
         subs.push(sGid);
     }
     setGameSubs(subs);
     loadAndRender();
+    if (!wasSubbed) {
+        dispatchNotification('🔔 Subscribed to Game', `You will receive live goal, game start, and final alerts for Game #${sGid}.`, `sub-${sGid}`);
+    }
 }
 
 function renderGames(games, label, ourTeam, isFinal) {
@@ -873,6 +880,88 @@ async function toggleWakeLock() {
     }
 }
 
+function playAlertChime() {
+    try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        const ctx = new AudioCtx();
+        if (ctx.state === 'suspended') {
+            ctx.resume();
+        }
+        const now = ctx.currentTime;
+        
+        // Tone 1: High crisp chime (587.33 Hz - D5)
+        const osc1 = ctx.createOscillator();
+        const gain1 = ctx.createGain();
+        osc1.type = 'sine';
+        osc1.frequency.setValueAtTime(587.33, now);
+        gain1.gain.setValueAtTime(0.3, now);
+        gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+        osc1.connect(gain1);
+        gain1.connect(ctx.destination);
+        osc1.start(now);
+        osc1.stop(now + 0.25);
+
+        // Tone 2: Higher ringing chime (880 Hz - A5)
+        const osc2 = ctx.createOscillator();
+        const gain2 = ctx.createGain();
+        osc2.type = 'sine';
+        osc2.frequency.setValueAtTime(880, now + 0.12);
+        gain2.gain.setValueAtTime(0.35, now + 0.12);
+        gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+        osc2.connect(gain2);
+        gain2.connect(ctx.destination);
+        osc2.start(now + 0.12);
+        osc2.stop(now + 0.45);
+    } catch (e) {
+        console.warn('Audio chime error:', e);
+    }
+}
+
+function dispatchNotification(title, body, tag) {
+    playAlertChime();
+    if ('vibrate' in navigator) {
+        try {
+            navigator.vibrate([200, 100, 200, 100, 200]);
+        } catch (e) {}
+    }
+
+    if (!('Notification' in window) || Notification.permission !== 'granted') {
+        return;
+    }
+
+    const options = {
+        body: body || 'Tournament tracker update',
+        icon: 'images/icon-192.png',
+        badge: 'images/icon-192.png',
+        vibrate: [200, 100, 200, 100, 200],
+        tag: tag || 'rinkside-alert',
+        renotify: true,
+        data: { url: './' }
+    };
+
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.ready.then(reg => {
+            if (reg && reg.showNotification) {
+                return reg.showNotification(title, options);
+            }
+            throw new Error('SW showNotification unavailable');
+        }).catch(() => {
+            try {
+                new Notification(title, options);
+            } catch (e) {
+                console.warn('Desktop Notification fallback failed:', e);
+            }
+        });
+    } else {
+        try {
+            new Notification(title, options);
+        } catch (e) {
+            console.warn('Desktop Notification failed:', e);
+        }
+    }
+}
+
 function toggleAlerts() {
     if (!('Notification' in window)) {
         if (/iPhone|iPad|iPod/.test(navigator.userAgent)) {
@@ -886,11 +975,17 @@ function toggleAlerts() {
         alertsEnabled = !alertsEnabled;
         localStorage.setItem('rinkside_alerts_enabled', alertsEnabled ? 'true' : 'false');
         updateAlertBtn();
+        if (alertsEnabled) {
+            dispatchNotification('🔔 Watch Alerts: ON', 'You will receive live goal, game start, and final notifications.', 'alert-test');
+        }
     } else if (Notification.permission !== 'denied') {
         Notification.requestPermission().then(permission => {
             alertsEnabled = (permission === 'granted');
             localStorage.setItem('rinkside_alerts_enabled', alertsEnabled ? 'true' : 'false');
             updateAlertBtn();
+            if (alertsEnabled) {
+                dispatchNotification('🔔 Watch Alerts: ON', 'You will receive live goal, game start, and final notifications.', 'alert-test');
+            }
         });
     } else {
         alert('Notifications are blocked in your browser settings. Please unblock them to receive live goal alerts.');
@@ -920,20 +1015,29 @@ function handleEventAlerts(events, ourTeam) {
         lastEventCount = events.length;
         const subs = getGameSubs();
 
-        newEvents.forEach(e => {
-            if (e.type === 'goal' || e.type === 'final') {
-                const isSubbed = subs.some(gid => (e.game_id && String(e.game_id) === String(gid)) || (e.headline && e.headline.includes(String(gid))));
+        newEvents.forEach((e, idx) => {
+            const isMatchEvent = e.type === 'goal' || e.type === 'final' || e.type === 'start' ||
+                (e.headline && (
+                    e.headline.toUpperCase().includes('STARTED') ||
+                    e.headline.toUpperCase().includes('FINAL') ||
+                    e.headline.toLowerCase().includes('score update')
+                ));
 
-                if (isSubbed || alertsEnabled) {
-                    if ('vibrate' in navigator) navigator.vibrate([200, 100, 200]);
-                    if ('Notification' in window && Notification.permission === 'granted') {
-                        new Notification(e.headline, {
-                            body: e.detail || 'Tournament tracker update',
-                            icon: 'images/icon-192.png',
-                            silent: true
-                        });
-                    }
-                }
+            if (!isMatchEvent) return;
+
+            const isSubbed = subs.some(gid => {
+                if (!gid) return false;
+                const sGid = String(gid);
+                return (e.game_id && String(e.game_id) === sGid) ||
+                       (e.headline && (e.headline.includes(`Game #${sGid}`) || e.headline.includes(`(${sGid})`)));
+            });
+
+            if (isSubbed || alertsEnabled) {
+                dispatchNotification(
+                    e.headline,
+                    e.detail || 'Tournament tracker update',
+                    `evt-${e.game_id || 'tourney'}-${lastEventCount - newEvents.length + idx}`
+                );
             }
         });
     }
@@ -1316,6 +1420,13 @@ async function loadAndRender() {
 // Initial load + periodic refresh
 loadAndRender();
 setInterval(loadAndRender, REFRESH_MS);
+
+// Immediate refresh when phone unlocks or user switches back to this tab
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+        loadAndRender();
+    }
+});
 
 // Register Service Worker for PWA & Background Alerts
 if ('serviceWorker' in navigator) {

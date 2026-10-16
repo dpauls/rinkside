@@ -366,7 +366,7 @@ def process_changes(changes, tournament_data, prev_scenarios, skip_narrative=Fal
                     round_robin_phase=rr_phase,
                     tournament_name=tournament_name,
                     recent_events=rolling_log[-5:])
-            events.append(create_event('info', headline, detail, game_id=g.get('game_id')))
+            events.append(create_event('start', headline, detail, game_id=g.get('game_id')))
 
         elif change['type'] == 'score_change':
             hs = g.get('home_score', 0)
@@ -551,7 +551,7 @@ def run_cycle(tournament_data, mock_source=None, skip_narrative=False, skip_push
                 home_name = teams.get(g['home'], {}).get('name', g['home'])
                 away_name = teams.get(g['away'], {}).get('name', g['away'])
                 headline = f"Pool {g_pool}: {home_name} {g['home_score']} - {g['away_score']} {away_name} (Final)"
-                events.append(create_event('info', headline, 'Cross-pool matchup update.'))
+                events.append(create_event('final', headline, 'Cross-pool matchup update.', game_id=g.get('game_id')))
 
     # Add events to log
     tournament_data.setdefault('event_log', []).extend(events)
