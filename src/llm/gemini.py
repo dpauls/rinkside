@@ -16,7 +16,7 @@ GEMINI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/models"
 class GeminiProvider(LLMProvider):
     """Google Gemini provider via direct REST API calls."""
 
-    DEFAULT_FLASH_MODEL = os.environ.get("GEMINI_FLASH_MODEL", "gemini-3.8-flash")
+    DEFAULT_FLASH_MODEL = os.environ.get("GEMINI_FLASH_MODEL", "gemini-3.5-flash")
     DEFAULT_PRO_MODEL = os.environ.get("GEMINI_PRO_MODEL", "gemini-3.1-pro-preview")
     MAX_DAILY_CALLS = int(os.environ.get("GEMINI_MAX_DAILY_CALLS", "350"))
 
@@ -65,7 +65,7 @@ class GeminiProvider(LLMProvider):
         primary_model = model or self.DEFAULT_FLASH_MODEL
         # Fallback sequence in case of daily quota exhaustion or 503 capacity spikes
         models_to_try = [primary_model]
-        for fallback in ["gemini-3.8-flash", "gemini-3.7-flash", "gemini-3-flash-preview", "gemini-3.1-flash-lite"]:
+        for fallback in ["gemini-3.5-flash", "gemini-3.6-flash", "gemini-3.8-flash", "gemini-3.7-flash"]:
             if fallback not in models_to_try:
                 models_to_try.append(fallback)
 
@@ -135,6 +135,8 @@ class GeminiProvider(LLMProvider):
                         break
                 except requests.RequestException as e:
                     log.warning(f"Gemini API error ({purpose}) with model {current_model} (attempt {attempt+1}): {e}")
+                    if isinstance(e, requests.Timeout):
+                        break
                     time.sleep(1.0)
 
         return None
