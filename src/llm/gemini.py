@@ -81,7 +81,7 @@ class GeminiProvider(LLMProvider):
 
         # Map thinking_level to thinkingBudget
         budget = 512 if thinking_level == "high" else 0
-        gen_tokens = max(max_tokens, budget + 400) if budget > 0 else max_tokens
+        gen_tokens = (budget + max(max_tokens, 500)) if budget > 0 else max_tokens
 
         gen_config: dict[str, Any] = {
             "maxOutputTokens": gen_tokens,
