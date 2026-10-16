@@ -226,7 +226,12 @@ def _get_advancement_desc(tournament_data, our_pool):
     if stype == 'two_pool_top2_advance':
         return (f"Top 2 teams in Pool {our_pool} advance to the Semifinals "
                 f"(1st plays 2nd from the other pool); 3rd place plays in the Consolation Game.")
-    return f"Only the Pool {our_pool} winner advances to the Quarter-Final."
+    struct = build_structure_from_config(tournament_data)
+    count = struct.get_advance_count(our_pool)
+    round_name = struct.get_playoff_round_name(our_pool)
+    if count == 1:
+        return f"Only the Pool {our_pool} winner advances to the {round_name}."
+    return f"Top {count} teams in Pool {our_pool} advance to the {round_name}."
 
 
 def _build_opponent_context(our_team, opp_id, completed_games, teams):
@@ -696,13 +701,19 @@ def run_cycle(tournament_data, mock_source=None, skip_narrative=False, skip_push
             adv_desc = _get_advancement_desc(tournament_data, our_pool)
             t_name = tournament_data.get('tournament', {}).get('name', 'Pink the Rink XV - U18C')
 
+            # Don't hardcode round names or advance counts
+            _struct = build_structure_from_config(tournament_data)
+            _round_name = _struct.get_playoff_round_name(our_pool)
+            _adv_count = _struct.get_advance_count(our_pool)
+            _adv_spot = f"top {_adv_count}" if _adv_count > 1 else "1st place"
+
             # Don Cherry
             recent_results = [e['headline'] for e in tournament_data.get('event_log', []) if e['type'] == 'final']
             if current_for_game == 'ELIMINATED':
                 cherry_context = (f"Pool play is over for us. Results: {', '.join(recent_results[-3:])}. "
-                                  f"We did not advance to the championship bracket. Be encouraging about the effort.")
+                                  f"We did not advance to the {_round_name}. Be encouraging about the effort.")
             elif current_for_game == 'Playoffs':
-                cherry_context = (f"We finished top 2 in Pool {our_pool} and advance to the Semifinals! "
+                cherry_context = (f"We finished {_adv_spot} in Pool {our_pool} and advance to the {_round_name}! "
                                   f"Results: {', '.join(recent_results[-3:])}.")
             else:
                 cherry_context = f"Tournament state: {', '.join(recent_results[-3:])}. Next: {current_for_game}. ({adv_desc})"
@@ -717,7 +728,7 @@ def run_cycle(tournament_data, mock_source=None, skip_narrative=False, skip_push
                 talking = generate_pregame_talking_points(
                     our_team_name, 'Tournament Recap', '?',
                     [e['headline'] for e in tournament_data.get('event_log', []) if e['type'] == 'final'],
-                    0, 'Pool play is over. We did not advance to the Semifinals.',
+                    0, f'Pool play is over. We did not advance to the {_round_name}.',
                     'Pool play concluded.',
                     'Focus on the positives from this tournament and any remaining consolation game. Cheer up the players.',
                     tournament_name=t_name,
@@ -726,10 +737,10 @@ def run_cycle(tournament_data, mock_source=None, skip_narrative=False, skip_push
                     coaches_corner['talking_points'] = talking
             elif current_for_game == 'Playoffs':
                 talking = generate_pregame_talking_points(
-                    our_team_name, 'Semifinal Opponent', '?',
+                    our_team_name, f'{_round_name} Opponent', '?',
                     [e['headline'] for e in tournament_data.get('event_log', []) if e['type'] == 'final'],
-                    0, f'We clinched a top-2 spot in Pool {our_pool} and advance to the Semifinals!',
-                    'Single elimination Semifinal -- win to advance to the Championship Final.',
+                    0, f'We clinched {_adv_spot} in Pool {our_pool} and advance to the {_round_name}!',
+                    f'Single elimination {_round_name} -- win to advance to the next round.',
                     adv_desc,
                     tournament_name=t_name,
                     prev_talking_points=prev_tp)
@@ -766,7 +777,7 @@ def run_cycle(tournament_data, mock_source=None, skip_narrative=False, skip_push
                     our_analysis = enumerate_scenarios(our_pool, tournament_data)
                     our_count = our_analysis['counts'].get(our_team, 0)
                     det = our_analysis['total'] - our_analysis.get('unresolved_count', 0)
-                    stake = f"We advance to the Semifinals in {our_count} of {det} deterministic scenarios."
+                    stake = f"We advance to the {_round_name} in {our_count} of {det} deterministic scenarios."
 
                     talking_points = generate_pregame_talking_points(
                         our_team_name, opp_name, opp_ranking,
@@ -980,7 +991,9 @@ def main():
             standings_ctx = f'{len(completed_cc)} pool games completed.'
             our_count_cc = our_analysis['counts'].get(our_team, 0)
             det_cc = our_analysis['total'] - our_analysis.get('unresolved_count', 0)
-            scenarios_ctx = f'We advance to the Semifinals in {our_count_cc} of {det_cc} deterministic scenarios.'
+            _struct_cc = build_structure_from_config(tournament_data)
+            _round_name_cc = _struct_cc.get_playoff_round_name(our_pool)
+            scenarios_ctx = f'We advance to the {_round_name_cc} in {our_count_cc} of {det_cc} deterministic scenarios.'
         else:
             standings_ctx = 'First game of the tournament.'
             scenarios_ctx = 'No games played yet.'

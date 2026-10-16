@@ -105,7 +105,19 @@ def build_standings(pool_id, data, analysis):
     return rows
 
 
-def build_scenario_data(analysis, our_team):
+def build_scenario_data(analysis, our_team, data=None, pool_id=None):
+    advance_count = 1
+    advancement_round = "Playoffs"
+    if data:
+        try:
+            from structure import build_structure_from_config
+        except ImportError:
+            from src.structure import build_structure_from_config
+        struct = build_structure_from_config(data)
+        if pool_id:
+            advance_count = struct.get_advance_count(pool_id)
+            advancement_round = struct.get_playoff_round_name(pool_id)
+
     if not analysis or analysis['total'] <= 1:
         if analysis and analysis['total'] == 1:
             sc = analysis['scenarios'][0]
@@ -116,6 +128,8 @@ def build_scenario_data(analysis, our_team):
                 'remaining_games': 0,
                 'gd_dependent': 0,
                 'unresolved': 0,
+                'advance_count': advance_count,
+                'advancement_round': advancement_round,
                 'winner': winner,
                 'scenarios': [],
             }
@@ -191,6 +205,9 @@ def build_scenario_data(analysis, our_team):
         else:
             red += 1
 
+    if not data and scenarios and scenarios[0].get('advancing'):
+        advance_count = len(scenarios[0]['advancing'])
+
     return {
         'total': total,
         'green': green,
@@ -200,6 +217,8 @@ def build_scenario_data(analysis, our_team):
         'our_pct': round(green / (green + red) * 100, 1) if (green + red) > 0 else 0,
         'unresolved': unresolved_count,
         'gd_dependent': analysis['gd_dependent_count'],
+        'advance_count': advance_count,
+        'advancement_round': advancement_round,
         'remaining_games': len(remaining),
         'remaining_info': remaining_info,
         'counts': analysis['counts'],
@@ -373,6 +392,8 @@ def generate(data_path='data/tournaments/pink_the_rink_2026.json', skip_narrativ
             'pool_id': pid,
             'name': f'Pool {pid}',
             'is_our_pool': (pid == our_pool),
+            'advance_count': struct.get_advance_count(pid),
+            'advancement_round': struct.get_playoff_round_name(pid),
             'standings': p_standings,
             'upcoming': build_games_list(pid, data, 'scheduled'),
             'completed': build_games_list(pid, data, 'final'),
@@ -402,7 +423,7 @@ def generate(data_path='data/tournaments/pink_the_rink_2026.json', skip_narrativ
         })
     all_division_games.sort(key=lambda g: g.get('date') or '')
 
-    scenario_data = build_scenario_data(our_analysis, our_team)
+    scenario_data = build_scenario_data(our_analysis, our_team, data=data, pool_id=our_pool)
     raw_scenarios = []
     if scenario_data and 'scenarios' in scenario_data:
         raw_scenarios = scenario_data.pop('scenarios') or []

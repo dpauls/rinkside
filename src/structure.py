@@ -27,6 +27,10 @@ class TournamentStructure:
         """Return the human-readable round name for advancing teams (e.g. 'Playoffs')."""
         return "Playoffs"
 
+    def get_playoff_round_name(self, pool_id: str) -> str:
+        """Return the target playoff round (e.g. 'Semifinals', 'Quarterfinals')."""
+        return "Playoffs"
+
     def format_clinch_alert(self, pool_id: str, team_name: str, status_type: str) -> Optional[str]:
         """Format human-readable clinch announcement based on tournament structure."""
         if status_type == 'first':
@@ -61,6 +65,9 @@ class TwoPoolTop2AdvanceStructure(TournamentStructure):
 
     def get_advancement_round_name(self, pool_id: str) -> str:
         return "Semifinal berth"
+
+    def get_playoff_round_name(self, pool_id: str) -> str:
+        return "Semifinals"
 
     def format_clinch_alert(self, pool_id: str, team_name: str, status_type: str) -> Optional[str]:
         if status_type == 'first':
@@ -162,6 +169,9 @@ class MultiPoolCrossoverStructure(TournamentStructure):
 
     def get_advancement_round_name(self, pool_id: str) -> str:
         return "Quarterfinal berth"
+
+    def get_playoff_round_name(self, pool_id: str) -> str:
+        return "Quarterfinals"
 
     def format_clinch_alert(self, pool_id: str, team_name: str, status_type: str) -> Optional[str]:
         if status_type == 'first' or status_type == 'berth':

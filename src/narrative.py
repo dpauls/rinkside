@@ -69,7 +69,8 @@ def _format_date(iso_date):
 
 
 def generate_tournament_digest(standings, scenarios, our_pool='B', advance_count=2,
-                               our_team_name='Kanata Rangers', tournament_name='Pink the Rink XV - U18C'):
+                               our_team_name='Kanata Rangers', tournament_name='Pink the Rink XV - U18C',
+                               advancement_round='playoffs'):
     """High-thinking distillation of the raw standings and scenarios matrix.
     
     Produces a 2-3 bullet point baseline stakes digest that feeds into fast live goal quips.
@@ -83,8 +84,9 @@ def generate_tournament_digest(standings, scenarios, our_pool='B', advance_count
     sc_total = scenarios.get('total', 0) if scenarios else 0
     our_adv = scenarios.get('our_count', 0) if scenarios else 0
 
+    adv_target = f"the {advancement_round}" if advancement_round != 'playoffs' else "the playoffs"
     prompt = f"""You are the senior tournament analyst for {our_team_name} at {tournament_name}.
-We play in Pool {our_pool}, where the top {advance_count} team(s) advance to the playoff semifinals.
+We play in Pool {our_pool}, where the top {advance_count} team(s) advance to {adv_target}.
 
 Current Standings in Pool {our_pool}:
 {standings_str}
@@ -367,7 +369,7 @@ def generate_game_final_comment(game, standings, prev_scenarios, curr_scenarios,
 
     clinch_note = ''
     if curr_scenarios and curr_count == curr_total and curr_total > 0:
-        clinch_note = f'\n{our_team_name} has CLINCHED a playoff semifinal spot in Pool {our_pool}!'
+        clinch_note = f'\n{our_team_name} has CLINCHED a playoff spot in Pool {our_pool}!'
     elif curr_scenarios and curr_count == 0 and curr_total > 0:
         clinch_note = f'\n{our_team_name} has been ELIMINATED from Pool {our_pool}.'
 

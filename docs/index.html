@@ -977,11 +977,24 @@ function renderPlayoffMatchup(g) {
 }
 
 function renderPlayoffs(playoffs) {
-    if (!playoffs || !playoffs.semis) return '';
-    const semisHtml = playoffs.semis.map(renderPlayoffMatchup).join('');
-    const consolHtml = (playoffs.consolations || []).map(renderPlayoffMatchup).join('');
-    const finalHtml = renderPlayoffMatchup(playoffs.final);
-    return `<h3>Semifinals</h3>${semisHtml}<h3>Consolation</h3>${consolHtml}<h3>Championship Final</h3>${finalHtml}`;
+    if (!playoffs) return '';
+    let html = '';
+    if (playoffs.quarterfinals && playoffs.quarterfinals.length > 0) {
+        const qfHtml = playoffs.quarterfinals.map(renderPlayoffMatchup).join('');
+        html += `<h3>Quarterfinals</h3>${qfHtml}`;
+    }
+    if (playoffs.semis && playoffs.semis.length > 0) {
+        const semisHtml = playoffs.semis.map(renderPlayoffMatchup).join('');
+        html += `<h3>Semifinals</h3>${semisHtml}`;
+    }
+    if (playoffs.consolations && playoffs.consolations.length > 0) {
+        const consolHtml = playoffs.consolations.map(renderPlayoffMatchup).join('');
+        html += `<h3>Consolation</h3>${consolHtml}`;
+    }
+    if (playoffs.final) {
+        html += `<h3>Championship Final</h3>${renderPlayoffMatchup(playoffs.final)}`;
+    }
+    return html;
 }
 
 let currentState = null;

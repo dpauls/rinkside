@@ -271,11 +271,17 @@ function renderTable(sc, ourTeam) {
     const games = sc.remaining_info;
     if (!games || !sc.scenarios) return '<p>No scenarios to display.</p>';
 
+    const poolConfig = (stateData && stateData.our_pool && stateData.all_pools && stateData.all_pools[stateData.our_pool])
+        ? stateData.all_pools[stateData.our_pool] : {};
+    const sampleAdv = (sc.scenarios && sc.scenarios[0] && sc.scenarios[0].advancing) ? sc.scenarios[0].advancing : [];
+    const advCount = sc.advance_count || poolConfig.advance_count || (sampleAdv.length > 0 ? sampleAdv.length : 1);
+    const advHeader = advCount === 1 ? 'Advancing (Pool Winner)' : `Advancing (Top ${advCount})`;
+
     let thead = '<tr><th>#</th>';
     games.forEach(g => {
         thead += `<th>${esc(g.home)}<br>v<br>${esc(g.away)}</th>`;
     });
-    thead += '<th>Advancing (Top 2)</th><th>How</th></tr>';
+    thead += `<th>${esc(advHeader)}</th><th>How</th></tr>`;
 
     let tbody = '';
     let visibleCount = 0;
@@ -372,6 +378,21 @@ function render() {
     document.getElementById('title').textContent = `${d.tournament.name} - Scenario Analysis`;
     document.getElementById('subtitle').textContent =
         `Pool ${d.our_pool} \u00b7 ${d.our_team_name} \u00b7 Last updated: ${new Date(d.generated_at).toLocaleString()}`;
+
+    if (d.tournament) {
+        if (d.tournament.banner_text) {
+            const b = document.getElementById('tourney-banner');
+            if (b) {
+                b.textContent = d.tournament.banner_text;
+                if (d.tournament.banner_color) b.style.color = d.tournament.banner_color;
+                if (d.tournament.banner_font) b.style.fontFamily = d.tournament.banner_font;
+            }
+        }
+        if (d.tournament.logo) {
+            const l = document.getElementById('tourney-logo');
+            if (l) l.src = d.tournament.logo;
+        }
+    }
 
     document.getElementById('rooting-guide-area').innerHTML = renderRootingGuide(d.rooting_guide, d.our_team_name);
 

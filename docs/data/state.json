@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-15T20:20:10.692777-04:00",
+  "generated_at": "2026-10-15T20:42:15.849390-04:00",
   "tournament": {
     "id": "ptr_2026_u18c",
     "name": "Pink the Rink XV - U18C",
@@ -190,6 +190,8 @@
     "our_pct": 50.0,
     "unresolved": 111,
     "gd_dependent": 0,
+    "advance_count": 2,
+    "advancement_round": "Semifinals",
     "remaining_games": 6,
     "remaining_info": [
       {
@@ -522,6 +524,8 @@
       "pool_id": "A",
       "name": "Pool A",
       "is_our_pool": false,
+      "advance_count": 2,
+      "advancement_round": "Semifinals",
       "standings": [
         {
           "id": "EOS",
@@ -683,6 +687,8 @@
       "pool_id": "B",
       "name": "Pool B",
       "is_our_pool": true,
+      "advance_count": 2,
+      "advancement_round": "Semifinals",
       "standings": [
         {
           "id": "KAN",
