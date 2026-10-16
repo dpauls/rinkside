@@ -62,10 +62,21 @@ def _set_data_path(path):
 
 
 def _read_data():
-    """Read tournament data from shadow file (preferred) or tracked file."""
-    if SHADOW_DATA_PATH.exists():
+    """Read tournament data, using tracked file for static config and shadow file for live state."""
+    if not DATA_PATH.exists() and SHADOW_DATA_PATH.exists():
         return json.loads(SHADOW_DATA_PATH.read_text())
-    return json.loads(DATA_PATH.read_text())
+    tracked = json.loads(DATA_PATH.read_text())
+    if not SHADOW_DATA_PATH.exists():
+        return tracked
+
+    try:
+        shadow = json.loads(SHADOW_DATA_PATH.read_text())
+        for key in ('pool_games', 'event_log', '_narrative', '_coaches_corner', '_tb_health'):
+            if key in shadow:
+                tracked[key] = shadow[key]
+    except Exception as e:
+        log.warning(f"Could not merge shadow state: {e}")
+    return tracked
 
 
 def _write_data(data):

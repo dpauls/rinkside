@@ -65,7 +65,9 @@ if [ "$CMD" = "restore" ]; then
     if [ "$USE_S3" = true ]; then
         echo "==> Restoring pre-tournament baseline on Oracle Cloud VM (S3 storage)..."
         ssh -i "$HOME/.ssh/oracle_rinkside.key" -o StrictHostKeyChecking=no ubuntu@132.145.100.44 \
-            "docker exec rinkside-tracker-1 python3 src/daemon.py \
+            "rm -f ~/rinkside/data/tournaments/.*_live.json ~/rinkside/data/.*_live.json ~/rinkside/docs/data/.*_live.json ~/rinkside/test/mock_responses_ptr/.mock_step && \
+             cd ~/rinkside && git checkout -- data/tournaments/pink_the_rink_2026.json && \
+             docker exec rinkside-tracker-1 python3 src/daemon.py \
                 --tournament data/tournaments/pink_the_rink_2026.json \
                 --mock-dir test/mock_responses_ptr \
                 --mock-reset \
