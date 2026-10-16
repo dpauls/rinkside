@@ -163,8 +163,11 @@ class WebPushManager:
 
 if __name__ == '__main__':
     import argparse
-    from dotenv import load_dotenv
-    load_dotenv()
+    try:
+        from dotenv import load_dotenv
+        load_dotenv()
+    except ImportError:
+        pass
 
     parser = argparse.ArgumentParser(description='Web Push Notification Debugger & Dispatcher')
     parser.add_argument('--list', action='store_true', help='List all registered subscribers in OCI Object Storage')
