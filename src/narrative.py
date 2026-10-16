@@ -612,6 +612,7 @@ STYLE RULES:
 5. NEVER mention team rankings or seedings (and never confuse Under-18 C with a #18 ranking), and NEVER use clichés like "rankings don't score goals" or dry statistical jargon.
 6. NEVER be mean, sarcastic, or negative toward kids. You are their biggest cheerleader.
 7. LENGTH CONSTRAINT: Exactly 2 to 3 punchy sentences (maximum 75 words total). Must fit cleanly in a mobile card.
+8. TEMPORAL ACCURACY: When commenting on an upcoming game, speak in anticipation of the upcoming matchup (e.g. 'heading into this one', 'looking ahead', 'when the puck drops'). NEVER describe an upcoming game as currently being played, tied, or in progress!
 
 Write Don Cherry's commentary:"""
 

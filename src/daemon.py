@@ -777,8 +777,13 @@ def run_cycle(tournament_data, mock_source=None, skip_narrative=False, skip_push
                 cherry_context = (f"Pool play is over for us. Results: {', '.join(recent_results[-3:])}. "
                                   f"We did not advance to the {_round_name}. Be encouraging about the effort.")
             elif current_for_game == 'Playoffs' or current_for_game.startswith(('Semifinal:', 'Championship Final:', 'Consolation:')):
-                cherry_context = (f"Playoff hockey at {t_name}! Next up: {current_for_game}. "
-                                  f"Recent results: {', '.join(recent_results[-3:])}.")
+                if our_live:
+                    cherry_context = (f"LIVE PLAYOFF GAME IN PROGRESS: We ({our_team_name}) are playing {current_for_game}! "
+                                      f"Sudden-death elimination hockey on the ice right now! High energy commentary!")
+                else:
+                    cherry_context = (f"UPCOMING PLAYOFF GAME: We ({our_team_name}) have advanced to {current_for_game}! "
+                                      f"The playoff game has NOT started yet. Recent results: {', '.join(recent_results[-3:])}. "
+                                      f"Speak in anticipation of this huge playoff matchup. Do NOT speak as if the game is currently on the ice!")
             else:
                 our_completed = [
                     g for g in tournament_data.get('pool_games', [])
@@ -787,17 +792,28 @@ def run_cycle(tournament_data, mock_source=None, skip_narrative=False, skip_push
                 if our_live:
                     cherry_context = (
                         f"LIVE GAME IN PROGRESS: We ({our_team_name}) are currently playing against the {current_for_game}! "
-                        f"Deliver high-energy commentary on this live battle!"
+                        f"Deliver high-energy commentary on this live battle happening right now on the ice!"
                     )
                 elif not our_completed:
                     cherry_context = (
                         f"PRE-TOURNAMENT OPENER: We ({our_team_name}) have NOT played any games yet. "
-                        f"We are gearing up for our tournament opener (Game 1 of 3 in Pool B) against our rivals, the {current_for_game}! "
-                        f"The game has not started yet (puck drops at 2:15 PM). "
-                        f"Get the kids pumped up for the opening game, emphasize work ethic, and wish them luck! ({adv_desc})"
+                        f"Our tournament opener against our rivals, the {current_for_game}, is coming up later at 2:15 PM. "
+                        f"The game has NOT started yet. Talk in anticipation of the upcoming 2:15 PM game—talk about excitement, "
+                        f"team preparation, and coming out flying when the puck drops! Do NOT speak as if the game is already in progress. ({adv_desc})"
                     )
                 else:
-                    cherry_context = f"Tournament state: {', '.join(recent_results[-3:])}. Next: {current_for_game}. ({adv_desc})"
+                    last_g = our_completed[-1]
+                    we_h = last_g.get('home') == our_team
+                    our_s = last_g.get('home_score', 0) if we_h else last_g.get('away_score', 0)
+                    opp_s = last_g.get('away_score', 0) if we_h else last_g.get('home_score', 0)
+                    opp_name = last_g.get('away_name') if we_h else last_g.get('home_name')
+                    result_desc = "won" if our_s > opp_s else ("tied" if our_s == opp_s else "battled hard in a tough loss against")
+                    cherry_context = (
+                        f"BETWEEN GAMES: Our prior game ended ({result_desc} {opp_name} {our_s}-{opp_s}). "
+                        f"Our next game is UPCOMING against {current_for_game} (Game {len(our_completed)+1} of 3 in Pool B). "
+                        f"The next game has NOT started yet. Reflect briefly on the prior game and look ahead to preparing "
+                        f"for the upcoming battle against {current_for_game}. Do NOT speak as if the next game is currently on the ice! ({adv_desc})"
+                    )
             don_cherry = generate_don_cherry(
                 cherry_context, our_team_name,
                 tournament_name=t_name, prev_don_cherry=prev_cherry)
@@ -1102,11 +1118,25 @@ def main():
 
             # Context strings
             recent_finals = [e['headline'] for e in tournament_data.get('event_log', []) if e['type'] == 'final']
-            if recent_finals:
-                cherry_ctx = f"Tournament state: {', '.join(recent_finals[-3:])}. ({adv_desc})"
+            our_upcoming_for_ctx = [g for g in upcoming_cc if g['home'] == our_team or g['away'] == our_team]
+            next_opp_name = None
+            if our_upcoming_for_ctx:
+                next_g = our_upcoming_for_ctx[0]
+                next_opp_id = next_g['away'] if next_g['home'] == our_team else next_g['home']
+                next_opp_name = tournament_data['teams'].get(next_opp_id, {}).get('name', next_opp_id)
+
+            if not our_completed_cc:
+                cherry_ctx = (f"PRE-TOURNAMENT OPENER: We ({our_team_name}) have NOT played any games yet. "
+                              f"Our tournament opener against {next_opp_name or 'our rivals'} is coming up later at 2:15 PM. "
+                              f"The game has NOT started yet. Speak in anticipation of the upcoming 2:15 PM game—excitement, "
+                              f"team preparation, and coming out flying when the puck drops! Do NOT speak as if the game is already in progress. ({adv_desc})")
+            elif recent_finals:
+                cherry_ctx = (f"BETWEEN GAMES: Our next game is UPCOMING against {next_opp_name or 'our next opponent'}. "
+                              f"The next game has NOT started yet. Recent results around tournament: {', '.join(recent_finals[-3:])}. "
+                              f"Speak looking ahead to the upcoming game. Do NOT speak as if it is currently in progress. ({adv_desc})")
             else:
-                cherry_ctx = (f"Tournament ({t_name}) is about to start! {our_team_name} is in Pool {our_pool}. "
-                             f"{adv_desc}")
+                cherry_ctx = (f"Tournament ({t_name}) is underway! {our_team_name} is in Pool {our_pool}. "
+                              f"Next matchup: {next_opp_name or 'upcoming opponent'}. The game has NOT started yet. ({adv_desc})")
 
             if completed_cc:
                 standings_ctx = f'{len(completed_cc)} pool games completed.'
