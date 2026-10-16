@@ -54,11 +54,17 @@ SHADOW_DATA_PATH = PROJECT_ROOT / 'data' / '.tournament_live.json'
 SHADOW_STATE_PATH = PROJECT_ROOT / 'docs' / 'data' / '.state_live.json'
 
 
-def _set_data_path(path):
-    global DATA_PATH, SHADOW_DATA_PATH, SHADOW_STATE_PATH
+DEV_MODE = False
+
+
+def _set_data_path(path, dev=False):
+    global DATA_PATH, SHADOW_DATA_PATH, SHADOW_STATE_PATH, DEV_MODE
+    DEV_MODE = bool(dev)
     DATA_PATH = Path(path)
-    SHADOW_DATA_PATH = DATA_PATH.parent / f".{DATA_PATH.stem}_live.json"
-    SHADOW_STATE_PATH = PROJECT_ROOT / 'docs' / 'data' / f".state_{DATA_PATH.stem}_live.json"
+    suffix = "dev" if DEV_MODE else "live"
+    state_dir = (PROJECT_ROOT / 'docs' / 'data' / 'dev') if DEV_MODE else (PROJECT_ROOT / 'docs' / 'data')
+    SHADOW_DATA_PATH = DATA_PATH.parent / f".{DATA_PATH.stem}_{suffix}.json"
+    SHADOW_STATE_PATH = state_dir / f".state_{DATA_PATH.stem}_{suffix}.json"
 
 
 def _read_data():
@@ -87,6 +93,8 @@ def _write_data(data):
 
 def _publish_to_git():
     """Copy shadow files to tracked files for git push."""
+    if DEV_MODE:
+        return
     import shutil
     if SHADOW_DATA_PATH.exists():
         shutil.copy2(str(SHADOW_DATA_PATH), str(DATA_PATH))
@@ -365,6 +373,7 @@ def process_changes(changes, tournament_data, prev_scenarios, skip_narrative=Fal
             hs = g.get('home_score', 0) or 0
             as_ = g.get('away_score', 0) or 0
             is_our_game = (g['home'] == our_team or g['away'] == our_team)
+            game_pool = g.get('pool')
             headline = f"GAME STARTED: {home_name} vs {away_name} (Game #{g['game_id']})"
 
             detail = None
@@ -374,28 +383,32 @@ def process_changes(changes, tournament_data, prev_scenarios, skip_narrative=Fal
                     is_our_game, our_team_name,
                     tournament_context=tournament_context,
                     in_progress_games=live_games,
-                    round_robin_phase=rr_phase,
+                    round_robin_phase=rr_phase if game_pool is not None else 'playoffs',
                     tournament_name=tournament_name,
-                    recent_events=rolling_log[-5:])
+                    recent_events=rolling_log[-5:],
+                    game_pool=game_pool,
+                    our_pool=our_pool)
             events.append(create_event('start', headline, detail, game_id=g.get('game_id')))
 
         elif change['type'] == 'score_change':
             hs = g.get('home_score', 0)
             as_ = g.get('away_score', 0)
             is_our_game = (g['home'] == our_team or g['away'] == our_team)
+            game_pool = g.get('pool')
             headline = f"Score update: {home_name} {hs} - {as_} {away_name} (Game #{g['game_id']}, in progress)"
 
-            # Run what-if projection for scenario impact
+            # Run what-if projection ONLY if this game is in our pool
             from analyze import what_if_projection
             holds_count = None
             holds_total = None
-            try:
-                if_holds = what_if_projection(our_pool, tournament_data,
-                    [{'game_id': g['game_id'], 'home_score': hs, 'away_score': as_}])
-                holds_count = if_holds['counts'].get(our_team, 0)
-                holds_total = if_holds['total'] - if_holds.get('unresolved_count', 0)
-            except Exception:
-                pass
+            if game_pool == our_pool:
+                try:
+                    if_holds = what_if_projection(our_pool, tournament_data,
+                        [{'game_id': g['game_id'], 'home_score': hs, 'away_score': as_}])
+                    holds_count = if_holds['counts'].get(our_team, 0)
+                    holds_total = if_holds['total'] - if_holds.get('unresolved_count', 0)
+                except Exception:
+                    pass
 
             detail = None
             if not skip_narrative:
@@ -404,14 +417,17 @@ def process_changes(changes, tournament_data, prev_scenarios, skip_narrative=Fal
                     is_our_game, our_team_name, holds_count, holds_total,
                     tournament_context=tournament_context,
                     in_progress_games=live_games,
-                    round_robin_phase=rr_phase,
+                    round_robin_phase=rr_phase if game_pool is not None else 'playoffs',
                     tournament_name=tournament_name,
-                    recent_events=rolling_log[-5:])
+                    recent_events=rolling_log[-5:],
+                    game_pool=game_pool,
+                    our_pool=our_pool)
 
             events.append(create_event('goal', headline, detail, game_id=g.get('game_id')))
 
         elif change['type'] == 'game_final':
             mark_game_final()
+            game_pool = g.get('pool')
             headline = (f"FINAL: {home_name} {g['home_score']} - "
                        f"{g['away_score']} {away_name} (Game #{g['game_id']})")
 
@@ -421,9 +437,16 @@ def process_changes(changes, tournament_data, prev_scenarios, skip_narrative=Fal
                     e for e in rolling_log
                     if home_name in e.get('headline', '') and away_name in e.get('headline', '')
                 ]
+                pool_standings_for_game = standings
+                p_scen = prev_scenarios if game_pool == our_pool else None
+                c_scen = curr_scenarios if game_pool == our_pool else None
+                if game_pool and game_pool != our_pool:
+                    other_an = enumerate_scenarios(game_pool, tournament_data)
+                    pool_standings_for_game = build_standings(game_pool, tournament_data, other_an)
                 detail = generate_game_final_comment(
-                    game_info, standings, prev_scenarios, curr_scenarios,
+                    game_info, pool_standings_for_game, p_scen, c_scen,
                     our_team, our_team_name, our_pool, teams,
+                    tournament_name=tournament_name,
                     game_events=game_events)
 
             events.append(create_event('final', headline, detail, game_id=g.get('game_id')))
@@ -575,9 +598,15 @@ def run_cycle(tournament_data, mock_source=None, skip_narrative=False, skip_push
             other_pool_id = other_pools[0] if other_pools else None
             qf_standings = build_standings(other_pool_id, tournament_data,
                                            enumerate_scenarios(other_pool_id, tournament_data)) if other_pool_id else []
-            completed = build_games_list(our_pool, tournament_data, 'final')
-            upcoming = build_games_list(our_pool, tournament_data, 'scheduled')
-            live = build_games_list(our_pool, tournament_data, 'in_progress')
+            playoff_completed = build_games_list(None, tournament_data, 'final')
+            playoff_upcoming = build_games_list(None, tournament_data, 'scheduled')
+            playoff_live = build_games_list(None, tournament_data, 'in_progress')
+
+            completed = playoff_completed + build_games_list(our_pool, tournament_data, 'final')
+            upcoming = build_games_list(our_pool, tournament_data, 'scheduled') + [
+                g for g in playoff_upcoming if g.get('home') == our_team or g.get('away') == our_team
+            ]
+            live = build_games_list(our_pool, tournament_data, 'in_progress') + playoff_live
 
             # Summarize recent changes for context
             recent_change_descs = [e['headline'] for e in events]
@@ -591,34 +620,40 @@ def run_cycle(tournament_data, mock_source=None, skip_narrative=False, skip_push
                         f"TIEBREAKER: {', '.join(tb['teams'])} tied at {tb['pts']}pts. "
                         f"Resolution: {' '.join(tb['lines'])}")
 
-            # Detect elimination or advancement
+            # Detect elimination, advancement, or championship result
             remaining_pool = build_games_list(our_pool, tournament_data, 'scheduled')
             remaining_live = build_games_list(our_pool, tournament_data, 'in_progress')
             pool_complete = len(remaining_pool) == 0 and len(remaining_live) == 0
+            round_name = struct.get_playoff_round_name(our_pool)
 
             if pool_complete and our_analysis['total'] == 1:
                 sc = our_analysis['scenarios'][0]
-                if sc['result']['advancing'] and our_team in sc['result']['advancing']:
+                adv_list = sc['result'].get('advancing', [])
+                if adv_list and our_team in adv_list:
+                    seed_pos = adv_list.index(our_team) + 1
+                    seed_label = "1st place" if seed_pos == 1 else f"#{seed_pos} seed"
                     recent_change_descs.append(
-                        f"WE WON POOL {our_pool}! We advance to the Quarter-Final!")
-                    # Check bracket for QF opponent
-                    for b in tournament_data.get('bracket', []):
-                        if b.get('round') == 'QF' and 'C1' in str(b.get('label', '')):
+                        f"CLINCHED: We finished {seed_label} in Pool {our_pool} and advance to the {round_name}!")
+                    # Check if Championship Final or Semifinal has been completed
+                    final_g = next((g for g in playoff_completed if g.get('game_id') == 2074871), None)
+                    if final_g and (final_g.get('home') == our_team or final_g.get('away') == our_team):
+                        we_home = final_g.get('home') == our_team
+                        our_s = final_g['home_score'] if we_home else final_g['away_score']
+                        opp_s = final_g['away_score'] if we_home else final_g['home_score']
+                        if our_s > opp_s:
                             recent_change_descs.append(
-                                f"Our Quarter-Final is {b.get('date', 'TBD')}.")
-                            break
-                elif sc['result']['advancing'] and our_team not in sc['result']['advancing']:
-                    winner = sc['result']['advancing'][0]
-                    winner_name = tournament_data['teams'].get(winner, {}).get('name', winner)
+                                f"CHAMPIONS! {tournament_data['teams'][our_team]['name']} won the Championship Final {our_s}-{opp_s}!")
+                        else:
+                            recent_change_descs.append(
+                                f"SILVER MEDAL / FINALISTS: {tournament_data['teams'][our_team]['name']} battled hard in the Championship Final ({our_s}-{opp_s}).")
+                elif adv_list and our_team not in adv_list:
+                    adv_names = [tournament_data['teams'].get(t, {}).get('name', t) for t in adv_list]
                     recent_change_descs.append(
-                        f"ELIMINATED: We did not win Pool {our_pool}. "
-                        f"{winner_name} advances. "
-                        f"Reflect on a great season and tournament effort. "
-                        f"The tone should be proud and forward-looking.")
+                        f"Pool {our_pool} play concluded: {', '.join(adv_names)} advance to the {round_name}. "
+                        f"We move to the Consolation round—keep the tone proud and encouraging.")
                 elif sc['result']['unresolved']:
                     recent_change_descs.append(
-                        f"Pool {our_pool} winner is UNRESOLVED by our tiebreaker data. "
-                        f"Officials will determine the winner.")
+                        f"Pool {our_pool} advancement is UNRESOLVED by statistical tiebreakers.")
 
             t_name = tournament_data.get('tournament', {}).get('name', 'Pink the Rink XV - U18C')
             narrative = generate_overall_narrative_with_context(
@@ -641,8 +676,8 @@ def run_cycle(tournament_data, mock_source=None, skip_narrative=False, skip_push
         _write_data(tournament_data)
 
     # Generate state.json from live shadow data
-    live_data_path = SHADOW_DATA_PATH if SHADOW_DATA_PATH.exists() else DATA_PATH
-    state = generate(str(live_data_path), skip_narrative=True)
+    out_dir = (PROJECT_ROOT / 'docs' / 'data' / 'dev') if DEV_MODE else None
+    state = generate(str(DATA_PATH), skip_narrative=True, output_dir=out_dir, dev=DEV_MODE)
 
     # Generate Coach's Corner content -- only when the "for_game" changes
     coaches_corner = tournament_data.get('_coaches_corner', {})
@@ -663,13 +698,38 @@ def run_cycle(tournament_data, mock_source=None, skip_narrative=False, skip_push
         our_live = [g for g in live if g['home'] == our_team or g['away'] == our_team]
         our_upcoming = [g for g in upcoming if g['home'] == our_team or g['away'] == our_team]
 
-        # Determine which opponent Coach's Corner should be about
+        # Also check resolved playoff/consolation games in state['all_division_games']
+        all_div = state.get('all_division_games', [])
+        our_playoff_live = [g for g in all_div if g.get('pool') is None and g.get('status') == 'in_progress' and (g.get('home') == our_team or g.get('away') == our_team)]
+        our_playoff_upcoming = [g for g in all_div if g.get('pool') is None and g.get('status') == 'scheduled' and (g.get('home') == our_team or g.get('away') == our_team)]
+        our_playoff_final = [g for g in all_div if g.get('pool') is None and g.get('status') == 'final' and (g.get('home') == our_team or g.get('away') == our_team)]
+
+        # Determine which opponent / stage Coach's Corner should be about
         if our_live:
             g0 = our_live[0]
             current_for_game = g0['away_name'] if g0['home'] == our_team else g0['home_name']
         elif our_upcoming:
             g0 = our_upcoming[0]
             current_for_game = g0['away_name'] if g0['home'] == our_team else g0['home_name']
+        elif our_playoff_live:
+            g0 = our_playoff_live[0]
+            opp_n = g0['away_name'] if g0['home'] == our_team else g0['home_name']
+            stage_lbl = "Championship Final" if g0.get('game_id') == 2074871 else "Playoffs"
+            current_for_game = f"{stage_lbl}: {opp_n}"
+        elif our_playoff_upcoming:
+            g0 = our_playoff_upcoming[0]
+            opp_n = g0['away_name'] if g0['home'] == our_team else g0['home_name']
+            stage_lbl = "Championship Final" if g0.get('game_id') == 2074871 else ("Semifinal" if g0.get('game_id') in (2074858, 2074861) else "Consolation")
+            current_for_game = f"{stage_lbl}: {opp_n}"
+        elif our_playoff_final:
+            last_pg = our_playoff_final[-1]
+            we_h = last_pg.get('home') == our_team
+            our_s = last_pg.get('home_score', 0) if we_h else last_pg.get('away_score', 0)
+            opp_s = last_pg.get('away_score', 0) if we_h else last_pg.get('home_score', 0)
+            if last_pg.get('game_id') == 2074871 and our_s > opp_s:
+                current_for_game = 'CHAMPIONS'
+            else:
+                current_for_game = 'TOURNAMENT_COMPLETE'
         else:
             # Pool play might be over -- check if we're eliminated or advancing
             our_analysis_cc = enumerate_scenarios(our_pool, tournament_data)
@@ -678,8 +738,6 @@ def run_cycle(tournament_data, mock_source=None, skip_narrative=False, skip_push
                 sc = our_analysis_cc['scenarios'][0]
                 if sc['result']['advancing'] and our_team in sc['result']['advancing']:
                     current_for_game = 'Playoffs'
-                elif sc['result']['advancing']:
-                    current_for_game = 'ELIMINATED'
                 else:
                     current_for_game = 'ELIMINATED'
             else:
@@ -708,12 +766,18 @@ def run_cycle(tournament_data, mock_source=None, skip_narrative=False, skip_push
 
             # Don Cherry
             recent_results = [e['headline'] for e in tournament_data.get('event_log', []) if e['type'] == 'final']
-            if current_for_game == 'ELIMINATED':
+            if current_for_game == 'CHAMPIONS':
+                cherry_context = (f"CHAMPIONS! {our_team_name} just won the {t_name} Championship Final! "
+                                  f"Recent results: {', '.join(recent_results[-3:])}. Celebrate the championship victory!")
+            elif current_for_game == 'TOURNAMENT_COMPLETE':
+                cherry_context = (f"Tournament complete for {our_team_name}! Recent results: {', '.join(recent_results[-3:])}. "
+                                  f"Praise the girls' heart, effort, and great weekend of hockey!")
+            elif current_for_game == 'ELIMINATED':
                 cherry_context = (f"Pool play is over for us. Results: {', '.join(recent_results[-3:])}. "
                                   f"We did not advance to the {_round_name}. Be encouraging about the effort.")
-            elif current_for_game == 'Playoffs':
-                cherry_context = (f"We finished {_adv_spot} in Pool {our_pool} and advance to the {_round_name}! "
-                                  f"Results: {', '.join(recent_results[-3:])}.")
+            elif current_for_game == 'Playoffs' or current_for_game.startswith(('Semifinal:', 'Championship Final:', 'Consolation:')):
+                cherry_context = (f"Playoff hockey at {t_name}! Next up: {current_for_game}. "
+                                  f"Recent results: {', '.join(recent_results[-3:])}.")
             else:
                 cherry_context = f"Tournament state: {', '.join(recent_results[-3:])}. Next: {current_for_game}. ({adv_desc})"
             don_cherry = generate_don_cherry(
@@ -723,24 +787,35 @@ def run_cycle(tournament_data, mock_source=None, skip_narrative=False, skip_push
                 coaches_corner['don_cherry'] = don_cherry
 
             # Pre-game talking points
-            if current_for_game == 'ELIMINATED':
+            if current_for_game == 'CHAMPIONS':
                 talking = generate_pregame_talking_points(
-                    our_team_name, 'Tournament Recap', '?',
+                    our_team_name, 'Tournament Champions Celebration', '?',
                     [e['headline'] for e in tournament_data.get('event_log', []) if e['type'] == 'final'],
-                    0, f'Pool play is over. We did not advance to the {_round_name}.',
-                    'Pool play concluded.',
-                    'Focus on the positives from this tournament and any remaining consolation game. Cheer up the players.',
+                    0, f'CHAMPIONS of {t_name}!',
+                    'Tournament complete — Gold Medal Champions!',
+                    'Celebrate a championship weekend, thank the players and families, and highlight the team effort.',
                     tournament_name=t_name,
                     prev_talking_points=prev_tp)
                 if talking:
                     coaches_corner['talking_points'] = talking
-            elif current_for_game == 'Playoffs':
+            elif current_for_game in ('ELIMINATED', 'TOURNAMENT_COMPLETE'):
                 talking = generate_pregame_talking_points(
-                    our_team_name, f'{_round_name} Opponent', '?',
+                    our_team_name, 'Tournament Recap', '?',
                     [e['headline'] for e in tournament_data.get('event_log', []) if e['type'] == 'final'],
-                    0, f'We clinched {_adv_spot} in Pool {our_pool} and advance to the {_round_name}!',
-                    f'Single elimination {_round_name} -- win to advance to the next round.',
-                    adv_desc,
+                    0, f'Tournament play has concluded for {our_team_name}.',
+                    'Tournament concluded.',
+                    'Focus on the positives, hard work, and growth from this tournament.',
+                    tournament_name=t_name,
+                    prev_talking_points=prev_tp)
+                if talking:
+                    coaches_corner['talking_points'] = talking
+            elif current_for_game == 'Playoffs' or current_for_game.startswith(('Semifinal:', 'Championship Final:', 'Consolation:')):
+                talking = generate_pregame_talking_points(
+                    our_team_name, current_for_game, '?',
+                    [e['headline'] for e in tournament_data.get('event_log', []) if e['type'] == 'final'],
+                    0, f'We are competing in {current_for_game}!',
+                    'Single-elimination playoff hockey — win and advance (5-min 4v4 sudden-victory OT and shootout if tied).',
+                    f'Win {current_for_game}!',
                     tournament_name=t_name,
                     prev_talking_points=prev_tp)
                 if talking:
@@ -840,7 +915,8 @@ def run_cycle(tournament_data, mock_source=None, skip_narrative=False, skip_push
         state['trigger_event'] = {'type': 'initial', 'headline': 'Baseline tournament initialization'}
     SHADOW_STATE_PATH.parent.mkdir(parents=True, exist_ok=True)
     SHADOW_STATE_PATH.write_text(json.dumps(state, indent=2))
-    _publish_to_git()
+    if not skip_push and not DEV_MODE:
+        _publish_to_git()
 
     if storage_backend:
         storage_backend.save_state(state)
@@ -896,10 +972,11 @@ def main():
 
     ptr_default = PROJECT_ROOT / 'data' / 'tournaments' / 'pink_the_rink_2026.json'
     tourn_path = Path(args.tournament) if args.tournament else (ptr_default if ptr_default.exists() else DATA_PATH)
-    _set_data_path(tourn_path)
+    _set_data_path(tourn_path, dev=args.dev)
     tournament_data = load_team_map()
     storage_prefix = 'data/dev' if args.dev else 'data'
-    storage = build_storage(args.storage, prefix=storage_prefix)
+    mirror_dir = (PROJECT_ROOT / 'docs' / 'data' / 'dev') if args.dev else None
+    storage = build_storage(args.storage, prefix=storage_prefix, local_mirror_dir=mirror_dir)
 
     if args.reset_narrative:
         tournament_data['event_log'] = []
@@ -950,8 +1027,8 @@ def main():
     # so we don't flash an unpopulated 0-0 state to storage before applying the target step.
     if args.mock_step is None or args.mock_step == 0:
         log.info('Initial generate and push...')
-        live_data_path = SHADOW_DATA_PATH if SHADOW_DATA_PATH.exists() else tourn_path
-        state = generate(str(live_data_path), skip_narrative=True)
+        out_dir = (PROJECT_ROOT / 'docs' / 'data' / 'dev') if DEV_MODE else None
+        state = generate(str(tourn_path), skip_narrative=True, output_dir=out_dir, dev=DEV_MODE)
 
         # Generate narrative + Coach's Corner if missing (startup or after reroll)
         if not args.skip_narrative and (not tournament_data.get('_narrative') or not tournament_data.get('_coaches_corner')):
@@ -1066,7 +1143,8 @@ def main():
             state['tiebreaker_health'] = tournament_data['_tb_health']
         SHADOW_STATE_PATH.parent.mkdir(parents=True, exist_ok=True)
         SHADOW_STATE_PATH.write_text(json.dumps(state, indent=2))
-        _publish_to_git()
+        if not args.skip_push and not DEV_MODE:
+            _publish_to_git()
 
         if storage:
             try:

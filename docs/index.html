@@ -368,14 +368,20 @@ const OCI_DATA_URL = 'https://objectstorage.ca-toronto-1.oraclecloud.com/n/yzjsp
 const OCI_DEV_DATA_URL = 'https://objectstorage.ca-toronto-1.oraclecloud.com/n/yzjspjx2rhjg/b/rinkside/o/data/dev/state.json';
 const LOCAL_DATA_URL = 'data/state.json';
 const urlParams = new URLSearchParams(window.location.search);
-const isDevMode = urlParams.get('env') === 'dev' || urlParams.get('dev') === '1';
-const isLocalDev = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+const isBranchPreview = (window.location.hostname.endsWith('.pages.dev') && window.location.hostname !== 'rangers-live.pages.dev');
+const isDevMode = urlParams.get('env') === 'dev' || urlParams.get('dev') === '1' || isBranchPreview;
+const isLocalDev = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') || (isBranchPreview && urlParams.get('env') === 'local');
 let activeDataUrl = isLocalDev ? LOCAL_DATA_URL : (isDevMode ? OCI_DEV_DATA_URL : (window.RUSTIC_S3_DATA_URL || OCI_DATA_URL));
 
-if (isDevMode) {
+if (isDevMode || isLocalDev) {
     window.addEventListener('DOMContentLoaded', () => {
         const db = document.getElementById('dev-banner');
         if (db) db.style.display = 'block';
+        if (urlParams.get('env') === 'dev') {
+            document.querySelectorAll('a[href="scenarios.html"], a[href="bench.html"]').forEach(a => {
+                a.href = a.getAttribute('href') + '?env=dev';
+            });
+        }
     });
 }
 
@@ -385,7 +391,7 @@ async function fetchTournamentState() {
             const resp = await fetch(activeDataUrl + '?t=' + Date.now());
             if (resp.ok) {
                 const d = await resp.json();
-                if (d.s3_public_url && !isLocalDev) activeDataUrl = d.s3_public_url;
+                if (d.s3_public_url && !isLocalDev && !isDevMode) activeDataUrl = d.s3_public_url;
                 return d;
             }
         } catch (e) {
@@ -399,7 +405,7 @@ async function fetchTournamentState() {
 }
 
 const REFRESH_MS = 15000; // 15 seconds (responsive live polling)
-let alertsEnabled = ('Notification' in window && Notification.permission === 'granted' && localStorage.getItem('rinkside_alerts_enabled') !== 'false');
+let alertsEnabled = ('Notification' in window && Notification.permission === 'granted' && localStorage.getItem('rinkside_alerts_enabled') === 'true');
 setTimeout(() => { if (typeof updateAlertBtn === 'function') updateAlertBtn(); }, 0);
 let lastEventCount = -1;
 let currentVenues = {};
@@ -948,12 +954,14 @@ function playAlertChime() {
     }
 }
 
-function dispatchNotification(title, body, tag) {
-    playAlertChime();
-    if ('vibrate' in navigator) {
-        try {
-            navigator.vibrate([200, 100, 200, 100, 200]);
-        } catch (e) {}
+function dispatchNotification(title, body, tag, playSound = true) {
+    if (playSound) {
+        playAlertChime();
+        if ('vibrate' in navigator) {
+            try {
+                navigator.vibrate([200, 100, 200, 100, 200]);
+            } catch (e) {}
+        }
     }
 
     if (!('Notification' in window) || Notification.permission !== 'granted') {
@@ -965,7 +973,7 @@ function dispatchNotification(title, body, tag) {
         icon: 'images/icon-192.png',
         badge: 'images/icon-192.png',
         vibrate: [200, 100, 200, 100, 200],
-        tag: tag || 'rinkside-alert',
+        tag: tag || 'rinkside-alert-' + Date.now(),
         renotify: true,
         data: { url: './' }
     };
@@ -1125,10 +1133,17 @@ function handleEventAlerts(events, ourTeam) {
         return;
     }
     if (events.length > lastEventCount) {
+        const baseCount = lastEventCount;
         const newEvents = events.slice(lastEventCount);
         lastEventCount = events.length;
         const subs = getGameSubs();
 
+        // If a game has both 'start' and 'goal'/'final' in the same batch, skip redundant 'start' alert
+        const gamesWithScoreOrFinal = new Set(
+            newEvents.filter(e => e.game_id && (e.type === 'goal' || e.type === 'final')).map(e => String(e.game_id))
+        );
+
+        const toNotify = [];
         newEvents.forEach((e, idx) => {
             const isMatchEvent = e.type === 'goal' || e.type === 'final' || e.type === 'start' ||
                 (e.headline && (
@@ -1138,6 +1153,7 @@ function handleEventAlerts(events, ourTeam) {
                 ));
 
             if (!isMatchEvent) return;
+            if (e.type === 'start' && e.game_id && gamesWithScoreOrFinal.has(String(e.game_id))) return;
 
             const isSubbed = subs.some(gid => {
                 if (!gid) return false;
@@ -1147,12 +1163,18 @@ function handleEventAlerts(events, ourTeam) {
             });
 
             if (isSubbed || alertsEnabled) {
-                dispatchNotification(
-                    e.headline,
-                    e.detail || 'Tournament tracker update',
-                    `evt-${e.game_id || 'tourney'}-${lastEventCount - newEvents.length + idx}`
-                );
+                toNotify.push({
+                    title: e.headline,
+                    body: e.detail || 'Tournament tracker update',
+                    tag: `evt-${e.game_id || 'tourney'}-${e.type || 'evt'}-${baseCount + idx}`
+                });
             }
+        });
+
+        toNotify.forEach((item, i) => {
+            setTimeout(() => {
+                dispatchNotification(item.title, item.body, item.tag, i === 0);
+            }, i * 350);
         });
     }
 }
@@ -1181,13 +1203,23 @@ function findPlayoffGame(label) {
 }
 
 function renderPlayoffMatchup(g) {
+    const matchedGame = findPlayoffGame(g.game || '');
+    const gid = matchedGame ? (matchedGame.game_id || matchedGame.gid) : (g.game_id || g.gid || '');
+    const isGameLive = matchedGame && matchedGame.status === 'in_progress';
+    const isGameFinal = matchedGame && matchedGame.status === 'final';
+    const subBtn = renderSubButton(gid, isGameFinal);
+
     let badge = '';
     if (g.winner && g.winner.name) {
         badge = `<span style="background:#eab308;color:#000;font-size:0.75rem;font-weight:bold;padding:0.15rem 0.5rem;border-radius:4px;margin-left:0.5rem">🏆 ${esc(g.winner.name)} Champions</span>`;
+    } else if (isGameLive) {
+        badge = '<span style="background:#dc2626;color:#fff;font-size:0.7rem;font-weight:bold;padding:0.1rem 0.4rem;border-radius:4px;margin-left:0.5rem">🔴 LIVE</span>';
+    } else if (isGameFinal) {
+        badge = '<span style="background:#16a34a;color:#fff;font-size:0.7rem;font-weight:bold;padding:0.1rem 0.4rem;border-radius:4px;margin-left:0.5rem">FINAL</span>';
     } else if (g.is_official || g.status === 'official') {
         badge = '<span style="background:#16a34a;color:#fff;font-size:0.7rem;font-weight:bold;padding:0.1rem 0.4rem;border-radius:4px;margin-left:0.5rem">Official</span>';
     } else if (g.status === 'clinched' || g.status === 'final') {
-        badge = '<span style="background:#0284c7;color:#fff;font-size:0.7rem;font-weight:bold;padding:0.1rem 0.4rem;border-radius:4px;margin-left:0.5rem">Projected (Clinched)</span>';
+        badge = '<span style="background:#0284c7;color:#fff;font-size:0.7rem;font-weight:bold;padding:0.1rem 0.4rem;border-radius:4px;margin-left:0.5rem">Seeds Locked</span>';
     } else if (g.status === 'partial') {
         badge = '<span style="background:#f59e0b;color:#000;font-size:0.7rem;font-weight:bold;padding:0.1rem 0.4rem;border-radius:4px;margin-left:0.5rem">Partially Clinched</span>';
     } else {
@@ -1197,10 +1229,11 @@ function renderPlayoffMatchup(g) {
     const homeStr = g.home.resolved ? `<strong>${esc(g.home.name)}</strong>` : `<span style="color:var(--pico-muted-color);font-style:italic">${esc(g.home.name)}</span>`;
     const awayStr = g.away.resolved ? `<strong>${esc(g.away.name)}</strong>` : `<span style="color:var(--pico-muted-color);font-style:italic">${esc(g.away.name)}</span>`;
 
-    const matchedGame = findPlayoffGame(g.game || '');
-    const gid = matchedGame ? (matchedGame.game_id || matchedGame.gid) : (g.game_id || g.gid || '');
-    const isGameFinal = matchedGame ? (matchedGame.status === 'final') : (g.status === 'final');
-    const subBtn = renderSubButton(gid, isGameFinal);
+    let matchupLine = `${homeStr} vs ${awayStr}`;
+    if ((isGameLive || isGameFinal) && matchedGame.home_score !== null && matchedGame.home_score !== undefined) {
+        const scoreStyle = isGameLive ? 'color:#d32f2f;font-weight:800;margin:0 0.35rem' : 'font-weight:800;margin:0 0.35rem';
+        matchupLine = `${homeStr} <span class="score" style="${scoreStyle}">${matchedGame.home_score} - ${matchedGame.away_score}</span> ${awayStr}`;
+    }
 
     let metaStr = '';
     if (matchedGame) {
@@ -1213,7 +1246,7 @@ function renderPlayoffMatchup(g) {
     }
 
     let note = '';
-    if (g.status === 'clinched') {
+    if (!matchedGame && g.status === 'clinched') {
         note = '<div style="font-size:0.75rem;color:#0284c7;margin-top:0.25rem">Mathematically locked seeds &middot; Official schedule & arena pending from organizers</div>';
     } else if (g.status === 'tbd') {
         note = '<div style="font-size:0.75rem;color:var(--pico-muted-color);margin-top:0.25rem">Awaiting round-robin pool completion or mathematical clinch</div>';
@@ -1224,7 +1257,7 @@ function renderPlayoffMatchup(g) {
             <div>${esc(g.game)} ${badge}</div>
             <div>${subBtn}</div>
         </div>
-        <div style="margin-top:0.2rem">${homeStr} vs ${awayStr}</div>
+        <div style="margin-top:0.2rem">${matchupLine}</div>
         ${metaStr}
         ${note}
     </div>`;
@@ -1478,7 +1511,7 @@ async function loadAndRender() {
 
         currentVenues = d.venues || {};
         handleEventAlerts(d.event_log, d.our_team);
-        if (alertsEnabled && Notification.permission === 'granted') registerWebPushSubscription();
+        if ((alertsEnabled || getGameSubs().length > 0) && Notification.permission === 'granted') registerWebPushSubscription();
 
         document.title = `${d.our_team_name} - ${d.tournament.name}`;
         document.getElementById('team-name').textContent = d.our_team_name;

@@ -139,15 +139,21 @@
 
 <script>
 const OCI_DATA_URL = 'https://objectstorage.ca-toronto-1.oraclecloud.com/n/yzjspjx2rhjg/b/rinkside/o/data/state.json';
+const OCI_DEV_DATA_URL = 'https://objectstorage.ca-toronto-1.oraclecloud.com/n/yzjspjx2rhjg/b/rinkside/o/data/dev/state.json';
 const OCI_SCENARIOS_URL = 'https://objectstorage.ca-toronto-1.oraclecloud.com/n/yzjspjx2rhjg/b/rinkside/o/data/scenarios.json';
+const OCI_DEV_SCENARIOS_URL = 'https://objectstorage.ca-toronto-1.oraclecloud.com/n/yzjspjx2rhjg/b/rinkside/o/data/dev/scenarios.json';
 const LOCAL_DATA_URL = 'data/state.json';
 const LOCAL_SCENARIOS_URL = 'data/scenarios.json';
-let activeDataUrl = window.RUSTIC_S3_DATA_URL || OCI_DATA_URL;
+const urlParams = new URLSearchParams(window.location.search);
+const isBranchPreview = (window.location.hostname.endsWith('.pages.dev') && window.location.hostname !== 'rangers-live.pages.dev');
+const isDevMode = urlParams.get('env') === 'dev' || urlParams.get('dev') === '1' || isBranchPreview;
+const isLocalDev = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') || (isBranchPreview && urlParams.get('env') === 'local');
+let activeDataUrl = isLocalDev ? LOCAL_DATA_URL : (isDevMode ? OCI_DEV_DATA_URL : (window.RUSTIC_S3_DATA_URL || OCI_DATA_URL));
 
 async function fetchScenariosList(d) {
     if (!d || !d.scenarios || d.scenarios.scenarios) return;
     const scHash = d.scenarios.scenarios_hash || Date.now();
-    const remoteUrl = d.s3_scenarios_url || OCI_SCENARIOS_URL;
+    const remoteUrl = isLocalDev ? LOCAL_SCENARIOS_URL : (isDevMode ? OCI_DEV_SCENARIOS_URL : (d.s3_scenarios_url || OCI_SCENARIOS_URL));
     if (remoteUrl && remoteUrl !== LOCAL_SCENARIOS_URL) {
         try {
             const resp = await fetch(`${remoteUrl}?v=${encodeURIComponent(scHash)}`);
@@ -174,7 +180,7 @@ async function fetchTournamentState() {
             const resp = await fetch(activeDataUrl + '?t=' + Date.now());
             if (resp.ok) {
                 d = await resp.json();
-                if (d.s3_public_url) activeDataUrl = d.s3_public_url;
+                if (d.s3_public_url && !isLocalDev && !isDevMode) activeDataUrl = d.s3_public_url;
             }
         } catch (e) {
             console.warn('S3 / Object storage fetch failed, falling back to local state:', e);
@@ -184,7 +190,7 @@ async function fetchTournamentState() {
         const resp = await fetch(LOCAL_DATA_URL + '?t=' + Date.now());
         if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
         d = await resp.json();
-        if (d.s3_public_url) activeDataUrl = d.s3_public_url;
+        if (d.s3_public_url && !isLocalDev && !isDevMode) activeDataUrl = d.s3_public_url;
     }
     await fetchScenariosList(d);
     return d;

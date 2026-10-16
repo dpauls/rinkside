@@ -171,10 +171,17 @@ def games_to_tournament_format(games, team_id_map, teams_dict=None):
             home_id = home_id or (g.get('HomeTeamName') or 'TBD')
             away_id = away_id or (g.get('AwayTeamName') or 'TBD')
 
-        # Determine pool
+        # Determine pool (only for Round Robin games where both teams belong to the same pool)
         pool = None
-        if teams_dict:
-            pool = teams_dict.get(home_id, {}).get('pool') or teams_dict.get(away_id, {}).get('pool')
+        game_type_name = (g.get('GameTypeName') or '').strip()
+        is_non_rr = bool(game_type_name and game_type_name.lower() != 'round robin')
+        if teams_dict and not is_non_rr:
+            h_pool = teams_dict.get(home_id, {}).get('pool')
+            a_pool = teams_dict.get(away_id, {}).get('pool')
+            if h_pool and a_pool and h_pool == a_pool:
+                pool = h_pool
+            elif not game_type_name and (h_pool or a_pool) and (home_id in ('TBD', 'TBA') or away_id in ('TBD', 'TBA')):
+                pool = h_pool or a_pool
 
         # Determine game status
         if g.get('completed'):

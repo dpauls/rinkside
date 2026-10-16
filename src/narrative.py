@@ -353,36 +353,59 @@ def generate_game_final_comment(game, standings, prev_scenarios, curr_scenarios,
                                  game_events=None):
     """Generate 1-2 sentence commentary when a game finishes."""
     is_our_game = (game['home'] == our_team or game['away'] == our_team)
+    game_pool = game.get('pool')
 
     standings_str = ', '.join(
         f"{r['name'].split('#')[0].strip()} {r['pts']}pts (GD={r.get('gd', r['gf']-r['ga'])})"
-        for r in standings
+        for r in (standings or [])
     )
-
-    prev_count = prev_scenarios.get('our_count', '?') if prev_scenarios else '?'
-    prev_total = prev_scenarios.get('total', '?') if prev_scenarios else '?'
-    curr_count = curr_scenarios.get('our_count', '?') if curr_scenarios else '?'
-    curr_total = curr_scenarios.get('total', '?') if curr_scenarios else '?'
 
     home_name = game.get('home_name', game['home'])
     away_name = game.get('away_name', game['away'])
 
-    clinch_note = ''
-    if curr_scenarios and curr_count == curr_total and curr_total > 0:
-        clinch_note = f'\n{our_team_name} has CLINCHED a playoff spot in Pool {our_pool}!'
-    elif curr_scenarios and curr_count == 0 and curr_total > 0:
-        clinch_note = f'\n{our_team_name} has been ELIMINATED from Pool {our_pool}.'
-
     arc_str = ''
     if game_events:
-        arc_str = '\nIn-game scoring progression & earlier commentary:\n' + '\n'.join(f'  - {e}' for e in game_events[-6:]) + '\n'
+        fmt_events = [
+            f"{e.get('headline', '')} — {e.get('detail') or ''}" if isinstance(e, dict) else str(e)
+            for e in game_events[-6:]
+        ]
+        arc_str = '\nIn-game scoring progression & earlier commentary:\n' + '\n'.join(f'  - {fe}' for fe in fmt_events) + '\n'
 
-    prompt = f"""A game just finished at {tournament_name}.
+    if game_pool is None:
+        gid = game.get('game_id') or game.get('gid')
+        round_label = "Championship Final" if gid == 2074871 else ("Semifinal" if gid in (2074858, 2074861) else "Consolation Game")
+        prompt = f"""A {round_label} game just finished at {tournament_name}.
+
+Result: {home_name} {game['home_score']} - {game['away_score']} {away_name} ({round_label})
+{'This was OUR game!' if is_our_game else f'We ({our_team_name}) were not playing in this game.'}
+{arc_str}
+Write 1-2 energetic sentences using "we/us/our" when referring to {our_team_name}. Highlight the outcome of this {round_label} and what it means for the championship bracket!"""
+    elif game_pool != our_pool:
+        prompt = f"""A cross-pool game in Pool {game_pool} just finished at {tournament_name}.
+
+Result: {home_name} {game['home_score']} - {game['away_score']} {away_name} (Pool {game_pool})
+Note: {our_team_name} is in Pool {our_pool}, so this Pool {game_pool} game does NOT affect our Pool {our_pool} advancement scenarios, but it shapes Pool {game_pool} standings for potential Semifinal crossover matchups (Pool A 1st plays Pool B 2nd; Pool B 1st plays Pool A 2nd).
+Updated Pool {game_pool} standings: {standings_str}
+
+Write 1-2 concise sentences using "we/us/our" for {our_team_name}, noting the Pool {game_pool} result and how it shapes the Pool {game_pool} race for Semifinal crossover seeding. Do NOT mention Pool {our_pool} scenario counts."""
+    else:
+        prev_count = prev_scenarios.get('our_count', '?') if prev_scenarios else '?'
+        prev_total = prev_scenarios.get('total', '?') if prev_scenarios else '?'
+        curr_count = curr_scenarios.get('our_count', '?') if curr_scenarios else '?'
+        curr_total = curr_scenarios.get('total', '?') if curr_scenarios else '?'
+
+        clinch_note = ''
+        if curr_scenarios and curr_count == curr_total and curr_total > 0:
+            clinch_note = f'\n{our_team_name} has CLINCHED a Semifinal spot in Pool {our_pool}!'
+        elif curr_scenarios and curr_count == 0 and curr_total > 0:
+            clinch_note = f'\n{our_team_name} has been ELIMINATED from Semifinal contention in Pool {our_pool}.'
+
+        prompt = f"""A Pool {our_pool} game just finished at {tournament_name}.
 
 Result: {home_name} {game['home_score']} - {game['away_score']} {away_name} (Pool {our_pool})
 {'This was OUR game.' if is_our_game else 'We were not playing in this game.'}
 {arc_str}
-Updated standings: {standings_str}
+Updated Pool {our_pool} standings: {standings_str}
 Scenario impact: Out of {curr_total} remaining outcome combinations, {our_team_name} advances in {curr_count} (was {prev_count} of {prev_total}).
 {clinch_note}
 
@@ -396,7 +419,7 @@ def generate_event_impact(event_type, home_name, away_name, home_score, away_sco
                           total_scenarios=None, tournament_context=None,
                           in_progress_games=None, round_robin_phase="mid",
                           tournament_name="Pink the Rink XV - U18C",
-                          recent_events=None):
+                          recent_events=None, game_pool=None, our_pool="B"):
     """Generate a 1-sentence impact comment for any live game event.
     
     Uses low thinking level for fast, sub-second delivery to parents on mobile.
@@ -419,7 +442,11 @@ def generate_event_impact(event_type, home_name, away_name, home_score, away_sco
 
     story_block = ""
     if recent_events:
-        story_lines = "\n".join(f"  - {ev}" for ev in recent_events[-6:])
+        fmt_evs = [
+            f"{ev.get('headline', '')} — {ev.get('detail') or ''}" if isinstance(ev, dict) else str(ev)
+            for ev in recent_events[-6:]
+        ]
+        story_lines = "\n".join(f"  - {line}" for line in fmt_evs)
         story_block = f"""=== RECENT COMMENTARY STORY ARC ===
 {story_lines}
 === END STORY ARC ===\n"""
@@ -434,9 +461,11 @@ def generate_event_impact(event_type, home_name, away_name, home_score, away_sco
         else "MID/LATE PHASE (Games 2 & 3): Make astute observations on goal differential, lead changes, and semifinal berths."
     )
 
+    pool_desc = 'OUR GAME' if is_our_game else ('Playoff Game' if game_pool is None else (f'Pool {game_pool} Game' if game_pool != our_pool else f'Pool {our_pool} Game'))
+
     prompt = f"""You are the live rinkside commentator for {our_team_name} at {tournament_name}.
 {ctx_block}{story_block}=== CURRENT LIVE STATE ===
-This game: {score_str} ({'OUR GAME' if is_our_game else 'Other Pool Game'})
+This game: {score_str} ({pool_desc})
 Concurrent games in progress: {active_games_str}{math_impact}
 
 === EVENT JUST OCCURRED ===

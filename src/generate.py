@@ -338,11 +338,22 @@ def build_tiebreaker_resolution(pool_id, data, analysis):
     return resolutions
 
 
-def generate(data_path='data/tournaments/pink_the_rink_2026.json', skip_narrative=False, output_dir=None):
-    # In daemon mode, read from tournament-specific shadow file if it exists
+def generate(data_path='data/tournaments/pink_the_rink_2026.json', skip_narrative=False, output_dir=None, dev=False):
+    # Merge live/dev shadow state onto static tracked tournament config
     path_obj = Path(data_path)
-    shadow_data = path_obj.parent / f".{path_obj.stem}_live.json"
-    if shadow_data.exists():
+    suffix = "dev" if dev else "live"
+    shadow_data = path_obj.parent / f".{path_obj.stem}_{suffix}.json"
+    if path_obj.exists():
+        data = load_tournament(data_path)
+        if shadow_data.exists() and not path_obj.name.startswith('.'):
+            try:
+                shadow = json.loads(shadow_data.read_text())
+                for key in ('pool_games', 'event_log', '_narrative', '_coaches_corner', '_tb_health'):
+                    if key in shadow:
+                        data[key] = shadow[key]
+            except Exception:
+                pass
+    elif shadow_data.exists():
         data = json.loads(shadow_data.read_text())
     else:
         data = load_tournament(data_path)
@@ -424,6 +435,23 @@ def generate(data_path='data/tournaments/pink_the_rink_2026.json', skip_narrativ
             'live_games': build_games_list(pid, data, 'in_progress'),
         }
 
+    # Build lookup of resolved playoff matchups by game_id for TBA fallback
+    resolved_playoff_by_gid = {}
+    if isinstance(playoff_bracket, dict):
+        gid_map = {
+            'Consolation 2': 2074839,
+            'Consolation 1': 2074842,
+            'Semi 1': 2074858,
+            'Semi 2': 2074861,
+            'Championship Final': 2074871,
+        }
+        for m in (playoff_bracket.get('semis') or []) + (playoff_bracket.get('consolations') or []):
+            mgid = gid_map.get(m.get('game'))
+            if mgid:
+                resolved_playoff_by_gid[mgid] = m
+        if playoff_bracket.get('final'):
+            resolved_playoff_by_gid[2074871] = playoff_bracket['final']
+
     # All division games (all pools combined, sorted chronologically)
     all_division_games = []
     streams = load_streams(data)
@@ -431,15 +459,25 @@ def generate(data_path='data/tournaments/pink_the_rink_2026.json', skip_narrativ
         gid = g.get('game_id') or g.get('GID')
         stream_url = g.get('stream_url') or g.get('broadcast_url') or streams.get(str(gid)) or streams.get(gid)
         teams = data.get('teams', {})
+        home_id = g.get('home')
+        away_id = g.get('away')
+        res_m = resolved_playoff_by_gid.get(gid)
+        if res_m:
+            if (not home_id or home_id in ('TBA', 'TBD')) and res_m.get('home', {}).get('resolved'):
+                home_id = res_m['home']['id']
+            if (not away_id or away_id in ('TBA', 'TBD')) and res_m.get('away', {}).get('resolved'):
+                away_id = res_m['away']['id']
+        home_name = teams.get(home_id, {}).get('name') or (res_m['home']['name'] if res_m and home_id in ('TBA', 'TBD', None) else home_id)
+        away_name = teams.get(away_id, {}).get('name') or (res_m['away']['name'] if res_m and away_id in ('TBA', 'TBD', None) else away_id)
         all_division_games.append({
             'game_id': gid,
             'pool': g.get('pool'),
             'date': g.get('date'),
             'arena': g.get('arena'),
-            'home': g.get('home'),
-            'away': g.get('away'),
-            'home_name': teams.get(g.get('home'), {}).get('name', g.get('home')),
-            'away_name': teams.get(g.get('away'), {}).get('name', g.get('away')),
+            'home': home_id,
+            'away': away_id,
+            'home_name': home_name,
+            'away_name': away_name,
             'home_score': g.get('home_score'),
             'away_score': g.get('away_score'),
             'status': g.get('status'),
@@ -454,7 +492,14 @@ def generate(data_path='data/tournaments/pink_the_rink_2026.json', skip_narrativ
         sc_hash = hashlib.sha256(json.dumps(raw_scenarios, sort_keys=True).encode('utf-8')).hexdigest()[:12]
         scenario_data['scenarios_hash'] = sc_hash
 
-    s3_state_url = os.environ.get('S3_PUBLIC_URL', 'https://objectstorage.ca-toronto-1.oraclecloud.com/n/yzjspjx2rhjg/b/rinkside/o/data/state.json')
+    default_s3_url = (
+        'https://objectstorage.ca-toronto-1.oraclecloud.com/n/yzjspjx2rhjg/b/rinkside/o/data/dev/state.json'
+        if dev else
+        'https://objectstorage.ca-toronto-1.oraclecloud.com/n/yzjspjx2rhjg/b/rinkside/o/data/state.json'
+    )
+    s3_state_url = os.environ.get('S3_PUBLIC_URL', default_s3_url)
+    if dev and '/o/data/state.json' in s3_state_url:
+        s3_state_url = s3_state_url.replace('/o/data/state.json', '/o/data/dev/state.json')
     s3_scenarios_url = s3_state_url.replace('state.json', 'scenarios.json') if 'state.json' in s3_state_url else ''
 
     state = {
@@ -472,7 +517,9 @@ def generate(data_path='data/tournaments/pink_the_rink_2026.json', skip_narrativ
         'rooting_guide': rooting_guide,
         'upcoming': build_games_list(our_pool, data, 'scheduled'),
         'completed': build_games_list(our_pool, data, 'final'),
-        'live_games': build_games_list(our_pool, data, 'in_progress'),
+        'live_games': build_games_list(our_pool, data, 'in_progress') + [
+            g for g in all_division_games if g.get('pool') is None and g.get('status') == 'in_progress'
+        ],
 
         'other_pool_standings': build_standings(other_pool, data, other_analysis) if other_analysis else [],
         'other_pool_upcoming': build_games_list(other_pool, data, 'scheduled'),

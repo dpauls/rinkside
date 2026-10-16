@@ -122,7 +122,7 @@ class WebPushManager:
             return 0
 
         # Filter for match events that deserve a push alert
-        match_events = [
+        raw_match_events = [
             e for e in events
             if e.get('type') in ('goal', 'final', 'start') or
             (e.get('headline') and any(
@@ -130,8 +130,19 @@ class WebPushManager:
             ))
         ]
 
-        if not match_events:
+        if not raw_match_events:
             return 0
+
+        # If a game has both 'start' and 'goal'/'final' in the same poll cycle,
+        # skip the redundant 'start' push so the score/final alert isn't collided with.
+        games_with_score_or_final = {
+            str(e.get('game_id')) for e in raw_match_events
+            if e.get('game_id') and e.get('type') in ('goal', 'final')
+        }
+        match_events = [
+            e for e in raw_match_events
+            if not (e.get('type') == 'start' and str(e.get('game_id')) in games_with_score_or_final)
+        ]
 
         subs = self.get_subscriptions()
         if not subs:
@@ -139,17 +150,19 @@ class WebPushManager:
 
         import time
         sent_count = 0
-        for evt in match_events:
+        batch_ts = int(time.time())
+        for idx, evt in enumerate(match_events):
             game_id = str(evt.get('game_id') or '')
+            evt_type = evt.get('type') or 'evt'
             payload = {
                 'title': evt.get('headline', '🏒 Rinkside Alert'),
                 'body': evt.get('detail') or 'Live tournament game update.',
-                'tag': f"rinkside-game-{game_id or 'all'}",
+                'tag': f"rinkside-{game_id or 'all'}-{evt_type}-{batch_ts}-{idx}",
                 'url': './'
             }
 
             for sub in subs:
-                alerts_enabled = sub.get('alerts_enabled', True)
+                alerts_enabled = sub.get('alerts_enabled', False)
                 subbed_games = [str(g) for g in sub.get('games', [])]
                 
                 # Check if this subscriber wants this alert
@@ -159,7 +172,7 @@ class WebPushManager:
 
                 if self.send_push(sub, payload):
                     sent_count += 1
-                    time.sleep(0.2)  # Pacing to avoid mobile OS burst spam suppression
+                    time.sleep(0.35)  # Pacing to avoid mobile OS burst spam suppression
 
         log.info(f"Dispatched {sent_count} Web Push notification(s) across {len(subs)} device(s).")
         return sent_count

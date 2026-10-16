@@ -20,8 +20,10 @@ services:
       - VAPID_CLAIM_EMAIL=${VAPID_CLAIM_EMAIL:-mailto:tracker@rinkside.ca}
       - SUBSCRIPTIONS_PAR_URL=${SUBSCRIPTIONS_PAR_URL:-}
     volumes:
+      - ./src:/app/src
       - ./data:/app/data
       - ./docs:/app/docs
+      - ./test:/app/test
       - ./logs:/app/logs
     command: ["--interval", "60", "--storage", "s3", "--skip-push"]
     init: true

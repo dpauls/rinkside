@@ -36,11 +36,12 @@ class StorageBackend(ABC):
 class LocalStorage(StorageBackend):
     """Local filesystem storage (e.g. docs/data/state.json)."""
 
-    def __init__(self, base_dir: Optional[Path] = None):
-        if base_dir is None:
+    def __init__(self, base_dir: Optional[Path] = None, **kwargs: Any):
+        actual_dir = base_dir or kwargs.get('local_mirror_dir')
+        if actual_dir is None:
             self.base_dir = Path(__file__).parent.parent / "docs" / "data"
         else:
-            self.base_dir = Path(base_dir)
+            self.base_dir = Path(actual_dir)
         self.base_dir.mkdir(parents=True, exist_ok=True)
         self.data_dir = Path(__file__).parent.parent / "data"
         self.data_dir.mkdir(parents=True, exist_ok=True)

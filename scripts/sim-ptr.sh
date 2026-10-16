@@ -83,7 +83,7 @@ if [ "$CMD" = "restore" ]; then
         echo "==> Restoring pre-tournament baseline on Oracle Cloud VM (S3 storage)..."
         ssh -i "$HOME/.ssh/oracle_rinkside.key" -o StrictHostKeyChecking=no ubuntu@132.145.100.44 \
             "rm -f ~/rinkside/data/tournaments/.*_live.json ~/rinkside/data/.*_live.json ~/rinkside/docs/data/.*_live.json ~/rinkside/test/mock_responses_ptr/.mock_step && \
-             cd ~/rinkside && git pull --ff-only origin main || true && git checkout -- data/tournaments/pink_the_rink_2026.json && \
+             cd ~/rinkside && git checkout -- data/tournaments/pink_the_rink_2026.json docs/data/ && git pull --ff-only origin main && \
              docker exec rinkside-tracker-1 python3 src/daemon.py \
                 --tournament data/tournaments/pink_the_rink_2026.json \
                 --mock-dir test/mock_responses_ptr \
@@ -122,7 +122,7 @@ if [ "$CMD" = "live" ]; then
         echo "==> Activating live REST tracker on Oracle Cloud VM..."
         ssh -i "$HOME/.ssh/oracle_rinkside.key" -o StrictHostKeyChecking=no ubuntu@132.145.100.44 \
             "rm -f ~/rinkside/data/tournaments/.*_live.json ~/rinkside/data/.*_live.json ~/rinkside/docs/data/.*_live.json ~/rinkside/test/mock_responses_ptr/.mock_step && \
-             cd ~/rinkside && git pull --ff-only origin main || true && git checkout -- data/tournaments/pink_the_rink_2026.json && \
+             cd ~/rinkside && git checkout -- data/tournaments/pink_the_rink_2026.json docs/data/ && git pull --ff-only origin main && \
              docker compose restart tracker && \
              docker exec rinkside-tracker-1 python3 src/daemon.py \
                 --tournament data/tournaments/pink_the_rink_2026.json \
@@ -173,8 +173,13 @@ if [[ "$CMD" =~ ^[0-8]$ ]]; then
     else
         # Reset to clean data if step 0, otherwise ensure shadow file exists
         if [ "$STEP_NUM" -eq 0 ]; then
-            rm -f "$SHADOW_DATA"
-            rm -f "docs/data/.state_pink_the_rink_2026_live.json"
+            if [ "$IS_DEV" = true ]; then
+                rm -f "data/tournaments/.pink_the_rink_2026_dev.json"
+                rm -f "docs/data/dev/.state_pink_the_rink_2026_dev.json"
+            else
+                rm -f "$SHADOW_DATA"
+                rm -f "docs/data/.state_pink_the_rink_2026_live.json"
+            fi
         fi
 
         python3 src/daemon.py \
@@ -183,7 +188,8 @@ if [[ "$CMD" =~ ^[0-8]$ ]]; then
             --mock-step "$STEP_NUM" \
             --once \
             $NARRATIVE_ARG \
-            --storage "local"
+            --storage "local" \
+            $DEV_FLAG
     fi
 
     echo "==> Step $STEP_NUM executed successfully!"

@@ -54,6 +54,18 @@ class TestDaemonLifecycle(unittest.TestCase):
             'away_score': None,
             'status': 'scheduled',
         }]
+        live_zero = [{
+            'game_id': 2074775,
+            'home': 'NEP',
+            'away': 'KAN',
+            'home_score': 0,
+            'away_score': 0,
+            'status': 'in_progress',
+        }]
+        changes_zero = detect_changes(prev, live_zero)
+        self.assertEqual(len(changes_zero), 1)
+        self.assertEqual(changes_zero[0]['type'], 'game_started')
+
         live1 = [{
             'game_id': 2074775,
             'home': 'NEP',
@@ -63,8 +75,9 @@ class TestDaemonLifecycle(unittest.TestCase):
             'status': 'in_progress',
         }]
         changes1 = detect_changes(prev, live1)
-        self.assertEqual(len(changes1), 1)
+        self.assertEqual(len(changes1), 2)
         self.assertEqual(changes1[0]['type'], 'game_started')
+        self.assertEqual(changes1[1]['type'], 'score_change')
 
         live2 = [{
             'game_id': 2074775,
