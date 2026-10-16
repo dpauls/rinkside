@@ -263,6 +263,16 @@ def detect_changes(prev_games, curr_games):
                 'prev': prev,
                 'curr': g,
             })
+            # If the game starts with a score already on the board, also emit a score_change (goal alert)
+            hs = g.get('home_score') or 0
+            as_ = g.get('away_score') or 0
+            if hs > 0 or as_ > 0:
+                changes.append({
+                    'type': 'score_change',
+                    'game_id': gid,
+                    'prev': {**prev, 'home_score': 0, 'away_score': 0, 'status': 'in_progress'},
+                    'curr': g,
+                })
         # Score change during game
         elif prev['status'] == 'in_progress' and g['status'] == 'in_progress':
             if prev['home_score'] != g['home_score'] or prev['away_score'] != g['away_score']:
