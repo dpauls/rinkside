@@ -46,6 +46,10 @@ while [ $# -gt 0 ]; do
     shift
 done
 
+if [ "$CMD" = "live" ]; then
+    USE_S3=true
+fi
+
 STORAGE_ARG="local"
 DEV_FLAG=""
 REMOTE_PREFIX="data"
