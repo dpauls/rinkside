@@ -387,7 +387,7 @@ async function fetchTournamentState() {
 }
 
 const REFRESH_MS = 15000; // 15 seconds (responsive live polling)
-let alertsEnabled = ('Notification' in window && Notification.permission === 'granted' && localStorage.getItem('rinkside_alerts_enabled') === 'true');
+let alertsEnabled = ('Notification' in window && Notification.permission === 'granted' && localStorage.getItem('rinkside_alerts_enabled') !== 'false');
 setTimeout(() => { if (typeof updateAlertBtn === 'function') updateAlertBtn(); }, 0);
 let lastEventCount = -1;
 let currentVenues = {};
@@ -940,25 +940,23 @@ function dispatchNotification(title, body, tag) {
         data: { url: './' }
     };
 
+    // 1. Try desktop Notification constructor directly (synchronous on Chrome, Edge, Safari desktop)
+    try {
+        new Notification(title, options);
+        return;
+    } catch (e) {
+        // Mobile Chrome (Android) and iOS Safari throw "TypeError: Illegal constructor"
+    }
+
+    // 2. Mobile fallback via Service Worker registration
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.ready.then(reg => {
+        navigator.serviceWorker.getRegistration().then(reg => {
             if (reg && reg.showNotification) {
-                return reg.showNotification(title, options);
+                reg.showNotification(title, options);
             }
-            throw new Error('SW showNotification unavailable');
-        }).catch(() => {
-            try {
-                new Notification(title, options);
-            } catch (e) {
-                console.warn('Desktop Notification fallback failed:', e);
-            }
+        }).catch(err => {
+            console.warn('Mobile SW notification failed:', err);
         });
-    } else {
-        try {
-            new Notification(title, options);
-        } catch (e) {
-            console.warn('Desktop Notification failed:', e);
-        }
     }
 }
 
