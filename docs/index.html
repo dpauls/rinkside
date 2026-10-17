@@ -1201,7 +1201,7 @@ function handleEventAlerts(events, ourTeam) {
                 toNotify.push({
                     title: e.headline,
                     body: e.detail || 'Tournament tracker update',
-                    tag: `evt-${e.game_id || 'tourney'}-${e.type || 'evt'}-${baseCount + idx}`
+                    tag: `rinkside-${e.game_id || 'tourney'}-${e.type || 'evt'}`
                 });
             }
         });

@@ -157,7 +157,7 @@ class WebPushManager:
             payload = {
                 'title': evt.get('headline', '🏒 Rinkside Alert'),
                 'body': evt.get('detail') or 'Live tournament game update.',
-                'tag': f"rinkside-{game_id or 'all'}-{evt_type}-{batch_ts}-{idx}",
+                'tag': f"rinkside-{game_id or 'tourney'}-{evt_type}",
                 'url': './'
             }
 
