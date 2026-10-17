@@ -724,7 +724,7 @@ Game & Jersey Rules:
 YOUR MISSION:
 Write a 2-to-3 sentence tactical note (under 75 words) for the head coach on the Bench Advisor screen:
 1. Start with a warm, proud note that since {our_team_name} has clinched a playoff spot, your job calculating survival goalie-pull odds is officially done!
-2. If we still have a remaining pool game AND our exact seed (e.g. 1st vs 2nd) is NOT yet locked: briefly explain what result locks 1st vs 2nd, and trace which seed gets Home (H) vs Visitor (V) in the upcoming bracket rounds (noting that Home gets jersey choice / last change, e.g., if chasing Home in the Semifinal vs Home in the Final). State clearly that there is no reason to pull the goalie unless chasing a specific Home/Visitor seed.
+2. If we still have a remaining pool game AND our exact seed (e.g. 1st vs 2nd) is NOT yet locked: briefly explain what result locks 1st vs 2nd and which Semifinal slot/time each seed plays in. Note accurately per the rules that Playoff Home (H, last change) goes to the team with the best round-robin record (Rule 26) and Home wears dark jerseys / must change if there is a conflict with Visitor (Rule 28)—never claim Home "chooses" jerseys. State clearly not to pull the goalie unless chasing a specific seed or round-robin record.
 3. If our exact seed IS already locked or pool play is over: state our locked seed, our next playoff matchup (opponent or seed placeholder, Home vs Visitor designation, and arena/time if listed), and tell Coach to rest the legs and play disciplined sudden-victory hockey.
 
 Keep it direct, factual, and plain text (no markdown headers or bullets)."""

@@ -305,7 +305,7 @@ def compute_bench_analysis(
         eval_result['recommendation'] = 'Playoff Spot Clinched — My Job Is Done! 🎉'
         eval_result['reason'] = advisory_text or (
             f"{our_team_name} has mathematically clinched a playoff berth (100% across all margins). "
-            f"No advancement reason to pull the goalie—only consider pulling if chasing a specific 1st/2nd seed for Home/Visitor jersey designation."
+            f"No advancement reason to pull the goalie—only consider pulling if chasing a specific 1st/2nd seed or round-robin record for Home (last change) designation."
         )
         eval_result['empty_net_downside'] = False
         eval_result['empty_net_warning'] = (
