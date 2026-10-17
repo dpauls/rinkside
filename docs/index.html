@@ -1070,9 +1070,16 @@ async function registerWebPushSubscription() {
 
         let deviceId = localStorage.getItem('rinkside_device_id');
         if (!deviceId) {
-            deviceId = 'dev_' + Math.random().toString(36).substring(2, 12);
-            localStorage.setItem('rinkside_device_id', deviceId);
+            const m = document.cookie.match(/(?:^|;\s*)rinkside_device_id=([^;]+)/);
+            if (m && m[1]) deviceId = decodeURIComponent(m[1]);
         }
+        if (!deviceId) {
+            deviceId = 'dev_' + Math.random().toString(36).substring(2, 12);
+        }
+        localStorage.setItem('rinkside_device_id', deviceId);
+        try {
+            document.cookie = `rinkside_device_id=${encodeURIComponent(deviceId)}; path=/; max-age=31536000; SameSite=Lax`;
+        } catch (e) {}
 
         const subJson = sub.toJSON();
         const gamesList = (getGameSubs() || []).slice().sort();
