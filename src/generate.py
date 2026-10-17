@@ -153,6 +153,7 @@ def build_scenario_data(analysis, our_team, data=None, pool_id=None):
                 'advance_count': advance_count,
                 'advancement_round': advancement_round,
                 'winner': winner,
+                'advancing': sc['result'].get('advancing', []),
                 'scenarios': [],
             }
         return None
@@ -348,7 +349,7 @@ def generate(data_path='data/tournaments/pink_the_rink_2026.json', skip_narrativ
         if shadow_data.exists() and not path_obj.name.startswith('.'):
             try:
                 shadow = json.loads(shadow_data.read_text())
-                for key in ('pool_games', 'event_log', '_narrative', '_coaches_corner', '_tb_health'):
+                for key in ('pool_games', 'event_log', '_narrative', '_coaches_corner', '_tb_health', '_bench_advisory'):
                     if key in shadow:
                         data[key] = shadow[key]
             except Exception:
@@ -417,7 +418,12 @@ def generate(data_path='data/tournaments/pink_the_rink_2026.json', skip_narrativ
         clinch_data, data['teams'], official_games=data.get('pool_games', [])
     )
     rooting_guide = generate_rooting_guide(our_pool, data, our_team)
-    bench_data = compute_bench_analysis(data, our_team, our_pool)
+    bench_data = compute_bench_analysis(
+        data, our_team, our_pool,
+        clinch_data=clinch_data,
+        playoff_bracket=playoff_bracket,
+        advisory_text=data.get('_bench_advisory')
+    )
 
     all_pools = {}
     for pid in struct.get_pools().keys():
@@ -436,6 +442,7 @@ def generate(data_path='data/tournaments/pink_the_rink_2026.json', skip_narrativ
         }
 
     # Build lookup of resolved playoff matchups by game_id for TBA fallback
+    streams = load_streams(data)
     resolved_playoff_by_gid = {}
     if isinstance(playoff_bracket, dict):
         gid_map = {
@@ -452,11 +459,14 @@ def generate(data_path='data/tournaments/pink_the_rink_2026.json', skip_narrativ
                 if mgid:
                     resolved_playoff_by_gid[mgid] = m
                     m['game_id'] = mgid
+                    m['stream_url'] = streams.get(str(mgid)) or streams.get(mgid)
                     if mgid in game_by_id:
                         og = game_by_id[mgid]
                         m['date'] = og.get('date')
                         m['date_str'] = og.get('date_str')
                         m['arena'] = og.get('arena')
+                        if og.get('stream_url') or og.get('broadcast_url'):
+                            m['stream_url'] = og.get('stream_url') or og.get('broadcast_url')
                         if og.get('status') in ('in_progress', 'live', 'final'):
                             m['status'] = og.get('status')
                         m['home_score'] = og.get('home_score')
@@ -464,12 +474,15 @@ def generate(data_path='data/tournaments/pink_the_rink_2026.json', skip_narrativ
         if playoff_bracket.get('final'):
             mf = playoff_bracket['final']
             mf['game_id'] = 2074871
+            mf['stream_url'] = streams.get('2074871') or streams.get(2074871)
             resolved_playoff_by_gid[2074871] = mf
             if 2074871 in game_by_id:
                 og = game_by_id[2074871]
                 mf['date'] = og.get('date')
                 mf['date_str'] = og.get('date_str')
                 mf['arena'] = og.get('arena')
+                if og.get('stream_url') or og.get('broadcast_url'):
+                    mf['stream_url'] = og.get('stream_url') or og.get('broadcast_url')
                 if og.get('status') in ('in_progress', 'live', 'final'):
                     mf['status'] = og.get('status')
                 mf['home_score'] = og.get('home_score')
@@ -477,7 +490,6 @@ def generate(data_path='data/tournaments/pink_the_rink_2026.json', skip_narrativ
 
     # All division games (all pools combined, sorted chronologically)
     all_division_games = []
-    streams = load_streams(data)
     for g in data.get('pool_games', []):
         gid = g.get('game_id') or g.get('GID')
         stream_url = g.get('stream_url') or g.get('broadcast_url') or streams.get(str(gid)) or streams.get(gid)

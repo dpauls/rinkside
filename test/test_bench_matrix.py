@@ -121,6 +121,65 @@ class TestBenchMatrix(unittest.TestCase):
         self.assertIn('matrix', bench)
         self.assertIn('recommendation', bench)
 
+    def test_compute_bench_analysis_clinched_live_and_idle(self):
+        from src.narrative import generate_clinched_bench_advisory
+        clinch_data = {'B': {'clinched': ['KAN'], 'eliminated': []}}
+        playoff_bracket = {
+            'semis': [
+                {
+                    'game': 'Semi 1',
+                    'home': {'seed_label': '1st A', 'designation': 'H', 'name': '1st in Pool A', 'resolved': False},
+                    'away': {'seed_label': '2nd B', 'designation': 'V', 'name': '2nd in Pool B', 'resolved': False},
+                    'arena': 'Activa - PJD'
+                },
+                {
+                    'game': 'Semi 2',
+                    'home': {'seed_label': '1st B', 'designation': 'H', 'name': 'Kanata Rangers', 'resolved': True, 'key': 'KAN'},
+                    'away': {'seed_label': '2nd A', 'designation': 'V', 'name': '2nd in Pool A', 'resolved': False},
+                    'arena': 'RIM - Optimist'
+                }
+            ]
+        }
+        advisory = generate_clinched_bench_advisory(
+            self.tournament_data,
+            standings=[{'team': 'KAN', 'name': 'Kanata Rangers', 'pts': 4, 'w': 2, 'l': 0, 't': 0, 'gd': 4}],
+            clinch_data=clinch_data,
+            playoff_bracket=playoff_bracket,
+            remaining_pool_games=self.tournament_data['pool_games']
+        )
+        self.assertTrue(len(advisory) > 0)
+
+        # Live game while clinched
+        bench_live = compute_bench_analysis(
+            self.tournament_data, 'KAN', 'B',
+            clinch_data=clinch_data,
+            playoff_bracket=playoff_bracket,
+            advisory_text=advisory
+        )
+        self.assertEqual(bench_live['mode'], 'clinched')
+        self.assertEqual(bench_live['indicator'], 'green')
+        self.assertIn('My Job Is Done', bench_live['recommendation'])
+        self.assertEqual(bench_live['reason'], advisory)
+
+        # Idle between games while clinched
+        idle_data = dict(self.tournament_data)
+        idle_data['pool_games'] = [
+            {'game_id': 101, 'pool': 'B', 'home': 'KAN', 'away': 'WIL', 'status': 'final', 'home_score': 3, 'away_score': 1},
+            {'game_id': 102, 'pool': 'B', 'home': 'BEL', 'away': 'NEP', 'status': 'scheduled', 'home_score': None, 'away_score': None},
+        ]
+        bench_idle = compute_bench_analysis(
+            idle_data, 'KAN', 'B',
+            clinch_data=clinch_data,
+            playoff_bracket=playoff_bracket,
+            advisory_text=advisory
+        )
+        self.assertEqual(bench_idle['mode'], 'clinched')
+        self.assertIsNone(bench_idle['our_game'])
+        self.assertEqual(bench_idle['indicator'], 'green')
+        self.assertIn('My Job Is Done', bench_idle['recommendation'])
+        self.assertEqual(bench_idle['reason'], advisory)
+
 
 if __name__ == '__main__':
     unittest.main()
+

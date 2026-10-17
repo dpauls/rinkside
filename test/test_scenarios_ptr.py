@@ -86,9 +86,20 @@ class TestTournamentStructure(unittest.TestCase):
         self.assertEqual(semi1['home']['id'], 'WOO')
         self.assertEqual(semi1['home']['name'], 'Woodstock Wildcats')
         self.assertEqual(semi1['home']['status'], 'clinched')
+        self.assertEqual(semi1['home']['seed_label'], '1st A')
+        self.assertEqual(semi1['home']['seed_full'], '1st in Pool A')
+        self.assertEqual(semi1['home']['designation'], 'H')
         self.assertEqual(semi1['away']['id'], 'KAN')
         self.assertEqual(semi1['away']['name'], 'Kanata Rangers')
+        self.assertEqual(semi1['away']['seed_label'], '2nd B')
+        self.assertEqual(semi1['away']['seed_full'], '2nd in Pool B')
+        self.assertEqual(semi1['away']['designation'], 'V')
         self.assertEqual(semi1['status'], 'clinched')
+        self.assertIn('rounds', bracket)
+        self.assertEqual(len(bracket['rounds']), 2)
+        self.assertEqual(bracket['rounds'][0]['key'], 'semis')
+        self.assertEqual(bracket['rounds'][1]['key'], 'final')
+
 
 
 class TestMultiPoolCrossoverStructure(unittest.TestCase):

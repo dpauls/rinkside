@@ -249,14 +249,29 @@ function esc(s) {
 
 function renderContent() {
     if (!stateData) return;
-    const bench = stateData.bench;
+    let bench = stateData.bench;
+    const ourTeamName = stateData.our_team_name || 'Kanata Rangers';
+    const ourRow = (stateData.standings || []).find(r => r.id === stateData.our_team || r.is_us);
+    const isClinchedFallback = Boolean(ourRow && ourRow.status === 'CLINCHED');
 
-    if (!bench || !bench.our_game) {
+    if (!bench && isClinchedFallback) {
+        bench = {
+            mode: 'clinched',
+            clinched_berth: true,
+            our_game: null,
+            matrix: [],
+            indicator: 'green',
+            recommendation: 'Playoff Spot Clinched — My Job Is Done! 🎉',
+            reason: `${ourTeamName} has mathematically clinched a playoff spot! Round-robin survival math is complete—good luck on the bench, Coach!`
+        };
+    }
+
+    if (!bench || (!bench.our_game && bench.mode !== 'clinched' && !bench.clinched_berth)) {
         document.getElementById('content').innerHTML = `
             <div style="background:#1e293b;border-radius:12px;padding:2rem;text-align:center;border:1px solid #334155;">
                 <h3 style="color:#f8fafc;margin-bottom:0.5rem">No Live Game In Progress</h3>
                 <p style="color:#94a3b8;font-size:0.95rem;max-width:500px;margin:0 auto">
-                    The Bench Assistant activates automatically during in-progress Kanata Rangers games to provide real-time goalie-pull odds and score margin advice.
+                    The Bench Assistant activates automatically during in-progress ${esc(ourTeamName)} games to provide real-time goalie-pull odds and score margin advice.
                 </p>
             </div>
         `;
@@ -264,24 +279,26 @@ function renderContent() {
     }
 
     const g = bench.our_game;
-    const diff = g.our_score - g.their_score;
+    const diff = g ? (g.our_score - g.their_score) : 0;
     const indClass = bench.indicator === 'green' ? 'indicator-green' : (bench.indicator === 'red' ? 'indicator-red' : 'indicator-yellow');
 
     let html = '';
 
-    // Live Score Board
-    html += `
-        <div class="score-box">
-            <div style="font-size:0.8rem;text-transform:uppercase;letter-spacing:0.05em;color:#ef4444;font-weight:bold;margin-bottom:0.25rem">
-                <span class="live-pulse"></span>LIVE IN PROGRESS
+    // Live Score Board (when a game is actively in progress)
+    if (g) {
+        html += `
+            <div class="score-box">
+                <div style="font-size:0.8rem;text-transform:uppercase;letter-spacing:0.05em;color:#ef4444;font-weight:bold;margin-bottom:0.25rem">
+                    <span class="live-pulse"></span>LIVE IN PROGRESS
+                </div>
+                <div class="score-names">${esc(g.home_name)} vs ${esc(g.away_name)}</div>
+                <div class="score-digits">${g.home_score} - ${g.away_score}</div>
+                <div style="font-size:0.85rem;color:#38bdf8;font-weight:600">
+                    ${diff > 0 ? `${esc(ourTeamName)} leads by ${diff}` : (diff < 0 ? `${esc(ourTeamName)} trails by ${Math.abs(diff)}` : 'Game Tied')}
+                </div>
             </div>
-            <div class="score-names">${esc(g.home_name)} vs ${esc(g.away_name)}</div>
-            <div class="score-digits">${g.home_score} - ${g.away_score}</div>
-            <div style="font-size:0.85rem;color:#38bdf8;font-weight:600">
-                ${diff > 0 ? `Kanata leads by ${diff}` : (diff < 0 ? `Kanata trails by ${Math.abs(diff)}` : 'Game Tied')}
-            </div>
-        </div>
-    `;
+        `;
+    }
 
     // High Contrast Recommendation Card
     html += `

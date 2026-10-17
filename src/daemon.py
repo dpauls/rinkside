@@ -39,7 +39,7 @@ from narrative import (
     generate_game_final_comment, generate_in_game_comment,
     generate_correction_comment, evaluate_narrative,
     generate_pregame_talking_points, generate_don_cherry,
-    generate_event_impact,
+    generate_event_impact, generate_clinched_bench_advisory,
 )
 
 log = logging.getLogger(__name__)
@@ -77,7 +77,7 @@ def _read_data():
 
     try:
         shadow = json.loads(SHADOW_DATA_PATH.read_text())
-        for key in ('pool_games', 'event_log', '_narrative', '_coaches_corner', '_tb_health'):
+        for key in ('pool_games', 'event_log', '_narrative', '_coaches_corner', '_tb_health', '_bench_advisory'):
             if key in shadow:
                 tracked[key] = shadow[key]
     except Exception as e:
@@ -909,12 +909,37 @@ def run_cycle(tournament_data, mock_source=None, skip_narrative=False, skip_push
         tournament_data['_coaches_corner'] = coaches_corner
         _write_data(tournament_data)
 
-    # Compute bench analysis for goalie-pull decisions
-    bench = compute_bench_analysis(tournament_data, our_team, our_pool)
+    # Generate post-clinch Bench Advisor seeding/bracket brief on game finals (or if missing)
+    has_any_final = any(c['type'] == 'game_final' for c in all_changes)
+    our_clinched = any(
+        r.get('id') == our_team and r.get('status') == 'CLINCHED'
+        for r in (state.get('standings') or [])
+    )
+    if our_clinched and not skip_narrative and (has_any_final or not tournament_data.get('_bench_advisory')):
+        try:
+            adv_text = generate_clinched_bench_advisory(
+                tournament_data,
+                state.get('standings', []),
+                state.get('clinches', {}),
+                state.get('playoffs', {}),
+                state.get('upcoming', [])
+            )
+            if adv_text:
+                tournament_data['_bench_advisory'] = adv_text
+                _write_data(tournament_data)
+        except Exception as e:
+            log.warning(f"Could not generate clinched bench advisory: {e}")
+
+    # Compute bench analysis for goalie-pull decisions and post-clinch guidance
+    bench = compute_bench_analysis(
+        tournament_data, our_team, our_pool,
+        clinch_data=state.get('clinches'),
+        playoff_bracket=state.get('playoffs'),
+        advisory_text=tournament_data.get('_bench_advisory')
+    )
 
     # Generate tiebreaker health analysis on game finals when yellow scenarios exist
     tb_health = tournament_data.get('_tb_health')
-    has_any_final = any(c['type'] == 'game_final' for c in all_changes)
     if not skip_narrative and has_any_final:
         our_analysis = enumerate_scenarios(our_pool, tournament_data)
         from generate import build_scenario_data
@@ -955,6 +980,8 @@ def run_cycle(tournament_data, mock_source=None, skip_narrative=False, skip_push
         state['trigger_event'] = {'type': 'initial', 'headline': 'Baseline tournament initialization'}
     SHADOW_STATE_PATH.parent.mkdir(parents=True, exist_ok=True)
     SHADOW_STATE_PATH.write_text(json.dumps(state, indent=2))
+    target_state_file = (out_dir if out_dir else (PROJECT_ROOT / 'docs' / 'data')) / 'state.json'
+    target_state_file.write_text(json.dumps(state, indent=2))
     if not skip_push and not DEV_MODE:
         _publish_to_git()
 

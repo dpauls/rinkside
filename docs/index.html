@@ -170,19 +170,190 @@
         .bar-in { background: #2e7d32; color: white; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: bold; }
         .bar-out { background: #c62828; color: white; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; }
 
-        .event-log { list-style: none; padding: 0; max-height: 20rem; overflow-y: auto; }
-        .event-log li { padding: 0.5rem 0; border-bottom: 1px solid var(--pico-muted-border-color); font-size: 0.9rem; }
-        .event-time { color: var(--pico-muted-color); font-size: 0.8rem; }
+        .event-log { list-style: none; padding: 0; margin: 0; }
+        .event-log li { padding: 0.55rem 0; border-bottom: 1px solid var(--pico-muted-border-color); font-size: 0.88rem; }
+        .event-log li:last-child { border-bottom: none; }
+        .event-time { color: var(--pico-muted-color); font-size: 0.78rem; }
         .evt-goal { border-left: 3px solid #2e7d32; padding-left: 0.75rem; }
         .evt-final { border-left: 3px solid var(--pico-primary); padding-left: 0.75rem; }
         .evt-start { border-left: 3px solid #0284c7; padding-left: 0.75rem; }
         .evt-info { border-left: 3px solid var(--pico-muted-color); padding-left: 0.75rem; }
+
+        .latest-event-bar {
+            background: var(--pico-card-background-color);
+            border: 1px solid var(--pico-muted-border-color);
+            border-left: 4px solid var(--rangers-blue);
+            padding: 0.45rem 0.75rem;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+            cursor: pointer;
+            transition: border-color 0.15s ease;
+        }
+        .latest-event-bar:hover {
+            border-color: var(--rangers-blue);
+        }
 
         .bracket-game {
             background: var(--pico-card-background-color);
             padding: 0.5rem 0.75rem; border-radius: 4px; margin-bottom: 0.5rem; font-size: 0.9rem;
         }
         .round-label { font-size: 0.75rem; color: var(--pico-muted-color); text-transform: uppercase; }
+
+        /* Graphical Playoff Bracket Tree */
+        .bracket-tree {
+            display: flex;
+            gap: 1.75rem;
+            align-items: stretch;
+            overflow-x: auto;
+            padding: 0.35rem 0.15rem 0.75rem;
+        }
+        .bracket-round-col {
+            flex: 1;
+            min-width: 265px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            gap: 0.85rem;
+            position: relative;
+        }
+        .bracket-round-title {
+            font-size: 0.76rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--pico-muted-color);
+            text-align: center;
+            padding-bottom: 0.3rem;
+            margin-bottom: 0.15rem;
+            border-bottom: 2px solid var(--pico-muted-border-color);
+        }
+        .bracket-round-games {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            gap: 0.9rem;
+        }
+        .bracket-matchup-wrapper {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        @media (min-width: 681px) {
+            .bracket-round-col.has-next-round .bracket-matchup-wrapper::after {
+                content: '';
+                position: absolute;
+                right: -0.9rem;
+                top: 50%;
+                width: 0.9rem;
+                border-top: 2px solid var(--pico-muted-border-color);
+                pointer-events: none;
+            }
+            .bracket-round-col.has-prev-round .bracket-matchup-wrapper::before {
+                content: '';
+                position: absolute;
+                left: -0.85rem;
+                top: 50%;
+                width: 0.85rem;
+                border-top: 2px solid var(--pico-muted-border-color);
+                pointer-events: none;
+            }
+        }
+        @media (max-width: 680px) {
+            .bracket-tree {
+                flex-direction: column;
+                gap: 1.1rem;
+            }
+            .bracket-round-col {
+                min-width: 100%;
+            }
+        }
+        .bracket-card {
+            background: var(--pico-card-background-color);
+            border: 1px solid var(--pico-muted-border-color);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+        }
+        .bracket-card.our-matchup {
+            border-color: var(--rangers-blue);
+            box-shadow: 0 2px 10px rgba(0, 56, 168, 0.16);
+        }
+        .bracket-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.4rem;
+            padding: 0.35rem 0.65rem;
+            background: rgba(100, 116, 139, 0.08);
+            border-bottom: 1px solid var(--pico-muted-border-color);
+            font-size: 0.74rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            color: var(--pico-muted-color);
+        }
+        .bracket-team-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.5rem;
+            padding: 0.48rem 0.65rem;
+            border-bottom: 1px solid var(--pico-muted-border-color);
+            font-size: 0.88rem;
+        }
+        .bracket-team-row:last-of-type {
+            border-bottom: none;
+        }
+        .bracket-team-left {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            min-width: 0;
+            flex: 1;
+        }
+        .seed-badge {
+            display: inline-block;
+            font-size: 0.68rem;
+            font-weight: 700;
+            padding: 0.1rem 0.38rem;
+            border-radius: 4px;
+            background: rgba(2, 132, 199, 0.12);
+            color: #0284c7;
+            border: 1px solid rgba(2, 132, 199, 0.28);
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .bracket-score-pill {
+            font-weight: 800;
+            font-size: 0.95rem;
+            min-width: 1.5rem;
+            text-align: right;
+            flex-shrink: 0;
+        }
+        .bracket-card-footer {
+            padding: 0.32rem 0.65rem;
+            background: rgba(100, 116, 139, 0.04);
+            border-top: 1px solid var(--pico-muted-border-color);
+            font-size: 0.74rem;
+            color: var(--pico-muted-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.35rem;
+        }
+        .consolation-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(265px, 1fr));
+            gap: 0.85rem;
+            margin-top: 0.5rem;
+        }
 
         details summary { cursor: pointer; font-weight: 600; }
         details[open] summary { margin-bottom: 0.5rem; }
@@ -319,15 +490,19 @@
         <div id="pool-pills" class="pool-pills" role="tablist"></div>
     </div>
 
-    <div style="display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:0.5rem;margin-top:0.75rem;margin-bottom:0.4rem">
-        <h2 id="pool-header" style="margin:0">Pool Standings</h2>
-        <span id="standings-provenance" style="font-size:0.75rem;color:var(--pico-muted-color)">Official RAMP Feed &middot; OWHA Tiebreakers</span>
-    </div>
-    <div id="standings-area"><p class="loading">Loading standings...</p></div>
+    <div id="bracket-hero-area" style="display:none;margin-top:0.75rem;margin-bottom:1.25rem"></div>
 
-    <div id="scenarios-area"></div>
-    <div id="upcoming-area"></div>
-    <div id="completed-area"></div>
+    <div id="pool-view-container">
+        <div style="display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:0.5rem;margin-top:0.75rem;margin-bottom:0.4rem">
+            <h2 id="pool-header" style="margin:0">Pool Standings</h2>
+            <span id="standings-provenance" style="font-size:0.75rem;color:var(--pico-muted-color)">Official RAMP Feed &middot; OWHA Tiebreakers</span>
+        </div>
+        <div id="standings-area"><p class="loading">Loading standings...</p></div>
+
+        <div id="scenarios-area"></div>
+        <div id="upcoming-area"></div>
+        <div id="completed-area"></div>
+    </div>
 
     <!-- Data Provenance & Trust Modal -->
     <dialog id="trust-modal" onclick="if(event.target===this)closeTrustModal()">
@@ -367,15 +542,31 @@
         </article>
     </dialog>
 
+    <!-- Tournament Event History Modal -->
+    <dialog id="events-modal" onclick="if(event.target===this)closeEventsModal()">
+        <article style="position:relative;max-width:600px;width:94%;max-height:85vh;display:flex;flex-direction:column;padding:1.25rem 1.5rem;border-radius:8px;margin:auto;box-shadow:0 10px 30px rgba(0,0,0,0.4);border:1px solid var(--pico-muted-border-color)">
+            <button onclick="closeEventsModal()" aria-label="Close" style="position:absolute;top:0.75rem;right:0.9rem;background:transparent;border:none;font-size:1.5rem;line-height:1;cursor:pointer;padding:0.2rem 0.4rem;width:auto;color:var(--pico-muted-color);box-shadow:none">&times;</button>
+            <h3 id="events-modal-title" style="margin:0 2rem 0.75rem 0;font-size:1.15rem;color:var(--rangers-blue)">📜 Tournament Event Timeline</h3>
+            <div id="events-modal-content" style="font-size:0.86rem;line-height:1.5;color:var(--pico-color);overflow-y:auto;flex:1;padding-right:0.25rem">
+                <p class="loading">Loading updates...</p>
+            </div>
+            <div style="text-align:center;margin-top:1rem;padding-top:0.5rem;border-top:1px solid var(--pico-muted-border-color)">
+                <button onclick="closeEventsModal()" style="background:var(--rangers-blue);color:#fff;border:none;padding:0.4rem 1.5rem;border-radius:4px;cursor:pointer;width:auto;margin:0 auto;display:inline-block">Close</button>
+            </div>
+        </article>
+    </dialog>
+
     <div id="coaches-corner-area"></div>
 
     <div id="clinch-watch-area"></div>
 
-    <div style="display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:0.5rem;margin-top:1.5rem;margin-bottom:0.4rem">
-        <h2 style="margin:0">Playoff Bracket</h2>
-        <span style="font-size:0.75rem;color:var(--pico-muted-color)">5-Min Sudden-Victory OT (4-on-4) &middot; Simultaneous Shootout</span>
+    <div id="bracket-bottom-area">
+        <div style="display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:0.5rem;margin-top:1.5rem;margin-bottom:0.4rem">
+            <h2 style="margin:0">Playoff Bracket</h2>
+            <span style="font-size:0.75rem;color:var(--pico-muted-color)">5-Min Sudden-Victory OT (4-on-4) &middot; Simultaneous Shootout</span>
+        </div>
+        <div id="bracket-area"></div>
     </div>
-    <div id="bracket-area"></div>
 
     <div id="beyond-pool-area"></div>
 
@@ -546,6 +737,33 @@ function renderNarrative(narrative) {
 
 function renderEventLog(events) {
     if (!events || events.length === 0) return '';
+    const latest = events[events.length - 1];
+    return `<div class="latest-event-bar" onclick="openEventsModal()">
+        <div class="evt-text">
+            <span class="event-time">${esc(latest.time)}</span> &middot;
+            <strong>${esc(latest.headline)}</strong>
+        </div>
+        <button class="view-all-events-btn" onclick="event.stopPropagation(); openEventsModal()">
+            📜 Full Timeline (${events.length})
+        </button>
+    </div>`;
+}
+
+function openEventsModal() {
+    populateEventsModal();
+    const m = document.getElementById('events-modal');
+    if (m) m.showModal ? m.showModal() : (m.style.display = 'block');
+}
+
+function closeEventsModal() {
+    const m = document.getElementById('events-modal');
+    if (m) m.close ? m.close() : (m.style.display = 'none');
+}
+
+function populateEventsModal() {
+    const container = document.getElementById('events-modal-content');
+    if (!container || !currentState || !currentState.event_log) return;
+    const events = currentState.event_log;
     const items = [...events].reverse().map(e => {
         const typeCls = e.type === 'goal' ? 'evt-goal' : e.type === 'final' ? 'evt-final' : e.type === 'start' ? 'evt-start' : 'evt-info';
         return `<li class="${typeCls}">
@@ -554,7 +772,7 @@ function renderEventLog(events) {
             ${e.detail ? '<br>' + mdToHtml(e.detail) : ''}
         </li>`;
     }).join('');
-    return `<details open><summary>Recent Updates (${events.length})</summary><ul class="event-log">${items}</ul></details>`;
+    container.innerHTML = `<ul class="event-log" style="max-height:70vh;overflow-y:auto">${items}</ul>`;
 }
 
 function formatTiebreakerRules(tbConfig) {
@@ -622,8 +840,9 @@ function renderScenarios(sc, ourTeamName, ourPool, ourTeam) {
     if (sc.remaining_games === 0) {
         const winner = sc.winner || '?';
         const isUs = sc.our_count > 0;
+        const roundName = sc.advancement_round || 'Playoffs';
         html += `<p><strong>All pool games are complete.</strong> Pool ${esc(ourPool)} winner: <strong>${esc(winner)}</strong>`;
-        if (isUs) html += ` -- That's us! On to the quarter-finals!`;
+        if (isUs) html += ` &mdash; Advanced to the ${esc(roundName)}!`;
         html += `</p>`;
         return html;
     }
@@ -1244,88 +1463,137 @@ function findPlayoffGame(label) {
     return null;
 }
 
-function renderPlayoffMatchup(g) {
+function renderPlayoffMatchup(g, ourTeam) {
     const matchedGame = findPlayoffGame(g.game || '');
     const gid = g.game_id || (matchedGame ? (matchedGame.game_id || matchedGame.gid) : (g.gid || ''));
     const isGameLive = (g.status === 'in_progress' || g.status === 'live') || (matchedGame && (matchedGame.status === 'in_progress' || matchedGame.status === 'live'));
     const isGameFinal = (g.status === 'final') || (matchedGame && matchedGame.status === 'final');
     const subBtn = renderSubButton(gid, isGameFinal);
 
+    const streamUrl = g.stream_url || (matchedGame ? matchedGame.stream_url : null);
+    const streamBtn = streamUrl
+        ? `<a href="${esc(streamUrl)}" target="_blank" rel="noopener" class="stream-badge${isGameLive ? ' stream-badge-live' : ''}">▶ Stream</a>`
+        : '';
+
     let badge = '';
     if (g.winner && g.winner.name) {
-        badge = `<span style="background:#eab308;color:#000;font-size:0.75rem;font-weight:bold;padding:0.15rem 0.5rem;border-radius:4px;margin-left:0.5rem">🏆 ${esc(g.winner.name)} Champions</span>`;
+        badge = `<span style="background:#eab308;color:#000;font-size:0.7rem;font-weight:bold;padding:0.12rem 0.45rem;border-radius:4px">🏆 ${esc(g.winner.name)}</span>`;
     } else if (isGameLive) {
-        badge = '<span style="background:#dc2626;color:#fff;font-size:0.7rem;font-weight:bold;padding:0.1rem 0.4rem;border-radius:4px;margin-left:0.5rem">🔴 LIVE</span>';
+        badge = '<span style="background:#dc2626;color:#fff;font-size:0.68rem;font-weight:bold;padding:0.1rem 0.4rem;border-radius:4px">🔴 LIVE</span>';
     } else if (isGameFinal) {
-        badge = '<span style="background:#16a34a;color:#fff;font-size:0.7rem;font-weight:bold;padding:0.1rem 0.4rem;border-radius:4px;margin-left:0.5rem">FINAL</span>';
-    } else if (g.is_official || g.status === 'official') {
-        badge = '<span style="background:#16a34a;color:#fff;font-size:0.7rem;font-weight:bold;padding:0.1rem 0.4rem;border-radius:4px;margin-left:0.5rem">Official</span>';
-    } else if (g.status === 'clinched' || g.status === 'final') {
-        badge = '<span style="background:#0284c7;color:#fff;font-size:0.7rem;font-weight:bold;padding:0.1rem 0.4rem;border-radius:4px;margin-left:0.5rem">Seeds Locked</span>';
+        badge = '<span style="background:#16a34a;color:#fff;font-size:0.68rem;font-weight:bold;padding:0.1rem 0.4rem;border-radius:4px">FINAL</span>';
+    } else if (g.status === 'clinched') {
+        badge = '<span style="background:#0284c7;color:#fff;font-size:0.68rem;font-weight:bold;padding:0.1rem 0.4rem;border-radius:4px">Seeds Locked</span>';
     } else if (g.status === 'partial') {
-        badge = '<span style="background:#f59e0b;color:#000;font-size:0.7rem;font-weight:bold;padding:0.1rem 0.4rem;border-radius:4px;margin-left:0.5rem">Partially Clinched</span>';
+        badge = '<span style="background:#f59e0b;color:#000;font-size:0.68rem;font-weight:bold;padding:0.1rem 0.4rem;border-radius:4px">1 Seed Set</span>';
     } else {
-        badge = '<span style="background:#64748b;color:#fff;font-size:0.7rem;font-weight:bold;padding:0.1rem 0.4rem;border-radius:4px;margin-left:0.5rem">TBD</span>';
+        badge = '<span style="background:#64748b;color:#fff;font-size:0.68rem;font-weight:bold;padding:0.1rem 0.4rem;border-radius:4px">TBD</span>';
     }
 
-    const homeStr = g.home.resolved ? `<strong>${esc(g.home.name)}</strong>` : `<span style="color:var(--pico-muted-color);font-style:italic">${esc(g.home.name)}</span>`;
-    const awayStr = g.away.resolved ? `<strong>${esc(g.away.name)}</strong>` : `<span style="color:var(--pico-muted-color);font-style:italic">${esc(g.away.name)}</span>`;
-
-    let matchupLine = `${homeStr} vs ${awayStr}`;
     const hs = (g.home_score !== null && g.home_score !== undefined) ? g.home_score : (matchedGame ? matchedGame.home_score : null);
     const as_ = (g.away_score !== null && g.away_score !== undefined) ? g.away_score : (matchedGame ? matchedGame.away_score : null);
-    if ((isGameLive || isGameFinal) && hs !== null && hs !== undefined) {
-        const scoreStyle = isGameLive ? 'color:#d32f2f;font-weight:800;margin:0 0.35rem' : 'font-weight:800;margin:0 0.35rem';
-        matchupLine = `${homeStr} <span class="score" style="${scoreStyle}">${hs} - ${as_}</span> ${awayStr}`;
-    }
+    const showScores = (isGameLive || isGameFinal) && hs !== null && hs !== undefined;
 
-    let metaStr = '';
+    const homeDesig = g.home.designation || 'H';
+    const awayDesig = g.away.designation || 'V';
+    const homeSeedBadge = `<span class="seed-badge seed-home" title="Home Team (${esc(g.home.seed_full || g.home.placeholder || '')})">${esc(g.home.seed_label || '')} (${esc(homeDesig)})</span>`;
+    const awaySeedBadge = `<span class="seed-badge seed-away" title="Visitor Team (${esc(g.away.seed_full || g.away.placeholder || '')})">${esc(g.away.seed_label || '')} (${esc(awayDesig)})</span>`;
+
+    const isHomeUs = ourTeam && g.home.key === ourTeam;
+    const isAwayUs = ourTeam && g.away.key === ourTeam;
+    const isOurCard = isHomeUs || isAwayUs;
+
+    const isHomeWinner = isGameFinal && showScores && Number(hs) > Number(as_);
+    const isAwayWinner = isGameFinal && showScores && Number(as_) > Number(hs);
+
+    const homeUnresolvedName = g.home.seed_full || g.home.placeholder || g.home.name;
+    const awayUnresolvedName = g.away.seed_full || g.away.placeholder || g.away.name;
+    const homeNameHtml = g.home.resolved
+        ? `<span class="bracket-team-name${isHomeUs ? ' team-us' : ''}">${esc(g.home.name)}</span>`
+        : `<span class="bracket-team-name unresolved">${esc(homeUnresolvedName)}</span>`;
+    const awayNameHtml = g.away.resolved
+        ? `<span class="bracket-team-name${isAwayUs ? ' team-us' : ''}">${esc(g.away.name)}</span>`
+        : `<span class="bracket-team-name unresolved">${esc(awayUnresolvedName)}</span>`;
+
     const dateVal = g.date || (matchedGame ? matchedGame.date : null);
     const arenaVal = g.arena || (matchedGame ? matchedGame.arena : null);
-    if (dateVal || arenaVal) {
+    let footerParts = [];
+    if (gid) footerParts.push(`<span>#${esc(String(gid))}</span>`);
+    if (dateVal) footerParts.push(`<span>🗓️ ${fmtDate(dateVal)}</span>`);
+    if (arenaVal) {
         const venueObj = currentVenues[arenaVal];
-        const arenaBadge = arenaVal ? (venueObj && venueObj.maps_url 
-            ? `<a href="${esc(venueObj.maps_url)}" target="_blank" rel="noopener" style="font-size:0.75rem;margin-left:0.3rem;color:#0284c7;text-decoration:none">📍 ${esc(arenaVal)}</a>`
-            : `<span style="font-size:0.75rem;color:var(--pico-muted-color);margin-left:0.3rem">(${esc(arenaVal)})</span>`) : '';
-        const gidLabel = gid ? `#${gid} &middot; ` : '';
-        metaStr = `<div style="font-size:0.78rem;color:var(--pico-muted-color);margin-top:0.25rem">${gidLabel}${fmtDate(dateVal)} ${arenaBadge}</div>`;
+        const arenaHtml = (venueObj && venueObj.maps_url)
+            ? `<a href="${esc(venueObj.maps_url)}" target="_blank" rel="noopener" style="color:#0284c7;text-decoration:none">📍 ${esc(arenaVal)}</a>`
+            : `<span>📍 ${esc(arenaVal)}</span>`;
+        footerParts.push(arenaHtml);
     }
 
-    let note = '';
-    if (!matchedGame && !dateVal && g.status === 'clinched') {
-        note = '<div style="font-size:0.75rem;color:#0284c7;margin-top:0.25rem">Mathematically locked seeds &middot; Official schedule & arena pending from organizers</div>';
-    } else if (g.status === 'tbd') {
-        note = '<div style="font-size:0.75rem;color:var(--pico-muted-color);margin-top:0.25rem">Awaiting round-robin pool completion or mathematical clinch</div>';
-    }
+    const cardClasses = [
+        'bracket-card',
+        isOurCard ? 'our-bracket-card' : '',
+        isGameLive ? 'live-bracket-card' : ''
+    ].filter(Boolean).join(' ');
 
-    return `<div class="bracket-game">
-        <div class="round-label" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap">
-            <div>${esc(g.game)} ${badge}</div>
-            <div>${subBtn}</div>
+    return `<div class="${cardClasses}">
+        <div class="bracket-card-header">
+            <span>${esc(g.game)}</span>
+            <div style="display:flex;align-items:center;gap:0.35rem">${badge}${streamBtn}${subBtn}</div>
         </div>
-        <div style="margin-top:0.2rem">${matchupLine}</div>
-        ${metaStr}
-        ${note}
+        <div class="bracket-slot${isHomeWinner ? ' winner-slot' : ''}">
+            <div class="bracket-slot-left">
+                ${homeSeedBadge}
+                ${homeNameHtml}
+            </div>
+            <div class="bracket-score${isGameLive ? ' live-score' : ''}">${showScores ? hs : ''}</div>
+        </div>
+        <div class="bracket-slot${isAwayWinner ? ' winner-slot' : ''}">
+            <div class="bracket-slot-left">
+                ${awaySeedBadge}
+                ${awayNameHtml}
+            </div>
+            <div class="bracket-score${isGameLive ? ' live-score' : ''}">${showScores ? as_ : ''}</div>
+        </div>
+        ${footerParts.length > 0 ? `<div class="bracket-card-footer">${footerParts.join(' &middot; ')}</div>` : ''}
     </div>`;
 }
 
-function renderPlayoffs(playoffs) {
+function renderPlayoffs(playoffs, ourTeam) {
     if (!playoffs) return '';
+    const teamKey = ourTeam || (currentState ? currentState.our_team : '');
+
+    // Build rounds array polymorphically (supports playoffs.rounds or legacy quarterfinals/semis/final keys)
+    let rounds = playoffs.rounds;
+    if (!rounds || rounds.length === 0) {
+        rounds = [];
+        if (playoffs.quarterfinals && playoffs.quarterfinals.length > 0) {
+            rounds.push({ key: 'quarterfinals', title: 'Quarterfinals', games: playoffs.quarterfinals });
+        }
+        if (playoffs.semis && playoffs.semis.length > 0) {
+            rounds.push({ key: 'semis', title: 'Semifinals', games: playoffs.semis });
+        }
+        if (playoffs.final) {
+            rounds.push({ key: 'final', title: 'Championship Final', games: [playoffs.final] });
+        }
+    }
+
     let html = '';
-    if (playoffs.quarterfinals && playoffs.quarterfinals.length > 0) {
-        const qfHtml = playoffs.quarterfinals.map(renderPlayoffMatchup).join('');
-        html += `<h3>Quarterfinals</h3>${qfHtml}`;
+    if (rounds.length > 0) {
+        const colsHtml = rounds.map(r => {
+            const gamesHtml = (r.games || []).map(g =>
+                `<div class="bracket-matchup-wrapper">${renderPlayoffMatchup(g, teamKey)}</div>`
+            ).join('');
+            return `<div class="bracket-round-col">
+                <div class="bracket-round-title">${esc(r.title)}</div>
+                <div class="bracket-round-games">${gamesHtml}</div>
+            </div>`;
+        }).join('');
+        html += `<div class="bracket-tree">${colsHtml}</div>`;
     }
-    if (playoffs.semis && playoffs.semis.length > 0) {
-        const semisHtml = playoffs.semis.map(renderPlayoffMatchup).join('');
-        html += `<h3>Semifinals</h3>${semisHtml}`;
-    }
+
     if (playoffs.consolations && playoffs.consolations.length > 0) {
-        const consolHtml = playoffs.consolations.map(renderPlayoffMatchup).join('');
-        html += `<h3>Consolation</h3>${consolHtml}`;
-    }
-    if (playoffs.final) {
-        html += `<h3>Championship Final</h3>${renderPlayoffMatchup(playoffs.final)}`;
+        const consolHtml = playoffs.consolations.map(g => renderPlayoffMatchup(g, teamKey)).join('');
+        html += `<h3 style="margin-top:1.25rem;margin-bottom:0.5rem;font-size:1rem;color:var(--pico-muted-color)">🎖️ Consolation Showcase</h3>
+        <div class="consolation-grid">${consolHtml}</div>`;
     }
     return html;
 }
@@ -1399,6 +1667,15 @@ function populateRulesModal() {
     `;
 }
 
+function isBracketPhase(d) {
+    if (!d) return false;
+    // Automatically enter Bracket Phase when our pool play is complete
+    // OR if any playoff game has gone live or final
+    const ourPoolDone = d.scenarios && d.scenarios.remaining_games === 0;
+    const anyPlayoffActive = (d.all_division_games || []).some(g => !g.pool && (g.status === 'in_progress' || g.status === 'final'));
+    return Boolean(ourPoolDone || anyPlayoffActive);
+}
+
 function selectPool(poolId) {
     selectedPool = poolId;
     renderPoolView();
@@ -1416,11 +1693,14 @@ function renderPoolPills(d) {
     }
     container.parentElement.style.display = 'block';
 
-    if (!selectedPool || (!allPools[selectedPool] && selectedPool !== 'ALL')) {
-        selectedPool = d.our_pool || poolKeys[0];
+    if (!selectedPool || (!allPools[selectedPool] && selectedPool !== 'ALL' && selectedPool !== 'BRACKET')) {
+        selectedPool = isBracketPhase(d) ? 'BRACKET' : (d.our_pool || poolKeys[0]);
     }
 
-    let pillsHtml = poolKeys.map(pid => {
+    const bracketActive = (selectedPool === 'BRACKET') ? ' active' : '';
+    let pillsHtml = `<button class="pool-pill${bracketActive}" onclick="selectPool('BRACKET')">🏆 Playoff Bracket</button>`;
+
+    pillsHtml += poolKeys.map(pid => {
         const isOur = (pid === d.our_pool);
         const activeCls = (selectedPool === pid) ? ' active' : '';
         const label = isOur ? `⭐ Pool ${pid} (Our Pool)` : `Pool ${pid}`;
@@ -1484,6 +1764,34 @@ function renderPoolView() {
     const d = currentState;
     renderPoolPills(d);
 
+    const bracketHeroEl = document.getElementById('bracket-hero-area');
+    const poolContainerEl = document.getElementById('pool-view-container');
+    const bottomBracketEl = document.getElementById('bracket-bottom-area');
+    const clinchWatchEl = document.getElementById('clinch-watch-area');
+
+    if (selectedPool === 'BRACKET') {
+        if (poolContainerEl) poolContainerEl.style.display = 'none';
+        if (bottomBracketEl) bottomBracketEl.style.display = 'none';
+        if (clinchWatchEl) clinchWatchEl.style.display = 'none';
+
+        if (bracketHeroEl) {
+            bracketHeroEl.style.display = 'block';
+            const bracketHtml = (d.playoffs && d.playoffs.semis)
+                ? renderPlayoffs(d.playoffs, d.our_team)
+                : renderBracket(d.bracket);
+            bracketHeroEl.innerHTML = `<div style="display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;margin-top:0.5rem;margin-bottom:0.5rem">
+                <h2 style="margin:0;border:none">🏆 Playoff Bracket</h2>
+                <span style="font-size:0.72rem;color:var(--pico-muted-color)">Home (H) wears dark/choice &middot; Visitor (V)</span>
+            </div>` + bracketHtml;
+        }
+        return;
+    }
+
+    if (bracketHeroEl) bracketHeroEl.style.display = 'none';
+    if (poolContainerEl) poolContainerEl.style.display = 'block';
+    if (bottomBracketEl) bottomBracketEl.style.display = 'block';
+    if (clinchWatchEl) clinchWatchEl.style.display = (isBracketPhase(d) ? 'none' : 'block');
+
     if (selectedPool === 'ALL') {
         document.getElementById('pool-header').textContent = 'All Division Games';
         document.getElementById('standings-provenance').textContent = 'All Pools Combined \u00b7 Chronological';
@@ -1498,8 +1806,9 @@ function renderPoolView() {
         });
         document.getElementById('standings-area').innerHTML = multiStandings;
 
+        const totalG = (d.all_division_games || []).length;
         document.getElementById('upcoming-area').innerHTML =
-            '<h2>Full Division Scoreboard (17 Games)</h2>' + renderAllDivisionGames(d.all_division_games, d.our_team);
+            `<h2>Full Division Scoreboard (${totalG} Games)</h2>` + renderAllDivisionGames(d.all_division_games, d.our_team);
         document.getElementById('completed-area').innerHTML = '';
         return;
     }
@@ -1625,7 +1934,7 @@ async function loadAndRender() {
         document.getElementById('narrative-area').innerHTML = renderNarrative(d.narrative);
         document.getElementById('event-log-area').innerHTML = renderEventLog(d.event_log);
 
-        // Render selected pool view (or default our_pool)
+        // Render selected pool view (or default BRACKET/our_pool)
         renderPoolView();
 
         document.getElementById('venues-area').innerHTML = renderVenues(d.venues);
@@ -1636,7 +1945,7 @@ async function loadAndRender() {
 
         // Playoff bracket rendering
         if (d.playoffs && d.playoffs.semis) {
-            document.getElementById('bracket-area').innerHTML = renderPlayoffs(d.playoffs);
+            document.getElementById('bracket-area').innerHTML = renderPlayoffs(d.playoffs, d.our_team);
         } else {
             document.getElementById('bracket-area').innerHTML = renderBracket(d.bracket);
         }

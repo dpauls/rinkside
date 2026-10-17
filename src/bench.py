@@ -7,8 +7,10 @@ from typing import Dict, List, Optional, Any
 from copy import deepcopy
 try:
     from analyze import what_if_projection
+    from structure import build_structure_from_config
 except ImportError:
     from src.analyze import what_if_projection
+    from src.structure import build_structure_from_config
 
 
 def compute_margin_payoff_matrix(
@@ -200,34 +202,115 @@ def evaluate_goalie_pull(
     }
 
 
-def compute_bench_analysis(tournament_data: dict, our_team: str, our_pool: str) -> Optional[dict]:
+def compute_bench_analysis(
+    tournament_data: dict,
+    our_team: str,
+    our_pool: str,
+    clinch_data: Optional[dict] = None,
+    playoff_bracket: Optional[dict] = None,
+    advisory_text: Optional[str] = None
+) -> Optional[dict]:
     """Compute complete goalie-pull and bench analysis payload."""
     teams = tournament_data.get('teams', {})
     games = tournament_data.get('pool_games', [])
+    our_team_name = teams.get(our_team, {}).get('name', our_team)
 
-    # Find live game
+    struct = build_structure_from_config(tournament_data)
+    advance_count = struct.get_advance_count(our_pool)
+
+    pool_clinch = (clinch_data or {}).get(our_pool, {}) if isinstance(clinch_data, dict) else {}
+    clinched_pos = pool_clinch.get('clinched_positions', {}) if isinstance(pool_clinch, dict) else {}
+    team_status = pool_clinch.get('team_status', {}) if isinstance(pool_clinch, dict) else {}
+    clinched_berths = (
+        pool_clinch.get('clinched_berths', []) or pool_clinch.get('clinched', [])
+    ) if isinstance(pool_clinch, dict) else []
+
+    locked_seed = None
+    for pos_idx, tid in clinched_pos.items():
+        if tid == our_team:
+            try:
+                locked_seed = int(pos_idx) + 1
+            except (ValueError, TypeError):
+                pass
+
+    clinched_via_status = bool(team_status.get(our_team, {}).get('clinched_playoff'))
+    clinched_via_seed = (locked_seed is not None and locked_seed <= advance_count)
+    clinched_berth = clinched_via_status or (our_team in clinched_berths) or clinched_via_seed
+
+
+    # Find live pool game
     our_game = None
     other_live = None
+    live_playoff_game = None
     for g in games:
-        if g.get('pool') != our_pool or g.get('status') != 'in_progress':
+        if g.get('status') != 'in_progress':
             continue
-        if g.get('home') == our_team or g.get('away') == our_team:
-            our_game = g
-        else:
-            other_live = g
+        if g.get('pool') == our_pool:
+            if g.get('home') == our_team or g.get('away') == our_team:
+                our_game = g
+            else:
+                other_live = g
+        elif g.get('pool') is None and (g.get('home') == our_team or g.get('away') == our_team):
+            live_playoff_game = g
 
     if not our_game:
-        return None
+        if not clinched_berth and not live_playoff_game:
+            return None
+
+        playoff_game_info = None
+        if live_playoff_game:
+            we_h = live_playoff_game.get('home') == our_team
+            hs = live_playoff_game.get('home_score') or 0
+            as_ = live_playoff_game.get('away_score') or 0
+            playoff_game_info = {
+                'home': live_playoff_game.get('home'),
+                'away': live_playoff_game.get('away'),
+                'home_name': teams.get(live_playoff_game.get('home'), {}).get('name', live_playoff_game.get('home')),
+                'away_name': teams.get(live_playoff_game.get('away'), {}).get('name', live_playoff_game.get('away')),
+                'home_score': hs,
+                'away_score': as_,
+                'our_score': hs if we_h else as_,
+                'their_score': as_ if we_h else hs,
+            }
+
+        return {
+            'mode': 'clinched',
+            'clinched_berth': True,
+            'locked_seed': locked_seed,
+            'our_game': playoff_game_info,
+            'other_game': None,
+            'matrix': [],
+            'indicator': 'green',
+            'recommendation': 'Playoff Spot Clinched — My Job Is Done! 🎉',
+            'reason': advisory_text or (
+                f"{our_team_name} has mathematically clinched a playoff spot! "
+                f"Round-robin tiebreaker survival math is behind us—good luck on the bench, Coach!"
+            ),
+            'empty_net_downside': False,
+            'empty_net_warning': None,
+        }
 
     we_are_home = our_game.get('home') == our_team
     our_score = (our_game.get('home_score') or 0) if we_are_home else (our_game.get('away_score') or 0)
     their_score = (our_game.get('away_score') or 0) if we_are_home else (our_game.get('home_score') or 0)
     opp_id = our_game.get('away') if we_are_home else our_game.get('home')
     opp_name = teams.get(opp_id, {}).get('name', opp_id)
-    our_team_name = teams.get(our_team, {}).get('name', our_team)
 
     matrix = compute_margin_payoff_matrix(tournament_data, our_team, our_pool, our_game, other_live)
     eval_result = evaluate_goalie_pull(matrix, our_score, their_score, our_team_name, opp_name, other_live)
+
+    all_clinched_in_matrix = bool(matrix) and all(m.get('adv_pct') == 100.0 for m in matrix)
+    if clinched_berth or all_clinched_in_matrix:
+        eval_result['indicator'] = 'green'
+        eval_result['recommendation'] = 'Playoff Spot Clinched — My Job Is Done! 🎉'
+        eval_result['reason'] = advisory_text or (
+            f"{our_team_name} has mathematically clinched a playoff berth (100% across all margins). "
+            f"No advancement reason to pull the goalie—only consider pulling if chasing a specific 1st/2nd seed for Home/Visitor jersey designation."
+        )
+        eval_result['empty_net_downside'] = False
+        eval_result['empty_net_warning'] = (
+            "BERTH LOCKED (100%): Playoff qualification is guaranteed regardless of final score margin."
+        )
 
     # Concurrent game info
     other_info = None
@@ -242,9 +325,10 @@ def compute_bench_analysis(tournament_data: dict, our_team: str, our_pool: str) 
             'margin': abs(oh - oa),
         }
 
-    bench_pin = tournament_data.get('security', {}).get('bench_pin', '1777')
-
     return {
+        'mode': 'clinched' if (clinched_berth or all_clinched_in_matrix) else 'live',
+        'clinched_berth': bool(clinched_berth or all_clinched_in_matrix),
+        'locked_seed': locked_seed,
         'our_game': {
             'home': our_game.get('home'),
             'away': our_game.get('away'),
@@ -263,3 +347,4 @@ def compute_bench_analysis(tournament_data: dict, our_team: str, our_pool: str) 
         'empty_net_downside': eval_result['empty_net_downside'],
         'empty_net_warning': eval_result['empty_net_warning'],
     }
+

@@ -2,6 +2,10 @@
 from typing import Dict, List, Optional, Any
 
 
+def _ordinal(n: int) -> str:
+    return {1: "1st", 2: "2nd", 3: "3rd", 4: "4th"}.get(n, f"{n}th")
+
+
 class TournamentStructure:
     """Base class for tournament structures."""
 
@@ -86,6 +90,8 @@ class TwoPoolTop2AdvanceStructure(TournamentStructure):
     ) -> Dict[str, Any]:
         def get_team_info(pool_id: str, rank_idx: int) -> dict:
             p_data = pool_rankings.get(pool_id, {})
+            seed_label = f"{_ordinal(rank_idx + 1)} {pool_id}"
+            seed_full = f"{_ordinal(rank_idx + 1)} in Pool {pool_id}"
             if isinstance(p_data, dict):
                 clinched = p_data.get('clinched_positions', {})
                 is_final = p_data.get('is_final', False)
@@ -97,6 +103,8 @@ class TwoPoolTop2AdvanceStructure(TournamentStructure):
                         'id': tid,
                         'name': name,
                         'placeholder': f"{rank_idx+1} in Pool {pool_id}",
+                        'seed_label': seed_label,
+                        'seed_full': seed_full,
                         'resolved': True,
                         'status': 'final' if is_final else 'clinched'
                     }
@@ -109,6 +117,8 @@ class TwoPoolTop2AdvanceStructure(TournamentStructure):
                         'id': tid,
                         'name': name,
                         'placeholder': f"{rank_idx+1} in Pool {pool_id}",
+                        'seed_label': seed_label,
+                        'seed_full': seed_full,
                         'resolved': True,
                         'status': 'clinched'
                     }
@@ -116,11 +126,15 @@ class TwoPoolTop2AdvanceStructure(TournamentStructure):
                 'id': None,
                 'name': f"{rank_idx+1} in Pool {pool_id}",
                 'placeholder': f"{rank_idx+1} in Pool {pool_id}",
+                'seed_label': seed_label,
+                'seed_full': seed_full,
                 'resolved': False,
                 'status': 'tbd'
             }
 
         def build_matchup(label: str, home_info: dict, away_info: dict) -> dict:
+            home_info = {**home_info, 'designation': 'H'}
+            away_info = {**away_info, 'designation': 'V'}
             if home_info['status'] == 'final' and away_info['status'] == 'final':
                 m_status = 'final'
             elif home_info['resolved'] and away_info['resolved']:
@@ -150,8 +164,26 @@ class TwoPoolTop2AdvanceStructure(TournamentStructure):
 
         final = {
             'game': 'Championship Final',
-            'home': {'id': None, 'name': 'Winner Semi 1', 'placeholder': 'Winner Semi 1', 'resolved': False, 'status': 'tbd'},
-            'away': {'id': None, 'name': 'Winner Semi 2', 'placeholder': 'Winner Semi 2', 'resolved': False, 'status': 'tbd'},
+            'home': {
+                'id': None,
+                'name': 'Winner Semi 1',
+                'placeholder': 'Winner Semi 1',
+                'seed_label': 'Winner Semi 1',
+                'seed_full': 'Winner of Semi 1',
+                'designation': 'H',
+                'resolved': False,
+                'status': 'tbd'
+            },
+            'away': {
+                'id': None,
+                'name': 'Winner Semi 2',
+                'placeholder': 'Winner Semi 2',
+                'seed_label': 'Winner Semi 2',
+                'seed_full': 'Winner of Semi 2',
+                'designation': 'V',
+                'resolved': False,
+                'status': 'tbd'
+            },
             'status': 'tbd',
             'is_official': False
         }
@@ -206,6 +238,9 @@ class TwoPoolTop2AdvanceStructure(TournamentStructure):
                             'id': win_id,
                             'name': team_obj.get('name', win_id),
                             'placeholder': 'Winner Semi 1',
+                            'seed_label': 'Winner Semi 1',
+                            'seed_full': 'Winner of Semi 1',
+                            'designation': 'H',
                             'resolved': True,
                             'status': 'final'
                         }
@@ -218,6 +253,9 @@ class TwoPoolTop2AdvanceStructure(TournamentStructure):
                             'id': win_id,
                             'name': team_obj.get('name', win_id),
                             'placeholder': 'Winner Semi 2',
+                            'seed_label': 'Winner Semi 2',
+                            'seed_full': 'Winner of Semi 2',
+                            'designation': 'V',
                             'resolved': True,
                             'status': 'final'
                         }
@@ -236,6 +274,10 @@ class TwoPoolTop2AdvanceStructure(TournamentStructure):
 
         return {
             'type': 'two_pool_top2_advance',
+            'rounds': [
+                {'key': 'semis', 'title': 'Semifinals', 'games': semis},
+                {'key': 'final', 'title': 'Championship Final', 'games': [final]},
+            ],
             'semis': semis,
             'consolations': consolations,
             'final': final,
@@ -267,6 +309,7 @@ class MultiPoolCrossoverStructure(TournamentStructure):
         def get_pool_winner_info(pool_id: str) -> dict:
             p_data = pool_rankings.get(pool_id, {})
             placeholder = f"Winner Pool {pool_id}"
+            seed_label = f"1st {pool_id}"
             if isinstance(p_data, dict):
                 clinched = p_data.get('clinched_positions', {})
                 is_final = p_data.get('is_final', False)
@@ -277,6 +320,8 @@ class MultiPoolCrossoverStructure(TournamentStructure):
                         'id': tid,
                         'name': team_obj.get('name', tid),
                         'placeholder': placeholder,
+                        'seed_label': seed_label,
+                        'seed_full': placeholder,
                         'resolved': True,
                         'status': 'final' if is_final else 'clinched'
                     }
@@ -288,6 +333,8 @@ class MultiPoolCrossoverStructure(TournamentStructure):
                         'id': tid,
                         'name': team_obj.get('name', tid),
                         'placeholder': placeholder,
+                        'seed_label': seed_label,
+                        'seed_full': placeholder,
                         'resolved': True,
                         'status': 'clinched'
                     }
@@ -295,6 +342,8 @@ class MultiPoolCrossoverStructure(TournamentStructure):
                 'id': None,
                 'name': placeholder,
                 'placeholder': placeholder,
+                'seed_label': seed_label,
+                'seed_full': placeholder,
                 'resolved': False,
                 'status': 'tbd'
             }
@@ -304,8 +353,8 @@ class MultiPoolCrossoverStructure(TournamentStructure):
         for qf in playoffs_cfg.get('quarterfinals', []):
             home_pool = qf.get('home_pool')
             away_pool = qf.get('away_pool')
-            h_info = get_pool_winner_info(home_pool)
-            a_info = get_pool_winner_info(away_pool)
+            h_info = {**get_pool_winner_info(home_pool), 'designation': 'H'}
+            a_info = {**get_pool_winner_info(away_pool), 'designation': 'V'}
 
             if h_info['status'] == 'final' and a_info['status'] == 'final':
                 m_status = 'final'
@@ -324,8 +373,13 @@ class MultiPoolCrossoverStructure(TournamentStructure):
                 'is_official': False
             })
 
+        rounds = []
+        if qf_list:
+            rounds.append({'key': 'quarterfinals', 'title': 'Quarterfinals', 'games': qf_list})
+
         return {
             'type': 'multi_pool_crossover',
+            'rounds': rounds,
             'quarterfinals': qf_list,
         }
 

@@ -666,3 +666,68 @@ The goalie-pull decision is borderline:
 Provide 2 sentences of direct, objective advice on whether the risk of pulling the goalie is mathematically justified."""
 
     return _call(prompt, max_tokens=150, label="bench_advice", thinking_level="high", temperature=1.0)
+
+
+def generate_clinched_bench_advisory(tournament_data, standings, clinch_data, playoff_bracket, remaining_pool_games):
+    """Generate a concise post-clinch Bench Advisor brief using tournament structure and rules.
+
+    Called ONLY when a game goes final (or once on initialization after clinching).
+    """
+    our_team = tournament_data['tournament']['our_team']
+    our_team_name = tournament_data['teams'][our_team]['name']
+    our_pool = tournament_data['teams'][our_team].get('pool', 'B')
+    tournament_name = tournament_data['tournament'].get('name', 'Tournament')
+    playoffs_cfg = tournament_data.get('structure', {}).get('playoffs', {})
+    game_rules = tournament_data.get('game_rules', {})
+
+    standings_str = '\n'.join(
+        f"  {r.get('name', '')} ({r.get('id') or r.get('team', '')}): {r.get('w', 0)}W-{r.get('l', 0)}L-{r.get('t', 0)}T, {r.get('pts', 0)}pts, GD={r.get('gd', 0)}"
+        for r in (standings or [])
+    )
+    rem_str = '\n'.join(
+        f"  {g.get('home_name') or g.get('home', '')} (Home) vs {g.get('away_name') or g.get('away', '')} (Away) at {g.get('date', '')}"
+        for g in (remaining_pool_games or [])
+    ) or "  None (Pool play complete)"
+
+    our_clinch = (clinch_data or {}).get(our_pool, {})
+    clinched_pos = our_clinch.get('clinched_positions', {}) if isinstance(our_clinch, dict) else {}
+    locked_seed = None
+    for pos_idx, tid in clinched_pos.items():
+        if tid == our_team:
+            try:
+                locked_seed = int(pos_idx) + 1
+            except (ValueError, TypeError):
+                pass
+
+    prompt = f"""You are the tactical Bench Assistant & Goalie-Pull Advisor for {our_team_name} ({our_team}) in Pool {our_pool} at {tournament_name}.
+
+=== TOURNAMENT CONTEXT ===
+{our_team_name} has mathematically CLINCHED a playoff berth!
+Locked Exact Pool Seed: {f"#{locked_seed} in Pool {our_pool} (100% locked)" if locked_seed else f"Berth clinched, but exact seed position in Pool {our_pool} (e.g. 1st vs 2nd) is still in play"}
+
+Pool {our_pool} Standings:
+{standings_str}
+
+Remaining Pool {our_pool} Games:
+{rem_str}
+
+Tournament Bracket Structure (Home vs Away seed assignments):
+{json.dumps(playoffs_cfg, indent=2)}
+
+Resolved Playoff Bracket State:
+{json.dumps(playoff_bracket, indent=2)}
+
+Game & Jersey Rules:
+{json.dumps(game_rules, indent=2)}
+=== END CONTEXT ===
+
+YOUR MISSION:
+Write a 2-to-3 sentence tactical note (under 75 words) for the head coach on the Bench Advisor screen:
+1. Start with a warm, proud note that since {our_team_name} has clinched a playoff spot, your job calculating survival goalie-pull odds is officially done!
+2. If we still have a remaining pool game AND our exact seed (e.g. 1st vs 2nd) is NOT yet locked: briefly explain what result locks 1st vs 2nd, and trace which seed gets Home (H) vs Visitor (V) in the upcoming bracket rounds (noting that Home gets jersey choice / last change, e.g., if chasing Home in the Semifinal vs Home in the Final). State clearly that there is no reason to pull the goalie unless chasing a specific Home/Visitor seed.
+3. If our exact seed IS already locked or pool play is over: state our locked seed, our next playoff matchup (opponent or seed placeholder, Home vs Visitor designation, and arena/time if listed), and tell Coach to rest the legs and play disciplined sudden-victory hockey.
+
+Keep it direct, factual, and plain text (no markdown headers or bullets)."""
+
+    return _call(prompt, max_tokens=200, label="clinched_bench_advisory", thinking_level="medium", temperature=0.4)
+
