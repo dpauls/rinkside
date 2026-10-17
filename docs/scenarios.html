@@ -175,25 +175,31 @@ async function fetchScenariosList(d) {
 
 async function fetchTournamentState() {
     let d = null;
-    if (activeDataUrl && activeDataUrl !== LOCAL_DATA_URL) {
+    if (isLocalDev) {
+        const resp = await fetch(LOCAL_DATA_URL + '?t=' + Date.now());
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+        d = await resp.json();
+        await fetchScenariosList(d);
+        return d;
+    }
+
+    let lastErr = null;
+    for (let attempt = 0; attempt < 3; attempt++) {
         try {
             const resp = await fetch(activeDataUrl + '?t=' + Date.now());
             if (resp.ok) {
                 d = await resp.json();
-                if (d.s3_public_url && !isLocalDev && !isDevMode) activeDataUrl = d.s3_public_url;
+                if (d.s3_public_url && !isDevMode) activeDataUrl = d.s3_public_url;
+                await fetchScenariosList(d);
+                return d;
             }
+            lastErr = new Error(`HTTP ${resp.status}`);
         } catch (e) {
-            console.warn('S3 / Object storage fetch failed, falling back to local state:', e);
+            lastErr = e;
         }
+        if (attempt < 2) await new Promise(r => setTimeout(r, 400));
     }
-    if (!d) {
-        const resp = await fetch(LOCAL_DATA_URL + '?t=' + Date.now());
-        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-        d = await resp.json();
-        if (d.s3_public_url && !isLocalDev && !isDevMode) activeDataUrl = d.s3_public_url;
-    }
-    await fetchScenariosList(d);
-    return d;
+    throw lastErr || new Error('Failed to fetch tournament state');
 }
 
 let currentFilter = 'all';

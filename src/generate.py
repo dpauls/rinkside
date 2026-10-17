@@ -445,12 +445,35 @@ def generate(data_path='data/tournaments/pink_the_rink_2026.json', skip_narrativ
             'Consolation 2': 2074861,
             'Championship Final': 2074871,
         }
-        for m in (playoff_bracket.get('semis') or []) + (playoff_bracket.get('consolations') or []):
-            mgid = gid_map.get(m.get('game'))
-            if mgid:
-                resolved_playoff_by_gid[mgid] = m
+        game_by_id = {g.get('game_id') or g.get('GID'): g for g in data.get('pool_games', [])}
+        for category in ('semis', 'consolations'):
+            for m in (playoff_bracket.get(category) or []):
+                mgid = gid_map.get(m.get('game'))
+                if mgid:
+                    resolved_playoff_by_gid[mgid] = m
+                    m['game_id'] = mgid
+                    if mgid in game_by_id:
+                        og = game_by_id[mgid]
+                        m['date'] = og.get('date')
+                        m['date_str'] = og.get('date_str')
+                        m['arena'] = og.get('arena')
+                        if og.get('status') in ('in_progress', 'live', 'final'):
+                            m['status'] = og.get('status')
+                        m['home_score'] = og.get('home_score')
+                        m['away_score'] = og.get('away_score')
         if playoff_bracket.get('final'):
-            resolved_playoff_by_gid[2074871] = playoff_bracket['final']
+            mf = playoff_bracket['final']
+            mf['game_id'] = 2074871
+            resolved_playoff_by_gid[2074871] = mf
+            if 2074871 in game_by_id:
+                og = game_by_id[2074871]
+                mf['date'] = og.get('date')
+                mf['date_str'] = og.get('date_str')
+                mf['arena'] = og.get('arena')
+                if og.get('status') in ('in_progress', 'live', 'final'):
+                    mf['status'] = og.get('status')
+                mf['home_score'] = og.get('home_score')
+                mf['away_score'] = og.get('away_score')
 
     # All division games (all pools combined, sorted chronologically)
     all_division_games = []

@@ -158,6 +158,39 @@ class TwoPoolTop2AdvanceStructure(TournamentStructure):
 
         # Dynamically resolve Championship Final from official playoff games
         if official_games:
+            gid_map = {
+                'Semi 1': 2074839,
+                'Semi 2': 2074842,
+                'Consolation 1': 2074858,
+                'Consolation 2': 2074861,
+                'Championship Final': 2074871,
+            }
+            game_by_id = {g.get('game_id') or g.get('GID'): g for g in official_games if g.get('game_id') or g.get('GID')}
+            for m in semis + consolations:
+                mgid = gid_map.get(m['game'])
+                if mgid:
+                    m['game_id'] = mgid
+                    if mgid in game_by_id:
+                        og = game_by_id[mgid]
+                        m['date'] = og.get('date')
+                        m['date_str'] = og.get('date_str')
+                        m['arena'] = og.get('arena')
+                        if og.get('status') in ('in_progress', 'live', 'final'):
+                            m['status'] = og.get('status')
+                        m['home_score'] = og.get('home_score')
+                        m['away_score'] = og.get('away_score')
+
+            final['game_id'] = 2074871
+            if 2074871 in game_by_id:
+                og = game_by_id[2074871]
+                final['date'] = og.get('date')
+                final['date_str'] = og.get('date_str')
+                final['arena'] = og.get('arena')
+                if og.get('status') in ('in_progress', 'live', 'final'):
+                    final['status'] = og.get('status')
+                final['home_score'] = og.get('home_score')
+                final['away_score'] = og.get('away_score')
+
             for g in official_games:
                 gid = g.get('game_id') or g.get('GID')
                 hs = g.get('home_score')

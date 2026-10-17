@@ -410,22 +410,33 @@ if (isDevMode || isLocalDev) {
 }
 
 async function fetchTournamentState() {
-    if (activeDataUrl && activeDataUrl !== LOCAL_DATA_URL) {
+    if (isLocalDev) {
+        const resp = await fetch(LOCAL_DATA_URL + '?t=' + Date.now());
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+        return await resp.json();
+    }
+
+    // In production / branch preview / dev, activeDataUrl (OCI Object Storage) is the single source of truth.
+    // Retry up to 2 times with a brief delay (400ms) to gracefully handle phone waking from standby/sleep.
+    let lastErr = null;
+    for (let attempt = 0; attempt < 3; attempt++) {
         try {
             const resp = await fetch(activeDataUrl + '?t=' + Date.now());
             if (resp.ok) {
                 const d = await resp.json();
-                if (d.s3_public_url && !isLocalDev && !isDevMode) activeDataUrl = d.s3_public_url;
+                if (d.s3_public_url && !isDevMode) activeDataUrl = d.s3_public_url;
                 return d;
             }
+            lastErr = new Error(`HTTP ${resp.status}`);
         } catch (e) {
-            console.warn('S3 / Object storage fetch failed, falling back to local state:', e);
+            lastErr = e;
         }
+        if (attempt < 2) await new Promise(r => setTimeout(r, 400));
     }
-    const resp = await fetch(LOCAL_DATA_URL + '?t=' + Date.now());
-    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-    const d = await resp.json();
-    return d;
+
+    // NEVER fall back to stale static local data in production. Throwing here ensures we don't overwrite
+    // live state with pre-tournament data when offline or re-establishing network.
+    throw lastErr || new Error('Failed to fetch tournament state');
 }
 
 const REFRESH_MS = 15000; // 15 seconds (responsive live polling)
@@ -1228,9 +1239,9 @@ function findPlayoffGame(label) {
 
 function renderPlayoffMatchup(g) {
     const matchedGame = findPlayoffGame(g.game || '');
-    const gid = matchedGame ? (matchedGame.game_id || matchedGame.gid) : (g.game_id || g.gid || '');
-    const isGameLive = matchedGame && matchedGame.status === 'in_progress';
-    const isGameFinal = matchedGame && matchedGame.status === 'final';
+    const gid = g.game_id || (matchedGame ? (matchedGame.game_id || matchedGame.gid) : (g.gid || ''));
+    const isGameLive = (g.status === 'in_progress' || g.status === 'live') || (matchedGame && (matchedGame.status === 'in_progress' || matchedGame.status === 'live'));
+    const isGameFinal = (g.status === 'final') || (matchedGame && matchedGame.status === 'final');
     const subBtn = renderSubButton(gid, isGameFinal);
 
     let badge = '';
@@ -1254,23 +1265,27 @@ function renderPlayoffMatchup(g) {
     const awayStr = g.away.resolved ? `<strong>${esc(g.away.name)}</strong>` : `<span style="color:var(--pico-muted-color);font-style:italic">${esc(g.away.name)}</span>`;
 
     let matchupLine = `${homeStr} vs ${awayStr}`;
-    if ((isGameLive || isGameFinal) && matchedGame.home_score !== null && matchedGame.home_score !== undefined) {
+    const hs = (g.home_score !== null && g.home_score !== undefined) ? g.home_score : (matchedGame ? matchedGame.home_score : null);
+    const as_ = (g.away_score !== null && g.away_score !== undefined) ? g.away_score : (matchedGame ? matchedGame.away_score : null);
+    if ((isGameLive || isGameFinal) && hs !== null && hs !== undefined) {
         const scoreStyle = isGameLive ? 'color:#d32f2f;font-weight:800;margin:0 0.35rem' : 'font-weight:800;margin:0 0.35rem';
-        matchupLine = `${homeStr} <span class="score" style="${scoreStyle}">${matchedGame.home_score} - ${matchedGame.away_score}</span> ${awayStr}`;
+        matchupLine = `${homeStr} <span class="score" style="${scoreStyle}">${hs} - ${as_}</span> ${awayStr}`;
     }
 
     let metaStr = '';
-    if (matchedGame) {
-        const venueObj = currentVenues[matchedGame.arena];
-        const arenaBadge = matchedGame.arena ? (venueObj && venueObj.maps_url 
-            ? `<a href="${esc(venueObj.maps_url)}" target="_blank" rel="noopener" style="font-size:0.75rem;margin-left:0.3rem;color:#0284c7;text-decoration:none">📍 ${esc(matchedGame.arena)}</a>`
-            : `<span style="font-size:0.75rem;color:var(--pico-muted-color);margin-left:0.3rem">(${esc(matchedGame.arena)})</span>`) : '';
+    const dateVal = g.date || (matchedGame ? matchedGame.date : null);
+    const arenaVal = g.arena || (matchedGame ? matchedGame.arena : null);
+    if (dateVal || arenaVal) {
+        const venueObj = currentVenues[arenaVal];
+        const arenaBadge = arenaVal ? (venueObj && venueObj.maps_url 
+            ? `<a href="${esc(venueObj.maps_url)}" target="_blank" rel="noopener" style="font-size:0.75rem;margin-left:0.3rem;color:#0284c7;text-decoration:none">📍 ${esc(arenaVal)}</a>`
+            : `<span style="font-size:0.75rem;color:var(--pico-muted-color);margin-left:0.3rem">(${esc(arenaVal)})</span>`) : '';
         const gidLabel = gid ? `#${gid} &middot; ` : '';
-        metaStr = `<div style="font-size:0.78rem;color:var(--pico-muted-color);margin-top:0.25rem">${gidLabel}${fmtDate(matchedGame.date)} ${arenaBadge}</div>`;
+        metaStr = `<div style="font-size:0.78rem;color:var(--pico-muted-color);margin-top:0.25rem">${gidLabel}${fmtDate(dateVal)} ${arenaBadge}</div>`;
     }
 
     let note = '';
-    if (!matchedGame && g.status === 'clinched') {
+    if (!matchedGame && !dateVal && g.status === 'clinched') {
         note = '<div style="font-size:0.75rem;color:#0284c7;margin-top:0.25rem">Mathematically locked seeds &middot; Official schedule & arena pending from organizers</div>';
     } else if (g.status === 'tbd') {
         note = '<div style="font-size:0.75rem;color:var(--pico-muted-color);margin-top:0.25rem">Awaiting round-robin pool completion or mathematical clinch</div>';
@@ -1623,8 +1638,17 @@ async function loadAndRender() {
 
     } catch (err) {
         console.error('Failed to load state:', err);
-        document.getElementById('standings-area').innerHTML =
-            `<p class="loading">Could not load data. Will retry in 15 seconds.<br><small>${esc(err.message)}</small></p>`;
+        if (currentState) {
+            // Already have valid state in memory - preserve display and show subtle reconnecting indicator
+            const updatedEl = document.getElementById('updated');
+            if (updatedEl) {
+                updatedEl.innerHTML = `Last updated: ${fmtGenerated(currentState.generated_at)} &middot; <span style="color:#f59e0b;font-weight:600">⚠️ Reconnecting...</span>`;
+            }
+        } else {
+            // Cold start with no network yet - show connecting skeleton, NOT stale pre-tournament data!
+            document.getElementById('standings-area').innerHTML =
+                `<p class="loading">Connecting to live tournament feed...<br><small style="color:var(--pico-muted-color)">Retrying in 15 seconds (${esc(err.message)})</small></p>`;
+        }
     }
 }
 
@@ -1639,14 +1663,31 @@ document.addEventListener('visibilitychange', () => {
     }
 });
 
-// Register Service Worker for PWA & Background Alerts
+// Register Service Worker for PWA & Background Alerts with automatic updates
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
         navigator.serviceWorker.register('sw.js').then((reg) => {
             console.log('Rinkside Service Worker active:', reg.scope);
+            // Periodically check for service worker updates (every 60 seconds)
+            setInterval(() => { reg.update(); }, 60000);
+            // Check for service worker updates whenever the user returns to the app
+            document.addEventListener('visibilitychange', () => {
+                if (document.visibilityState === 'visible') {
+                    reg.update();
+                }
+            });
         }).catch((err) => {
             console.warn('Service Worker registration failed:', err);
         });
+    });
+
+    // Auto-reload once when a new service worker version activates
+    let refreshing = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (!refreshing) {
+            refreshing = true;
+            window.location.reload();
+        }
     });
 }
 

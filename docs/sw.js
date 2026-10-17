@@ -1,5 +1,5 @@
 // Rinkside Service Worker for PWA and Background Push Notifications
-const CACHE_NAME = 'rinkside-v1';
+const CACHE_NAME = 'rinkside-v2';
 
 self.addEventListener('install', (event) => {
     self.skipWaiting();

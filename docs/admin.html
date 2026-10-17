@@ -80,12 +80,20 @@
 <script>
 const OCI_DATA_URL = 'https://objectstorage.ca-toronto-1.oraclecloud.com/n/yzjspjx2rhjg/b/rinkside/o/data/state.json';
 const LOCAL_DATA_URL = 'data/state.json';
-let activeDataUrl = window.RUSTIC_S3_DATA_URL || OCI_DATA_URL;
+const isLocalDev = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+let activeDataUrl = isLocalDev ? LOCAL_DATA_URL : (window.RUSTIC_S3_DATA_URL || OCI_DATA_URL);
 let stateData = null;
 let currentStreams = {};
 
 async function fetchTournamentState() {
-    if (activeDataUrl && activeDataUrl !== LOCAL_DATA_URL) {
+    if (isLocalDev) {
+        const resp = await fetch(LOCAL_DATA_URL + '?t=' + Date.now());
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+        return await resp.json();
+    }
+
+    let lastErr = null;
+    for (let attempt = 0; attempt < 3; attempt++) {
         try {
             const resp = await fetch(activeDataUrl + '?t=' + Date.now());
             if (resp.ok) {
@@ -93,15 +101,13 @@ async function fetchTournamentState() {
                 if (d.s3_public_url) activeDataUrl = d.s3_public_url;
                 return d;
             }
+            lastErr = new Error(`HTTP ${resp.status}`);
         } catch (e) {
-            console.warn('Live fetch error:', e);
+            lastErr = e;
         }
+        if (attempt < 2) await new Promise(r => setTimeout(r, 400));
     }
-    const resp = await fetch(LOCAL_DATA_URL + '?t=' + Date.now());
-    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-    const d = await resp.json();
-    if (d.s3_public_url) activeDataUrl = d.s3_public_url;
-    return d;
+    throw lastErr || new Error('Failed to fetch tournament state');
 }
 
 async function sha256Hex(text) {
