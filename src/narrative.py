@@ -373,7 +373,7 @@ def generate_game_final_comment(game, standings, prev_scenarios, curr_scenarios,
 
     if game_pool is None:
         gid = game.get('game_id') or game.get('gid')
-        round_label = "Championship Final" if gid == 2074871 else ("Semifinal" if gid in (2074858, 2074861) else "Consolation Game")
+        round_label = "Championship Final" if gid == 2074871 else ("Semifinal" if gid in (2074839, 2074842) else "Consolation Game")
         prompt = f"""A {round_label} game just finished at {tournament_name}.
 
 Result: {home_name} {game['home_score']} - {game['away_score']} {away_name} ({round_label})

@@ -164,8 +164,8 @@ class TwoPoolTop2AdvanceStructure(TournamentStructure):
                 as_ = g.get('away_score')
                 is_final = (g.get('status') == 'final') or g.get('completed', False)
 
-                # Semi 1: 2074858
-                if gid == 2074858 or ('Semi 1' in str(g.get('notes', ''))):
+                # Semi 1: 2074839
+                if gid == 2074839 or ('Semi 1' in str(g.get('notes', ''))):
                     if is_final and hs is not None and as_ is not None and hs != as_:
                         win_id = g['home'] if hs > as_ else g['away']
                         team_obj = teams_data.get(win_id, {})
@@ -176,8 +176,8 @@ class TwoPoolTop2AdvanceStructure(TournamentStructure):
                             'resolved': True,
                             'status': 'final'
                         }
-                # Semi 2: 2074861
-                elif gid == 2074861 or ('Semi 2' in str(g.get('notes', ''))):
+                # Semi 2: 2074842
+                elif gid == 2074842 or ('Semi 2' in str(g.get('notes', ''))):
                     if is_final and hs is not None and as_ is not None and hs != as_:
                         win_id = g['home'] if hs > as_ else g['away']
                         team_obj = teams_data.get(win_id, {})

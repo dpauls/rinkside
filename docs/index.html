@@ -1218,10 +1218,10 @@ function findPlayoffGame(label) {
     if (!currentState || !currentState.all_division_games) return null;
     const playoffGames = currentState.all_division_games.filter(g => !g.pool);
     const l = (label || '').toLowerCase();
-    if (l.includes('semi 1')) return playoffGames.find(g => g.game_id === 2074858) || playoffGames[2];
-    if (l.includes('semi 2')) return playoffGames.find(g => g.game_id === 2074861) || playoffGames[3];
-    if (l.includes('consolation 1')) return playoffGames.find(g => g.game_id === 2074842) || playoffGames[1];
-    if (l.includes('consolation 2')) return playoffGames.find(g => g.game_id === 2074839) || playoffGames[0];
+    if (l.includes('semi 1')) return playoffGames.find(g => g.game_id === 2074839) || playoffGames[0];
+    if (l.includes('semi 2')) return playoffGames.find(g => g.game_id === 2074842) || playoffGames[1];
+    if (l.includes('consolation 1')) return playoffGames.find(g => g.game_id === 2074858) || playoffGames[2];
+    if (l.includes('consolation 2')) return playoffGames.find(g => g.game_id === 2074861) || playoffGames[3];
     if (l.includes('final')) return playoffGames.find(g => g.game_id === 2074871) || playoffGames[4];
     return null;
 }

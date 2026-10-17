@@ -215,6 +215,12 @@ def update_tournament_data(tournament_data, api_games, pool_id=None):
             tournament_data['pool_games'][i]['home_score'] = updated['home_score']
             tournament_data['pool_games'][i]['away_score'] = updated['away_score']
             tournament_data['pool_games'][i]['status'] = updated['status']
+            if updated.get('date'):
+                tournament_data['pool_games'][i]['date'] = updated['date']
+            if updated.get('date_str'):
+                tournament_data['pool_games'][i]['date_str'] = updated['date_str']
+            if updated.get('arena'):
+                tournament_data['pool_games'][i]['arena'] = updated['arena']
             # If teams were previously TBA (playoffs), update them now
             if updated.get('home') and updated['home'] != 'TBA':
                 tournament_data['pool_games'][i]['home'] = updated['home']
@@ -719,7 +725,7 @@ def run_cycle(tournament_data, mock_source=None, skip_narrative=False, skip_push
         elif our_playoff_upcoming:
             g0 = our_playoff_upcoming[0]
             opp_n = g0['away_name'] if g0['home'] == our_team else g0['home_name']
-            stage_lbl = "Championship Final" if g0.get('game_id') == 2074871 else ("Semifinal" if g0.get('game_id') in (2074858, 2074861) else "Consolation")
+            stage_lbl = "Championship Final" if g0.get('game_id') == 2074871 else ("Semifinal" if g0.get('game_id') in (2074839, 2074842) else "Consolation")
             current_for_game = f"{stage_lbl}: {opp_n}"
         elif our_playoff_final:
             last_pg = our_playoff_final[-1]

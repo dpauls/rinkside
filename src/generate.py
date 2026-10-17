@@ -439,10 +439,10 @@ def generate(data_path='data/tournaments/pink_the_rink_2026.json', skip_narrativ
     resolved_playoff_by_gid = {}
     if isinstance(playoff_bracket, dict):
         gid_map = {
-            'Consolation 2': 2074839,
-            'Consolation 1': 2074842,
-            'Semi 1': 2074858,
-            'Semi 2': 2074861,
+            'Semi 1': 2074839,
+            'Semi 2': 2074842,
+            'Consolation 1': 2074858,
+            'Consolation 2': 2074861,
             'Championship Final': 2074871,
         }
         for m in (playoff_bracket.get('semis') or []) + (playoff_bracket.get('consolations') or []):
